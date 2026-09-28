@@ -1,0 +1,82 @@
+# AXEN From-Scratch Transformer Architecture & Training Presets
+# Exact parameter formulas:
+# Params = (vocab_size * hidden_dim) + layers * (4 * hidden_dim^2 + 3 * hidden_dim * intermediate_dim + 2 * hidden_dim) + hidden_dim
+
+presets:
+  tiny:
+    description: "Fast learning prototype, fits in ~1.2 GB VRAM or runs on CPU"
+    params_millions: 10.06
+    architecture:
+      vocab_size: 8192
+      hidden_dim: 320
+      num_layers: 6
+      num_heads: 5
+      num_kv_heads: 5
+      intermediate_dim: 864   # SwiGLU projection (approx 8/3 * hidden_dim)
+      max_seq_len: 512
+      rope_theta: 10000.0
+      norm_eps: 0.00001
+      tie_embeddings: true
+    training:
+      micro_batch_size: 16
+      gradient_accumulation_steps: 2
+      effective_batch_size: 32
+      learning_rate: 0.0005
+      min_learning_rate: 0.00005
+      warmup_steps: 500
+      weight_decay: 0.1
+      mixed_precision: "fp16" # or "bf16" if supported
+      target_tokens_chinchilla: 200000000 # 200M tokens (20x params)
+      prototype_tokens: 20000000          # 20M tokens
+
+  small:
+    description: "Multi-paragraph coherence, fits in ~2.8 GB VRAM with grad accumulation"
+    params_millions: 49.51
+    architecture:
+      vocab_size: 16384
+      hidden_dim: 512
+      num_layers: 13
+      num_heads: 8
+      num_kv_heads: 8
+      intermediate_dim: 1376
+      max_seq_len: 1024
+      rope_theta: 10000.0
+      norm_eps: 0.00001
+      tie_embeddings: true
+    training:
+      micro_batch_size: 4
+      gradient_accumulation_steps: 4
+      effective_batch_size: 16
+      learning_rate: 0.0003
+      min_learning_rate: 0.00003
+      warmup_steps: 1000
+      weight_decay: 0.1
+      mixed_precision: "fp16"
+      target_tokens_chinchilla: 1000000000 # 1B tokens
+      prototype_tokens: 50000000           # 50M tokens
+
+  medium:
+    description: "Conversational & reasoning capable, requires >= 6GB VRAM (or grad checkpointing)"
+    params_millions: 124.20
+    architecture:
+      vocab_size: 32000
+      hidden_dim: 768
+      num_layers: 14
+      num_heads: 12
+      num_kv_heads: 12
+      intermediate_dim: 2064
+      max_seq_len: 1024
+      rope_theta: 10000.0
+      norm_eps: 0.00001
+      tie_embeddings: true
+    training:
+      micro_batch_size: 2
+      gradient_accumulation_steps: 8
+      effective_batch_size: 16
+      learning_rate: 0.0002
+      min_learning_rate: 0.00002
+      warmup_steps: 2000
+      weight_decay: 0.1
+      mixed_precision: "fp16"
+      target_tokens_chinchilla: 2480000000 # 2.48B tokens
+      prototype_tokens: 100000000          # 100M tokens

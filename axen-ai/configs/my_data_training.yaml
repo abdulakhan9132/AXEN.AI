@@ -1,0 +1,29 @@
+model:
+  vocab_size: 256
+  context_length: 128
+  embedding_dim: 64
+  num_layers: 2
+  num_heads: 4
+  ff_dim: 256
+  dropout: 0.1
+  activation: gelu
+
+data:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  train_ratio: 0.90
+  validation_ratio: 0.05
+  seed: 42
+
+training:
+  learning_rate: 0.0003
+  batch_size: 4
+  epochs: 5
+  max_steps: 500
+  gradient_clip: 1.0
+  validation_frequency: 1
+  checkpoint_dir: checkpoints
+
+system:
+  seed: 42
+  device: auto

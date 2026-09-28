@@ -1,0 +1,20 @@
+# Core dependencies for AXEN Brain
+# Minimal, pinned versions for reproducible training and serving
+
+# Deep Learning Framework
+torch>=2.4.0
+
+# Numerical Computing & Utilities
+numpy>=2.0.0
+pyyaml>=6.0.2
+psutil>=6.1.0
+
+# Testing
+pytest>=8.3.0
+
+# Fast Tokenization (used alongside custom BPE implementations)
+tokenizers>=0.21.0
+
+# Serving & Chat API
+fastapi>=0.115.0
+uvicorn>=0.34.0

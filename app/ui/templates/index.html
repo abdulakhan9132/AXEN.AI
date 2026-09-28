@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AXEN® — Local AI Assistant</title>
+  <meta name="description" content="AXEN Offline Local AI Assistant powered by TinyLlama on CUDA with Agentic Reasoning and Deterministic Tools." />
+  <link rel="stylesheet" href="/static/css/styles.css" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 28'><rect x='0' y='14' width='14' height='14' rx='3' fill='%23F05A28'/><rect x='12' y='0' width='20' height='20' rx='4' fill='%23000000'/><rect x='12' y='20' width='8' height='8' rx='2' fill='%23000000'/></svg>" />
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar" id="sidebar" aria-label="Sidebar navigation">
+      
+      <!-- Top Header: Logo + Collapse Button -->
+      <div class="sidebar-header">
+        <a class="brand-wrapper" href="#" id="brand-link" title="AXEN AI Home">
+          <div class="axen-logo-small">
+            <div class="sq-orange"></div>
+            <div class="sq-black-lg"></div>
+            <div class="sq-black-sm"></div>
+          </div>
+          <span class="brand-text">AXEN<span class="brand-trademark">®</span></span>
+        </a>
+        
+        <button class="btn-icon-toggle" id="btn-toggle-sidebar" title="Toggle Sidebar" aria-label="Collapse sidebar">
+          <!-- Sidebar collapse icon (window with split panel) -->
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- NEW CHAT BUTTON -->
+      <button class="btn-new-chat" id="btn-new-chat" aria-label="Start a new chat">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="16"></line>
+          <line x1="8" y1="12" x2="16" y2="12"></line>
+        </svg>
+        <span>NEW CHAT</span>
+      </button>
+
+      <!-- CHATS SECTION HEADER -->
+      <div class="chats-section-header">
+        <span class="chats-title">Chats</span>
+        <div class="chats-header-actions">
+          <button class="btn-header-action" id="btn-search" title="Search chats" aria-label="Search chats">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+          <button class="btn-header-action" id="btn-filter" title="Chat settings" aria-label="Chat settings">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="4" y1="21" x2="4" y2="14"></line>
+              <line x1="4" y1="10" x2="4" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12" y2="3"></line>
+              <line x1="20" y1="21" x2="20" y2="16"></line>
+              <line x1="20" y1="12" x2="20" y2="3"></line>
+              <line x1="1" y1="14" x2="7" y2="14"></line>
+              <line x1="9" y1="8" x2="15" y2="8"></line>
+              <line x1="17" y1="16" x2="23" y2="16"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Expandable Search Input -->
+      <div class="sidebar-search-box" id="sidebar-search-box">
+        <svg class="sidebar-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" class="sidebar-search-input" id="sidebar-search-input" placeholder="Search conversations..." aria-label="Search conversations" />
+      </div>
+
+      <!-- CONVERSATION LIST AREA -->
+      <div class="conversation-list" id="conversation-list" role="list">
+        <!-- Rendered dynamically via app.js -->
+      </div>
+
+      <!-- SIDEBAR FOOTER -->
+      <div class="sidebar-footer">
+        <div class="status-pill" id="status-pill" title="Local AI Runtime Status">
+          <div class="status-dot pulsing" id="status-dot"></div>
+          <span id="status-text">RTX 3050 • Local Model</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Mobile / Overlay Backdrop -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content" id="main-content">
+      
+      <!-- Top floating toggle when sidebar is collapsed -->
+      <div class="main-top-bar">
+        <button class="btn-floating-toggle" id="btn-floating-toggle" title="Open Sidebar" aria-label="Open sidebar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- SCROLLABLE MESSAGES VIEWPORT -->
+      <div class="messages-scroll-area" id="messages-scroll-area">
+        
+        <!-- CENTERED WELCOME SCREEN (Shown when no messages) -->
+        <div class="welcome-screen" id="welcome-screen">
+          <div class="axen-hero-mark" aria-hidden="true">
+            <div class="sq-orange"></div>
+            <div class="sq-black-lg"></div>
+            <div class="sq-black-sm"></div>
+          </div>
+          
+          <h1 class="welcome-heading">How Can I Help You Today?</h1>
+          <p class="welcome-subtitle">Ask Anything, Get Ideas, Write, Analyze, Design, Or Solve Problems With AI.</p>
+        </div>
+
+        <!-- CONVERSATION CONTAINER (Shown when messages exist) -->
+        <div class="messages-wrapper" id="messages-wrapper"></div>
+      </div>
+
+      <!-- FLOATING MESSAGE COMPOSER -->
+      <div class="composer-floating-container" id="composer-floating-container">
+        
+        <!-- Left: Rounded square plus button -->
+        <button class="btn-composer-plus" id="btn-plus" title="Add or select quick prompt" aria-label="Add or select prompt">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="16"></line>
+            <line x1="8" y1="12" x2="16" y2="12"></line>
+          </svg>
+        </button>
+
+        <!-- Center: Text input area -->
+        <div class="composer-input-wrapper">
+          <textarea
+            class="composer-textarea"
+            id="composer-input"
+            rows="1"
+            placeholder="Message AI..."
+            aria-label="Message AI prompt"
+          ></textarea>
+        </div>
+
+        <!-- Right: Microphone button + Orange Send button -->
+        <div class="composer-actions-right">
+          <button class="btn-composer-voice" id="btn-voice" title="Voice dictation" aria-label="Start voice input">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+          </button>
+
+          <button class="btn-composer-send" id="btn-send" title="Send message" aria-label="Send message">
+            <!-- White paper-plane icon pointing diagonal up-right -->
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+    </main>
+
+  </div>
+
+  <!-- Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Scripts: 100% offline Markdown parser + App Logic -->
+  <script src="/static/js/markdown.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+*.sqlite3
+*.db
+.coverage
+.pytest_cache/
+.idea/
+.vscode/
+.DS_Store
+pip_stdout.txt
+pip_stderr.txt
+*.log

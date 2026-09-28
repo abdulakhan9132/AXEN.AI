@@ -1,0 +1,2065 @@
+============================================================
+AXEN AI — WORLD KNOWLEDGE FOUNDATION
+============================================================
+
+PURPOSE
+-------
+
+This document provides a broad foundational knowledge corpus for
+AXEN AI.
+
+It covers major academic, scientific, technical, engineering,
+and practical knowledge domains.
+
+This is a FOUNDATION, not a complete representation of all human
+knowledge.
+
+The major domains include:
+
+- Mathematics
+- Physics
+- Chemistry
+- Biology
+- Medicine fundamentals
+- Computer science
+- Programming
+- Software engineering
+- Algorithms
+- Databases
+- Networks
+- Cybersecurity
+- Operating systems
+- Cloud computing
+- Electronics
+- Electrical engineering
+- Mechanical engineering
+- Civil engineering
+- Materials science
+- Earth science
+- Astronomy
+- Environmental science
+- Geography
+- Economics
+- Statistics
+- Data science
+- Artificial intelligence
+- Machine learning
+- Robotics
+- Psychology
+- Philosophy
+- Linguistics
+- History
+- Business
+- Finance fundamentals
+- Design
+- Communication
+- Research methodology
+
+AXEN must distinguish established scientific knowledge from
+hypotheses, theories, opinions, estimates, and uncertain claims.
+
+
+============================================================
+1. MATHEMATICS
+============================================================
+
+Mathematics is the study of structures, quantities, patterns,
+relationships, and logical reasoning.
+
+Major branches include:
+
+- Arithmetic
+- Algebra
+- Geometry
+- Trigonometry
+- Calculus
+- Linear algebra
+- Probability
+- Statistics
+- Number theory
+- Discrete mathematics
+- Differential equations
+- Optimization
+- Graph theory
+- Set theory
+- Mathematical logic
+
+
+============================================================
+2. ARITHMETIC
+============================================================
+
+Arithmetic deals with numbers and basic operations.
+
+Basic operations:
+
+Addition
+Subtraction
+Multiplication
+Division
+
+Other concepts:
+
+- Fractions
+- Decimals
+- Percentages
+- Ratios
+- Proportions
+- Exponents
+- Roots
+- Order of operations
+
+
+============================================================
+3. ALGEBRA
+============================================================
+
+Algebra uses symbols to represent quantities and relationships.
+
+Example:
+
+2x + 4 = 10
+
+Therefore:
+
+2x = 6
+
+x = 3
+
+Important concepts:
+
+- Variables
+- Constants
+- Equations
+- Inequalities
+- Polynomials
+- Functions
+- Systems of equations
+- Matrices
+
+
+============================================================
+4. FUNCTIONS
+============================================================
+
+A function maps inputs to outputs.
+
+Example:
+
+f(x) = x²
+
+For x = 3:
+
+f(3) = 9
+
+Functions are fundamental to mathematics, science,
+programming, and machine learning.
+
+
+============================================================
+5. GEOMETRY
+============================================================
+
+Geometry studies shapes, spaces, dimensions, and relationships.
+
+Important concepts:
+
+- Points
+- Lines
+- Angles
+- Triangles
+- Circles
+- Polygons
+- Area
+- Volume
+- Coordinate geometry
+- Transformations
+
+
+============================================================
+6. TRIGONOMETRY
+============================================================
+
+Trigonometry studies relationships between angles and sides.
+
+Important functions:
+
+sin
+cos
+tan
+
+Trigonometry is used in:
+
+- Physics
+- Engineering
+- Computer graphics
+- Robotics
+- Navigation
+- Signal processing
+
+
+============================================================
+7. CALCULUS
+============================================================
+
+Calculus studies change and accumulation.
+
+Major concepts:
+
+- Limits
+- Derivatives
+- Integrals
+- Differential equations
+- Multivariable calculus
+
+
+============================================================
+8. DERIVATIVES
+============================================================
+
+A derivative describes how a quantity changes.
+
+For:
+
+f(x) = x²
+
+the derivative is:
+
+f'(x) = 2x
+
+Derivatives are fundamental to optimization and machine learning.
+
+
+============================================================
+9. INTEGRALS
+============================================================
+
+Integration can represent accumulation or area.
+
+Integration is widely used in:
+
+- Physics
+- Engineering
+- Probability
+- Statistics
+- Differential equations
+
+
+============================================================
+10. LINEAR ALGEBRA
+============================================================
+
+Linear algebra studies:
+
+- Vectors
+- Matrices
+- Linear transformations
+- Eigenvalues
+- Eigenvectors
+- Vector spaces
+
+Linear algebra is fundamental to modern AI and computer graphics.
+
+
+============================================================
+11. PROBABILITY
+============================================================
+
+Probability measures uncertainty.
+
+Important concepts:
+
+- Random variables
+- Probability distributions
+- Conditional probability
+- Expected value
+- Variance
+- Covariance
+- Bayes theorem
+
+
+============================================================
+12. STATISTICS
+============================================================
+
+Statistics studies data and uncertainty.
+
+Important concepts:
+
+- Mean
+- Median
+- Mode
+- Variance
+- Standard deviation
+- Correlation
+- Regression
+- Sampling
+- Hypothesis testing
+- Confidence intervals
+
+
+============================================================
+13. OPTIMIZATION
+============================================================
+
+Optimization searches for parameters that minimize or maximize an
+objective.
+
+Examples:
+
+minimize loss
+
+maximize profit
+
+Optimization is fundamental to machine learning.
+
+
+============================================================
+14. DISCRETE MATHEMATICS
+============================================================
+
+Discrete mathematics studies structures involving distinct
+objects.
+
+Topics include:
+
+- Logic
+- Sets
+- Graphs
+- Combinatorics
+- Relations
+- Functions
+- Algorithms
+- Boolean algebra
+
+
+============================================================
+15. PHYSICS
+============================================================
+
+Physics studies matter, energy, space, time, forces, and
+interactions.
+
+Major areas:
+
+- Classical mechanics
+- Thermodynamics
+- Electromagnetism
+- Optics
+- Relativity
+- Quantum mechanics
+- Statistical mechanics
+- Nuclear physics
+- Particle physics
+- Condensed matter physics
+
+
+============================================================
+16. CLASSICAL MECHANICS
+============================================================
+
+Classical mechanics describes motion and forces.
+
+Important concepts:
+
+- Position
+- Velocity
+- Acceleration
+- Mass
+- Force
+- Momentum
+- Energy
+- Work
+- Gravity
+
+
+============================================================
+17. NEWTON'S LAWS
+============================================================
+
+Newton's first law describes inertia.
+
+Newton's second law:
+
+F = ma
+
+Newton's third law describes action and reaction.
+
+
+============================================================
+18. ENERGY
+============================================================
+
+Energy can appear in different forms:
+
+- Kinetic
+- Potential
+- Thermal
+- Chemical
+- Electrical
+- Nuclear
+- Radiant
+
+Energy conservation is a fundamental physical principle.
+
+
+============================================================
+19. ELECTROMAGNETISM
+============================================================
+
+Electromagnetism studies electric and magnetic phenomena.
+
+Important concepts:
+
+- Electric charge
+- Electric field
+- Magnetic field
+- Voltage
+- Current
+- Resistance
+- Capacitance
+- Inductance
+- Electromagnetic waves
+
+
+============================================================
+20. THERMODYNAMICS
+============================================================
+
+Thermodynamics studies heat, energy, and physical systems.
+
+Important concepts:
+
+- Temperature
+- Heat
+- Work
+- Entropy
+- Internal energy
+- Equilibrium
+
+
+============================================================
+21. QUANTUM MECHANICS
+============================================================
+
+Quantum mechanics describes physical systems at microscopic
+scales.
+
+Important concepts include:
+
+- Quantum states
+- Superposition
+- Measurement
+- Probability amplitudes
+- Operators
+- Wave functions
+- Uncertainty
+
+
+============================================================
+22. RELATIVITY
+============================================================
+
+Special relativity describes physics at high velocities.
+
+General relativity describes gravity as related to the geometry
+of spacetime.
+
+A famous relation from special relativity is:
+
+E = mc²
+
+
+============================================================
+23. CHEMISTRY
+============================================================
+
+Chemistry studies matter and chemical transformations.
+
+Major areas:
+
+- Organic chemistry
+- Inorganic chemistry
+- Physical chemistry
+- Analytical chemistry
+- Biochemistry
+- Materials chemistry
+
+
+============================================================
+24. ATOMS
+============================================================
+
+Atoms contain:
+
+- Protons
+- Neutrons
+- Electrons
+
+The atomic nucleus contains protons and neutrons.
+
+Electrons occupy quantum states around the nucleus.
+
+
+============================================================
+25. PERIODIC TABLE
+============================================================
+
+The periodic table organizes chemical elements according to
+atomic number and recurring properties.
+
+Important concepts:
+
+- Atomic number
+- Atomic mass
+- Groups
+- Periods
+- Valence electrons
+
+
+============================================================
+26. CHEMICAL BONDS
+============================================================
+
+Major types include:
+
+- Ionic bonds
+- Covalent bonds
+- Metallic bonds
+- Hydrogen bonding
+
+Chemical bonding determines many material properties.
+
+
+============================================================
+27. CHEMICAL REACTIONS
+============================================================
+
+Chemical reactions transform reactants into products.
+
+Important concepts:
+
+- Reactants
+- Products
+- Stoichiometry
+- Reaction rates
+- Equilibrium
+- Catalysts
+- Activation energy
+
+
+============================================================
+28. BIOLOGY
+============================================================
+
+Biology studies living organisms.
+
+Major areas:
+
+- Cell biology
+- Genetics
+- Molecular biology
+- Evolution
+- Ecology
+- Physiology
+- Microbiology
+- Zoology
+- Botany
+- Neuroscience
+
+
+============================================================
+29. CELLS
+============================================================
+
+Cells are fundamental units of biological organisms.
+
+Major structures include:
+
+- Cell membrane
+- Nucleus
+- Ribosomes
+- Mitochondria
+- Endoplasmic reticulum
+- Golgi apparatus
+- Lysosomes
+
+Plant cells also contain structures such as chloroplasts.
+
+
+============================================================
+30. DNA
+============================================================
+
+DNA stores genetic information.
+
+DNA consists of nucleotide bases:
+
+- Adenine
+- Thymine
+- Cytosine
+- Guanine
+
+Base pairing:
+
+A pairs with T.
+
+C pairs with G.
+
+
+============================================================
+31. RNA
+============================================================
+
+RNA participates in gene expression and cellular processes.
+
+Major types include:
+
+- mRNA
+- tRNA
+- rRNA
+- Regulatory RNAs
+
+
+============================================================
+32. GENETICS
+============================================================
+
+Genetics studies heredity and variation.
+
+Important concepts:
+
+- Genes
+- Alleles
+- Chromosomes
+- Genotypes
+- Phenotypes
+- Mutations
+- Inheritance
+
+
+============================================================
+33. PROTEINS
+============================================================
+
+Proteins are biological molecules made from amino acids.
+
+Proteins perform many functions including:
+
+- Catalysis
+- Structure
+- Transport
+- Signaling
+- Defense
+
+
+============================================================
+34. ENZYMES
+============================================================
+
+Enzymes are biological catalysts.
+
+They accelerate biochemical reactions without being consumed in
+the overall reaction.
+
+
+============================================================
+35. EVOLUTION
+============================================================
+
+Evolution describes changes in populations across generations.
+
+Important mechanisms include:
+
+- Natural selection
+- Mutation
+- Genetic drift
+- Gene flow
+- Recombination
+
+
+============================================================
+36. ECOLOGY
+============================================================
+
+Ecology studies relationships between organisms and their
+environment.
+
+Concepts include:
+
+- Ecosystems
+- Food webs
+- Populations
+- Communities
+- Biodiversity
+- Energy flow
+- Nutrient cycles
+
+
+============================================================
+37. HUMAN BODY
+============================================================
+
+Major biological systems include:
+
+- Nervous system
+- Cardiovascular system
+- Respiratory system
+- Digestive system
+- Endocrine system
+- Immune system
+- Musculoskeletal system
+- Renal system
+- Reproductive system
+
+
+============================================================
+38. NEUROSCIENCE
+============================================================
+
+Neuroscience studies the nervous system.
+
+Important concepts include:
+
+- Neurons
+- Synapses
+- Brain regions
+- Neural signaling
+- Sensory processing
+- Learning
+- Memory
+
+
+============================================================
+39. MEDICAL SCIENCE
+============================================================
+
+Medicine applies biological and scientific knowledge to health.
+
+Major areas include:
+
+- Anatomy
+- Physiology
+- Pathology
+- Pharmacology
+- Microbiology
+- Immunology
+- Epidemiology
+
+Medical information requires current, authoritative sources and
+should not be treated as a substitute for professional medical
+care.
+
+
+============================================================
+40. COMPUTER SCIENCE
+============================================================
+
+Computer science studies computation, information, algorithms,
+software, and computational systems.
+
+Major areas include:
+
+- Algorithms
+- Data structures
+- Programming
+- Operating systems
+- Databases
+- Computer networks
+- Distributed systems
+- Computer architecture
+- Artificial intelligence
+- Cybersecurity
+
+
+============================================================
+41. PROGRAMMING
+============================================================
+
+Programming is the process of creating instructions for computers.
+
+Important programming concepts:
+
+- Variables
+- Types
+- Functions
+- Loops
+- Conditions
+- Classes
+- Objects
+- Modules
+- Exceptions
+- Input/output
+
+
+============================================================
+42. PROGRAMMING LANGUAGES
+============================================================
+
+Major programming languages include:
+
+- Python
+- JavaScript
+- TypeScript
+- Java
+- C
+- C++
+- C#
+- Go
+- Rust
+- Swift
+- Kotlin
+- PHP
+- Ruby
+- SQL
+
+Different languages are optimized for different use cases.
+
+
+============================================================
+43. PYTHON
+============================================================
+
+Python is a general-purpose programming language widely used for:
+
+- AI
+- Machine learning
+- Data science
+- Automation
+- Web development
+- Scientific computing
+
+
+============================================================
+44. JAVASCRIPT
+============================================================
+
+JavaScript is widely used for web development.
+
+It can run in:
+
+- Web browsers
+- Server environments
+- Desktop applications
+- Mobile development environments
+
+
+============================================================
+45. ALGORITHMS
+============================================================
+
+An algorithm is a finite procedure for solving a problem.
+
+Important algorithm categories include:
+
+- Searching
+- Sorting
+- Graph algorithms
+- Dynamic programming
+- Greedy algorithms
+- Divide and conquer
+- Backtracking
+
+
+============================================================
+46. DATA STRUCTURES
+============================================================
+
+Common data structures include:
+
+- Arrays
+- Lists
+- Stacks
+- Queues
+- Hash tables
+- Trees
+- Graphs
+- Heaps
+
+
+============================================================
+47. ALGORITHM COMPLEXITY
+============================================================
+
+Big-O notation describes how computational requirements grow.
+
+Examples:
+
+O(1)
+O(log n)
+O(n)
+O(n log n)
+O(n²)
+
+Complexity helps compare algorithm scalability.
+
+
+============================================================
+48. OBJECT-ORIENTED PROGRAMMING
+============================================================
+
+Object-oriented programming uses concepts such as:
+
+- Classes
+- Objects
+- Encapsulation
+- Inheritance
+- Polymorphism
+- Abstraction
+
+
+============================================================
+49. FUNCTIONAL PROGRAMMING
+============================================================
+
+Functional programming emphasizes:
+
+- Functions
+- Immutability
+- Higher-order functions
+- Function composition
+- Declarative computation
+
+
+============================================================
+50. SOFTWARE ENGINEERING
+============================================================
+
+Software engineering applies systematic processes to building
+software.
+
+Important practices include:
+
+- Requirements
+- Architecture
+- Implementation
+- Testing
+- Deployment
+- Maintenance
+- Documentation
+
+
+============================================================
+51. VERSION CONTROL
+============================================================
+
+Git is a distributed version-control system.
+
+Important concepts:
+
+- Repository
+- Commit
+- Branch
+- Merge
+- Pull request
+- Tag
+- Revert
+
+
+============================================================
+52. DATABASES
+============================================================
+
+Databases store and retrieve structured information.
+
+Types include:
+
+- Relational databases
+- Document databases
+- Key-value databases
+- Graph databases
+- Time-series databases
+- Vector databases
+
+
+============================================================
+53. SQL
+============================================================
+
+SQL is used with relational databases.
+
+Common operations include:
+
+SELECT
+INSERT
+UPDATE
+DELETE
+
+Important concepts:
+
+- Tables
+- Rows
+- Columns
+- Primary keys
+- Foreign keys
+- Joins
+- Indexes
+- Transactions
+
+
+============================================================
+54. OPERATING SYSTEMS
+============================================================
+
+Operating systems manage computer hardware and software resources.
+
+Important components:
+
+- Processes
+- Threads
+- Memory management
+- File systems
+- Device drivers
+- Scheduling
+- Networking
+- Security
+
+
+============================================================
+55. COMPUTER NETWORKS
+============================================================
+
+Computer networking allows systems to communicate.
+
+Important concepts:
+
+- IP
+- TCP
+- UDP
+- HTTP
+- DNS
+- Routing
+- Ethernet
+- Wi-Fi
+- TLS
+
+
+============================================================
+56. INTERNET
+============================================================
+
+The Internet is a global network of interconnected systems.
+
+The Web is one service operating over Internet infrastructure.
+
+Web technologies include:
+
+- HTML
+- CSS
+- JavaScript
+- HTTP
+- DNS
+- TLS
+
+
+============================================================
+57. CYBERSECURITY
+============================================================
+
+Cybersecurity protects systems and information.
+
+Major areas:
+
+- Authentication
+- Authorization
+- Encryption
+- Network security
+- Application security
+- Vulnerability management
+- Incident response
+
+
+============================================================
+58. CRYPTOGRAPHY
+============================================================
+
+Cryptography protects information using mathematical techniques.
+
+Major concepts:
+
+- Encryption
+- Decryption
+- Hashing
+- Digital signatures
+- Public-key cryptography
+- Symmetric cryptography
+
+
+============================================================
+59. CLOUD COMPUTING
+============================================================
+
+Cloud computing provides computing resources over networks.
+
+Services can include:
+
+- Compute
+- Storage
+- Databases
+- Networking
+- AI services
+
+Common models include:
+
+- IaaS
+- PaaS
+- SaaS
+
+
+============================================================
+60. DISTRIBUTED SYSTEMS
+============================================================
+
+Distributed systems consist of multiple computing components
+working together.
+
+Important concepts:
+
+- Networking
+- Replication
+- Consistency
+- Fault tolerance
+- Consensus
+- Scalability
+
+
+============================================================
+61. COMPUTER ARCHITECTURE
+============================================================
+
+Computer architecture describes how computer hardware is
+organized.
+
+Components include:
+
+- CPU
+- GPU
+- Memory
+- Storage
+- Bus
+- Input/output
+
+
+============================================================
+62. ELECTRONICS
+============================================================
+
+Electronics studies electrical circuits and electronic devices.
+
+Components include:
+
+- Resistors
+- Capacitors
+- Inductors
+- Diodes
+- Transistors
+- Integrated circuits
+
+
+============================================================
+63. DIGITAL LOGIC
+============================================================
+
+Digital systems use discrete logic states.
+
+Basic gates include:
+
+- AND
+- OR
+- NOT
+- NAND
+- NOR
+- XOR
+
+
+============================================================
+64. EMBEDDED SYSTEMS
+============================================================
+
+Embedded systems are specialized computing systems integrated
+into devices.
+
+Examples:
+
+- Appliances
+- Vehicles
+- Sensors
+- Industrial controllers
+- IoT devices
+
+
+============================================================
+65. ROBOTICS
+============================================================
+
+Robotics combines:
+
+- Mechanical systems
+- Electronics
+- Control theory
+- Sensors
+- Software
+- AI
+
+Robots can perceive environments and perform physical actions.
+
+
+============================================================
+66. CONTROL SYSTEMS
+============================================================
+
+Control systems regulate system behavior.
+
+Important concepts:
+
+- Feedback
+- Stability
+- Sensors
+- Controllers
+- Actuators
+- PID control
+
+
+============================================================
+67. MECHANICAL ENGINEERING
+============================================================
+
+Mechanical engineering studies machines and physical systems.
+
+Major areas:
+
+- Mechanics
+- Thermodynamics
+- Fluid mechanics
+- Materials
+- Manufacturing
+- Machine design
+
+
+============================================================
+68. CIVIL ENGINEERING
+============================================================
+
+Civil engineering concerns infrastructure.
+
+Areas include:
+
+- Structural engineering
+- Transportation
+- Geotechnical engineering
+- Water resources
+- Construction
+- Environmental engineering
+
+
+============================================================
+69. MATERIALS SCIENCE
+============================================================
+
+Materials science studies relationships between structure,
+properties, processing, and performance.
+
+Materials include:
+
+- Metals
+- Ceramics
+- Polymers
+- Composites
+- Semiconductors
+
+
+============================================================
+70. EARTH SCIENCE
+============================================================
+
+Earth science studies the planet.
+
+Major areas:
+
+- Geology
+- Meteorology
+- Oceanography
+- Geophysics
+- Climatology
+
+
+============================================================
+71. GEOLOGY
+============================================================
+
+Geology studies Earth's structure, materials, and history.
+
+Topics include:
+
+- Rocks
+- Minerals
+- Plate tectonics
+- Earthquakes
+- Volcanoes
+- Geological time
+
+
+============================================================
+72. CLIMATE SCIENCE
+============================================================
+
+Climate science studies long-term patterns in Earth's climate
+system.
+
+Important components include:
+
+- Atmosphere
+- Oceans
+- Ice
+- Land
+- Biosphere
+- Energy balance
+
+
+============================================================
+73. ASTRONOMY
+============================================================
+
+Astronomy studies objects and phenomena beyond Earth.
+
+Topics include:
+
+- Stars
+- Planets
+- Galaxies
+- Nebulae
+- Black holes
+- Cosmology
+
+
+============================================================
+74. PLANETARY SCIENCE
+============================================================
+
+Planetary science studies planets, moons, asteroids, comets,
+and planetary systems.
+
+
+============================================================
+75. COSMOLOGY
+============================================================
+
+Cosmology studies the origin, structure, evolution, and large-scale
+properties of the universe.
+
+
+============================================================
+76. ENVIRONMENTAL SCIENCE
+============================================================
+
+Environmental science studies interactions between humans,
+organisms, and the environment.
+
+Topics include:
+
+- Pollution
+- Ecosystems
+- Conservation
+- Climate
+- Natural resources
+- Sustainability
+
+
+============================================================
+77. ECONOMICS
+============================================================
+
+Economics studies how resources are produced, distributed, and
+consumed.
+
+Major areas:
+
+- Microeconomics
+- Macroeconomics
+- Econometrics
+- Development economics
+- International economics
+
+
+============================================================
+78. MICROECONOMICS
+============================================================
+
+Microeconomics studies individual consumers, firms, markets,
+prices, incentives, and resource allocation.
+
+
+============================================================
+79. MACROECONOMICS
+============================================================
+
+Macroeconomics studies large-scale economic systems.
+
+Important concepts:
+
+- GDP
+- Inflation
+- Unemployment
+- Interest rates
+- Monetary policy
+- Fiscal policy
+
+
+============================================================
+80. FINANCE
+============================================================
+
+Finance studies money, investment, risk, and capital.
+
+Areas include:
+
+- Corporate finance
+- Personal finance
+- Investment
+- Risk management
+- Financial markets
+
+
+============================================================
+81. BUSINESS
+============================================================
+
+Business involves creating, operating, and managing organizations.
+
+Major areas:
+
+- Strategy
+- Marketing
+- Operations
+- Finance
+- Accounting
+- Human resources
+- Product management
+- Sales
+
+
+============================================================
+82. ACCOUNTING
+============================================================
+
+Accounting records and communicates financial information.
+
+Important concepts:
+
+- Assets
+- Liabilities
+- Equity
+- Revenue
+- Expenses
+- Profit
+- Cash flow
+
+
+============================================================
+83. MARKETING
+============================================================
+
+Marketing connects products and services with customers.
+
+Areas include:
+
+- Branding
+- Market research
+- Advertising
+- Digital marketing
+- Content marketing
+- Customer experience
+
+
+============================================================
+84. PRODUCT MANAGEMENT
+============================================================
+
+Product management coordinates:
+
+- User needs
+- Business goals
+- Product strategy
+- Requirements
+- Development
+- Measurement
+
+
+============================================================
+85. DESIGN
+============================================================
+
+Design solves problems through structured creation.
+
+Major fields:
+
+- Graphic design
+- UI design
+- UX design
+- Product design
+- Industrial design
+- Motion design
+
+
+============================================================
+86. USER EXPERIENCE
+============================================================
+
+UX focuses on how users interact with products and services.
+
+Important concepts:
+
+- User research
+- Personas
+- User journeys
+- Information architecture
+- Wireframes
+- Prototypes
+- Usability testing
+
+
+============================================================
+87. USER INTERFACE
+============================================================
+
+UI design concerns visual and interactive interfaces.
+
+Important concepts:
+
+- Typography
+- Color
+- Layout
+- Spacing
+- Components
+- Interaction
+- Accessibility
+- Responsive design
+
+
+============================================================
+88. COMMUNICATION
+============================================================
+
+Effective communication involves:
+
+- Clear language
+- Context
+- Listening
+- Structure
+- Feedback
+- Audience awareness
+
+
+============================================================
+89. LINGUISTICS
+============================================================
+
+Linguistics studies human language.
+
+Major areas:
+
+- Phonetics
+- Phonology
+- Morphology
+- Syntax
+- Semantics
+- Pragmatics
+
+
+============================================================
+90. PSYCHOLOGY
+============================================================
+
+Psychology studies behavior and mental processes.
+
+Areas include:
+
+- Cognitive psychology
+- Social psychology
+- Developmental psychology
+- Behavioral psychology
+- Perception
+- Learning
+- Memory
+
+
+============================================================
+91. PHILOSOPHY
+============================================================
+
+Philosophy examines fundamental questions about:
+
+- Knowledge
+- Reality
+- Ethics
+- Logic
+- Reasoning
+- Meaning
+- Existence
+
+
+============================================================
+92. LOGIC
+============================================================
+
+Logic studies valid reasoning.
+
+Important concepts:
+
+- Propositions
+- Predicates
+- Implication
+- Quantifiers
+- Logical operators
+
+
+============================================================
+93. HISTORY
+============================================================
+
+History studies past human events and societies.
+
+Historical claims should be evaluated using reliable sources,
+primary evidence, and established scholarship where available.
+
+
+============================================================
+94. GEOGRAPHY
+============================================================
+
+Geography studies Earth's places, environments, and human
+relationships with space.
+
+Areas include:
+
+- Physical geography
+- Human geography
+- Cartography
+- GIS
+
+
+============================================================
+95. RESEARCH METHODOLOGY
+============================================================
+
+Scientific research generally involves:
+
+Question
+↓
+Hypothesis
+↓
+Method
+↓
+Data
+↓
+Analysis
+↓
+Conclusion
+↓
+Replication or further research
+
+
+============================================================
+96. SCIENTIFIC METHOD
+============================================================
+
+The scientific method involves systematic investigation.
+
+Important principles:
+
+- Observation
+- Measurement
+- Hypothesis
+- Experiment
+- Analysis
+- Reproducibility
+- Peer review
+
+
+============================================================
+97. CORRELATION AND CAUSATION
+============================================================
+
+Correlation means two variables are associated.
+
+Correlation alone does not prove that one variable causes the
+other.
+
+Causal conclusions require appropriate evidence and methodology.
+
+
+============================================================
+98. DATA SCIENCE
+============================================================
+
+Data science combines:
+
+- Statistics
+- Programming
+- Machine learning
+- Data engineering
+- Visualization
+- Domain knowledge
+
+
+============================================================
+99. DATA VISUALIZATION
+============================================================
+
+Data visualization communicates information through visual
+representations.
+
+Common charts include:
+
+- Bar charts
+- Line charts
+- Scatter plots
+- Histograms
+- Box plots
+- Heatmaps
+
+
+============================================================
+100. ARTIFICIAL INTELLIGENCE
+============================================================
+
+Artificial Intelligence uses computational systems to perform
+tasks involving capabilities such as:
+
+- Learning
+- Prediction
+- Perception
+- Reasoning
+- Language
+- Planning
+- Decision-making
+
+
+============================================================
+101. MACHINE LEARNING
+============================================================
+
+Machine learning learns patterns from data.
+
+Major paradigms:
+
+- Supervised learning
+- Unsupervised learning
+- Self-supervised learning
+- Reinforcement learning
+
+
+============================================================
+102. DEEP LEARNING
+============================================================
+
+Deep learning uses neural networks with multiple layers.
+
+Major architectures include:
+
+- CNN
+- RNN
+- LSTM
+- GRU
+- Transformer
+- Diffusion models
+
+
+============================================================
+103. COMPUTER VISION
+============================================================
+
+Computer vision processes visual information.
+
+Tasks include:
+
+- Classification
+- Detection
+- Segmentation
+- OCR
+- Tracking
+- Image generation
+
+
+============================================================
+104. NATURAL LANGUAGE PROCESSING
+============================================================
+
+NLP processes human language.
+
+Tasks include:
+
+- Translation
+- Classification
+- Summarization
+- Information extraction
+- Question answering
+- Generation
+
+
+============================================================
+105. ROBOTICS AND AI
+============================================================
+
+AI can provide robots with:
+
+- Perception
+- Planning
+- Decision-making
+- Learning
+- Navigation
+
+
+============================================================
+106. GENERAL ENGINEERING PRINCIPLE
+============================================================
+
+Engineering applies scientific knowledge to create practical
+systems.
+
+A reliable engineering process includes:
+
+Requirements
+↓
+Design
+↓
+Implementation
+↓
+Testing
+↓
+Measurement
+↓
+Iteration
+
+
+============================================================
+107. SYSTEM THINKING
+============================================================
+
+Complex systems contain interacting components.
+
+Understanding a system requires examining:
+
+- Components
+- Relationships
+- Inputs
+- Outputs
+- Feedback
+- Constraints
+- Failure modes
+
+
+============================================================
+108. CRITICAL THINKING
+============================================================
+
+Critical thinking evaluates claims using:
+
+- Evidence
+- Logic
+- Assumptions
+- Alternative explanations
+- Uncertainty
+- Source quality
+
+
+============================================================
+109. INFORMATION LITERACY
+============================================================
+
+Reliable knowledge requires evaluating:
+
+- Source credibility
+- Evidence
+- Date
+- Context
+- Methodology
+- Conflicting evidence
+
+
+============================================================
+110. KNOWLEDGE LIMITATION
+============================================================
+
+This file is a foundation.
+
+It does not contain all human knowledge.
+
+A model trained on this file will not automatically become an
+expert in every domain.
+
+Real-world knowledge changes continuously.
+
+For current facts, AXEN should eventually use appropriate
+retrieval systems and reliable sources.
+
+
+============================================================
+111. AXEN KNOWLEDGE ARCHITECTURE
+============================================================
+
+AXEN should eventually separate knowledge into:
+
+Core model
+Knowledge retrieval
+Long-term memory
+Short-term context
+Tools
+External sources
+
+
+============================================================
+112. AXEN LEARNING PRINCIPLE
+============================================================
+
+Training teaches model parameters.
+
+Retrieval provides external knowledge.
+
+Memory stores information.
+
+Tools perform actions.
+
+These mechanisms should remain architecturally distinct.
+
+
+============================================================
+113. AXEN SCIENTIFIC PRINCIPLE
+============================================================
+
+AXEN should not treat every statement in a dataset as true.
+
+It should learn to distinguish:
+
+Established fact
+Scientific theory
+Hypothesis
+Estimate
+Historical claim
+Opinion
+Speculation
+Unknown
+
+
+============================================================
+114. AXEN ENGINEERING PRINCIPLE
+============================================================
+
+When solving a technical problem:
+
+1. Understand the problem.
+2. Identify constraints.
+3. Gather relevant information.
+4. Form a solution.
+5. Implement.
+6. Test.
+7. Measure.
+8. Debug.
+9. Improve.
+10. Document.
+
+
+============================================================
+115. AXEN MATHEMATICAL PRINCIPLE
+============================================================
+
+Mathematical answers should be derived carefully.
+
+When calculations are important:
+
+- Show assumptions.
+- Check units.
+- Check intermediate results.
+- Verify the final result.
+
+
+============================================================
+116. AXEN CODING PRINCIPLE
+============================================================
+
+When writing code:
+
+- Understand requirements.
+- Use clear architecture.
+- Avoid unnecessary complexity.
+- Validate inputs.
+- Handle errors.
+- Write tests.
+- Avoid hard-coded secrets.
+- Document important behavior.
+
+
+============================================================
+117. AXEN SCIENCE PRINCIPLE
+============================================================
+
+Scientific claims should be evaluated using evidence.
+
+AXEN should not present:
+
+Hypothesis = proven fact
+
+or:
+
+Correlation = causation.
+
+
+============================================================
+118. AXEN SAFETY PRINCIPLE
+============================================================
+
+For high-stakes subjects such as:
+
+- Medicine
+- Law
+- Finance
+- Safety
+- Engineering
+
+AXEN should communicate limitations and encourage verification
+with appropriate authoritative sources or professionals.
+
+
+============================================================
+119. AXEN GLOBAL KNOWLEDGE PRINCIPLE
+============================================================
+
+Human knowledge is distributed across many cultures, languages,
+disciplines, institutions, and communities.
+
+AXEN should avoid assuming that one source, culture, language,
+or perspective represents all knowledge.
+
+
+============================================================
+120. FINAL PRINCIPLE
+============================================================
+
+AXEN AI should not attempt to memorize the entire world inside
+one text file.
+
+A capable knowledge system should combine:
+
+Language model
++
+Structured knowledge
++
+Documents
++
+Retrieval
++
+Memory
++
+Tools
++
+Verification
++
+Continuous evaluation
+
+The objective is to build a system that can learn, retrieve,
+reason, calculate, create, and use tools while clearly
+communicating uncertainty.
+
+============================================================
+END OF AXEN WORLD KNOWLEDGE FOUNDATION
+============================================================

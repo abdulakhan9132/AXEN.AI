@@ -1,0 +1,19 @@
+# AXEN Local Model Configuration
+# Governs local open-weights inference (e.g. via Ollama)
+
+llm:
+  backend: ollama
+  base_url: http://localhost:11434
+  # Recommended for RTX 3050 (4GB VRAM): qwen2.5:3b or qwen2.5:1.5b
+  # If 7B is pulled and VRAM is sufficient, can be set to qwen2.5:7b
+  default_model: qwen2.5:3b
+  fallback_model: qwen2.5:1.5b
+  temperature: 0.2
+  context_length: 4096
+  max_output_tokens: 1024
+  timeout: 60.0
+
+agent:
+  max_steps: 8
+  max_retries_on_bad_json: 2
+  reasoning_think_tags: true

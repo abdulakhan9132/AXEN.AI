@@ -1,0 +1,42 @@
+{
+  "dataset_version": "2",
+  "source_files": [
+    {
+      "name": "ai_knowledge.txt",
+      "sha256": "3358c3e70acaefae65cd142b90a5fdd2aa60e465c252b8e247ea5492717997f2"
+    },
+    {
+      "name": "axen_knowledge.txt",
+      "sha256": "add6c473e0a983a76b5aa29a96ea089922c7ce4a97bdd325d4433c19183404ff"
+    },
+    {
+      "name": "transformers.txt",
+      "sha256": "b94dddf8684dd81bcc6bf45cf26a5e2c65b5c5168991c1ab73174f542b70dc3b"
+    }
+  ],
+  "document_count": 3,
+  "character_count": 93707,
+  "estimated_token_count": 93707,
+  "token_count": 93707,
+  "vocabulary_size": 43,
+  "split_counts": {
+    "train": 1,
+    "validation": 1,
+    "test": 1
+  },
+  "split_token_counts": {
+    "train": 1050,
+    "validation": 39574,
+    "test": 53083
+  },
+  "duplicate_count": 0,
+  "empty_files": [],
+  "malformed_files": {},
+  "average_document_length": 31235.666666666668,
+  "longest_document": 53083,
+  "shortest_document": 1050,
+  "split_warnings": [],
+  "seed": 42,
+  "train_ratio": 0.9,
+  "validation_ratio": 0.05
+}

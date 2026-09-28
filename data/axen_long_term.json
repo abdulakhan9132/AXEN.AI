@@ -1,0 +1,17 @@
+{
+  "my_name_is_alex": {
+    "value": "my name is Alex",
+    "category": "general",
+    "timestamp": "2026-09-28T16:48:49"
+  },
+  "name": {
+    "value": "Alex",
+    "category": "general",
+    "timestamp": "2026-09-28T16:48:49"
+  },
+  "my_project_is_axen": {
+    "value": "my project is AXEN",
+    "category": "general",
+    "timestamp": "2026-09-28T16:48:50"
+  }
+}

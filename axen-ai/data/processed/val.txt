@@ -1,0 +1,5 @@
+A language model reads text and turns it into tokens.
+The tokenizer maps characters to IDs.
+The transformer mixes context across the sequence.
+Training uses next-token prediction.
+Generation then writes new text one token at a time.

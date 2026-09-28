@@ -1,0 +1,33 @@
+AXEN AI is a local artificial intelligence project.
+
+AXEN AI is designed to run locally on a personal computer.
+
+The goal of AXEN AI is to understand text and generate text.
+
+Artificial intelligence is a field of computer science.
+
+Machine learning allows computers to learn patterns from data.
+
+A neural network contains layers of mathematical operations.
+
+A Transformer uses attention mechanisms to process sequences.
+
+Self-attention allows a model to determine relationships between tokens.
+
+A token is a unit of text processed by a language model.
+
+Training adjusts the parameters of a neural network to reduce prediction error.
+
+The training process uses a loss function to measure prediction error.
+
+Backpropagation calculates gradients of the loss with respect to model parameters.
+
+The optimizer uses those gradients to update the model.
+
+AXEN AI uses a Transformer architecture.
+
+AXEN AI uses its own tokenizer.
+
+AXEN AI runs locally without requiring a cloud AI API.
+
+The long-term goal of AXEN AI is to become a capable local AI assistant.
