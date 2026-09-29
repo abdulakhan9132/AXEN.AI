@@ -77,6 +77,11 @@ def serve_index() -> str:
 # Chat & Real-Time Tool Execution
 # ---------------------------------------------------------------------------
 
+import asyncio
+import queue
+import uuid
+import threading
+
 @app.post("/api/chat")
 async def chat_endpoint(payload: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -85,54 +90,105 @@ async def chat_endpoint(payload: Dict[str, Any]) -> Dict[str, Any]:
     """
     message = str(payload.get("message") or payload.get("goal") or "").strip()
     session_id = payload.get("session_id")
+    request_id = payload.get("request_id")
     if not message:
         return {"status": "error", "summary": "A message is required."}
 
     service = AxenBackendService.get_instance()
-    result = service.chat(message=message, session_id=session_id)
+    result = service.chat(message=message, session_id=session_id, request_id=request_id)
     return result
 
 
-@app.get("/api/chat/stream")
+@app.api_route("/api/chat/stream", methods=["GET", "POST"])
 async def chat_stream(
-    message: str = Query(..., description="User prompt message"),
+    request: Request,
+    message: Optional[str] = Query(None, description="User prompt message"),
     session_id: Optional[str] = Query(None, description="Active session ID"),
+    request_id: Optional[str] = Query(None, description="Unique request ID for cancellation"),
 ):
     """
     Server-Sent Events (SSE) streaming endpoint.
-    Emits real-time progress events ('Calculating...', 'Verifying result...')
-    and the final answer without exposing internal chain-of-thought.
+    Emits real-time agent execution events ('UNDERSTANDING', 'PLANNING', 'THINKING',
+    'USING_TOOL', 'VERIFYING', 'GENERATING', 'COMPLETED', 'ERROR') and the final answer
+    without exposing internal chain-of-thought.
     """
+    if request.method == "POST":
+        try:
+            body = await request.json()
+            message = str(body.get("message") or body.get("goal") or message or "").strip()
+            session_id = body.get("session_id") or session_id
+            request_id = body.get("request_id") or request_id
+        except Exception:
+            pass
+
+    if not message:
+        raise HTTPException(status_code=400, detail="A message is required.")
+
+    req_id = request_id or str(uuid.uuid4())
     service = AxenBackendService.get_instance()
+    cancel_event = threading.Event()
+    loop = asyncio.get_running_loop()
+    event_queue: asyncio.Queue = asyncio.Queue()
+
+    def _state_callback(state_name: str, display_text: str, meta: Optional[Dict[str, Any]] = None):
+        evt = {
+            "type": "state",
+            "state": state_name,
+            "text": display_text,
+            "meta": meta or {},
+            "request_id": req_id,
+        }
+        loop.call_soon_threadsafe(event_queue.put_nowait, evt)
+
+    def _worker():
+        try:
+            res = service.chat(
+                message=message,
+                session_id=session_id,
+                request_id=req_id,
+                state_callback=_state_callback,
+                cancel_event=cancel_event,
+            )
+            loop.call_soon_threadsafe(event_queue.put_nowait, {"type": "result", "result": res, "request_id": req_id})
+        except Exception as exc:
+            logger.exception("Chat worker error: %s", exc)
+            loop.call_soon_threadsafe(event_queue.put_nowait, {
+                "type": "error",
+                "error": "Something went wrong while processing your request.",
+                "detail": str(exc),
+                "request_id": req_id,
+            })
+        finally:
+            loop.call_soon_threadsafe(event_queue.put_nowait, {"type": "done", "request_id": req_id})
+
+    worker_thread = threading.Thread(target=_worker, name=f"AxenWorker-{req_id[:8]}", daemon=True)
+    worker_thread.start()
 
     async def event_generator() -> AsyncGenerator[str, None]:
-        status_updates: list[str] = []
+        # Emit initial task metadata
+        yield f"event: init\ndata: {json.dumps({'request_id': req_id, 'session_id': session_id})}\n\n"
 
-        def _on_status(status_text: str):
-            status_updates.append(status_text)
+        while True:
+            try:
+                item = await event_queue.get()
+                itype = item.get("type")
 
-        # 1. Initial acknowledgment event
-        yield f"event: status\ndata: {json.dumps({'status': 'Thinking...', 'phase': 'understanding'})}\n\n"
-
-        # 2. Run chat processing in a worker call
-        # The backend service sets the status callback
-        result = service.chat(
-            message=message,
-            session_id=session_id,
-            status_callback=_on_status,
-        )
-
-        # 3. If a tool was used, report tool execution and verification
-        if result.get("tool_used"):
-            tool_status = result.get("tool_status", "Executing tool...")
-            yield f"event: status\ndata: {json.dumps({'status': tool_status, 'phase': 'tool', 'tool': result.get('tool_name')})}\n\n"
-
-            if result.get("verification"):
-                yield f"event: status\ndata: {json.dumps({'status': 'Verifying result...', 'phase': 'verifying'})}\n\n"
-
-        # 4. Final response event
-        yield f"event: result\ndata: {json.dumps(result)}\n\n"
-        yield "event: done\ndata: {}\n\n"
+                if itype == "state":
+                    yield f"event: state\ndata: {json.dumps(item)}\n\n"
+                elif itype == "result":
+                    yield f"event: result\ndata: {json.dumps(item['result'])}\n\n"
+                elif itype == "error":
+                    yield f"event: error\ndata: {json.dumps(item)}\n\n"
+                elif itype == "done":
+                    yield "event: done\ndata: {}\n\n"
+                    break
+            except asyncio.CancelledError:
+                cancel_event.set()
+                service.cancel_request(req_id)
+                break
+            except Exception as e:
+                logger.error("SSE generator error: %s", e)
+                break
 
     return StreamingResponse(
         event_generator(),
@@ -143,6 +199,25 @@ async def chat_stream(
             "X-Accel-Buffering": "no",
         },
     )
+
+
+@app.post("/api/chat/cancel")
+async def cancel_chat(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Cancel an active agent execution request.
+    Does not stop or kill the AXEN server, only safely signals cancellation to the running task.
+    """
+    request_id = str(payload.get("request_id") or "").strip()
+    if not request_id:
+        raise HTTPException(status_code=400, detail="request_id is required.")
+
+    service = AxenBackendService.get_instance()
+    cancelled = service.cancel_request(request_id)
+    return {
+        "status": "ok" if cancelled else "not_found",
+        "request_id": request_id,
+        "cancelled": cancelled,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -175,11 +250,12 @@ def list_sessions(q: Optional[str] = Query(None, description="Search query")) ->
 
 @app.get("/api/sessions/{session_id}")
 def get_session(session_id: str) -> Dict[str, Any]:
-    """Get complete message history for a specific conversation."""
+    """Get complete message history for a specific conversation and switch active session."""
     service = AxenBackendService.get_instance()
-    if session_id not in service.conversations:
+    session = service.switch_session(session_id)
+    if not session:
         raise HTTPException(status_code=404, detail="Conversation not found")
-    return service.conversations[session_id]
+    return session
 
 
 @app.post("/api/sessions/{session_id}/switch")

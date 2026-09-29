@@ -21,6 +21,7 @@ STRATEGIES = (
     Strategy("integration", ("calculus",)),
     Strategy("matrix_method", ("linear algebra",)),
     Strategy("dynamic_programming", ("combinatorics", "graph theory", "discrete mathematics")),
+    Strategy("simplification", ("algebra", "equations", "arithmetic")),
     Strategy("numerical_method", ("arithmetic", "equations", "calculus", "optimization")),
 )
 

@@ -114,3 +114,58 @@ class TestAxenUI:
         assert res.status_code == 200
         data = res.json()
         assert "25" in data["response"]
+
+    def test_thinking_css_and_js_assets(self, client):
+        """Ensure thinking UI classes and radial spinner are present in styles.css and app.js."""
+        res_css = client.get("/static/css/styles.css")
+        assert res_css.status_code == 200
+        assert ".axen-thinking-container" in res_css.text
+        assert ".btn-composer-send.loading" in res_css.text
+        assert ".radial-spinner" in res_css.text
+        assert ".axen-thinking-dots" in res_css.text
+
+        res_js = client.get("/static/js/app.js")
+        assert res_js.status_code == 200
+        assert "showThinkingUI" in res_js.text
+        assert "updateThinkingStatus" in res_js.text
+        assert "cancelActiveRequest" in res_js.text
+        assert "setComposerLoadingState" in res_js.text
+
+    def test_chat_stream_hello_fast_response(self, client):
+        """Verify 'Hello' streams real states and responds immediately."""
+        res = client.post("/api/chat/stream", json={"message": "Hello"})
+        assert res.status_code == 200
+        body = res.text
+        assert "event: state" in body or "event: result" in body
+        assert "event: done" in body
+
+    def test_chat_stream_math_solving_and_verification(self, client):
+        """Verify symbolic differentiation emits real states: Solving, Verifying, Generating."""
+        res = client.post(
+            "/api/chat/stream",
+            json={"message": "Differentiate f(x)=(2x^3-5x+4)(x^2+3x-1)"},
+        )
+        assert res.status_code == 200
+        body = res.text
+        assert "event: done" in body
+        assert "Solving" in body or "UNDERSTANDING" in body
+        assert "result" in body
+
+    def test_chat_stream_calculator_evaluation(self, client):
+        """Verify '25 * 48' calculation streams states and computes 1200."""
+        res = client.post(
+            "/api/chat/stream",
+            json={"message": "25 * 48"},
+        )
+        assert res.status_code == 200
+        body = res.text
+        assert "1200" in body
+        assert "event: done" in body
+
+    def test_cancellation_endpoint(self, client):
+        """Verify /api/chat/cancel endpoint safely handles request cancellation."""
+        res = client.post("/api/chat/cancel", json={"request_id": "non_existent_req"})
+        assert res.status_code == 200
+        data = res.json()
+        assert data["status"] in ("ok", "not_found")
+        assert "cancelled" in data

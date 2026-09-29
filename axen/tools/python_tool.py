@@ -213,4 +213,8 @@ def build_python_tool() -> ToolDefinition:
             },
         },
         risk="medium",
+        capabilities=["code_execution", "python_sandbox"],
+        deterministic=False,
+        requires_confirmation=False,
+        supports_verification=True,
     )

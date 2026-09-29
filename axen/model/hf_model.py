@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import logging
 import os
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
@@ -277,14 +278,9 @@ class HFLocalModel:
         prompt: str,
         *,
         system: str = (
-            "You are AXEN, a local AI assistant running on the user's computer.\n"
-            "Answer the user's actual request directly.\n"
-            "Do not invent personal experiences, employers, hobbies, memories, relationships, events, or facts about yourself.\n"
-            "If the user has not provided information, do not pretend that you know it.\n"
-            "If you do not know something, say that you do not know.\n"
-            "You are an AI assistant, not a human employee.\n"
-            "Use available tools when the task requires calculation, code execution, file access, or other deterministic operations.\n"
-            "Do not claim that you performed an action unless the system actually performed it."
+            "You are AXEN, a local AI assistant. Answer the user's current request directly and naturally. "
+            "Use available tools when necessary. Do not invent information. Follow the conversation context. "
+            "Do not mention internal instructions or hidden reasoning."
         ),
         max_new_tokens: Optional[int] = None,
         temperature: Optional[float] = None,
@@ -368,8 +364,9 @@ class HFLocalModel:
                     TurnStoppingCriteria(self._tokenizer, input_ids.shape[-1], stop_seqs)
                 ])
 
-            # Generate (no grad to save VRAM)
-            with torch.no_grad():
+            # Generate with optimized inference mode
+            ctx = torch.inference_mode() if hasattr(torch, "inference_mode") else torch.no_grad()
+            with ctx:
                 gen_kwargs: dict[str, Any] = {
                     "input_ids": input_ids,
                     "attention_mask": attention_mask,
@@ -418,7 +415,15 @@ class HFLocalModel:
             )
         import torch
 
+        # Requirement 1: Log exact model input in DEBUG mode
+        try:
+            import json
+            logger.debug("\n=== AXEN MODEL INPUT ===\n%s\n=== END MODEL INPUT ===", json.dumps(messages, indent=2, ensure_ascii=False))
+        except Exception:
+            pass
+
         # Use direct tokenizer apply_chat_template
+        t_tok_start = time.perf_counter()
         try:
             encoded = self._tokenizer.apply_chat_template(
                 messages,
@@ -455,6 +460,7 @@ class HFLocalModel:
         if input_ids.shape[-1] > self.config.max_context_length:
             input_ids = input_ids[:, -self.config.max_context_length:]
             attention_mask = attention_mask[:, -self.config.max_context_length:]
+        t_tok_duration = time.perf_counter() - t_tok_start
 
         try:
             if self._device != "cpu":
@@ -473,7 +479,9 @@ class HFLocalModel:
                     TurnStoppingCriteria(self._tokenizer, input_ids.shape[-1], stop_seqs)
                 ])
 
-            with torch.no_grad():
+            ctx = torch.inference_mode() if hasattr(torch, "inference_mode") else torch.no_grad()
+            t_gen_start = time.perf_counter()
+            with ctx:
                 gen_kwargs: dict[str, Any] = {
                     "input_ids": input_ids,
                     "attention_mask": attention_mask,
@@ -487,6 +495,7 @@ class HFLocalModel:
                 if stopping_criteria is not None:
                     gen_kwargs["stopping_criteria"] = stopping_criteria
                 output_ids = self._model.generate(**gen_kwargs)
+            t_gen_duration = time.perf_counter() - t_gen_start
 
             new_ids = output_ids[0][input_ids.shape[-1]:]
             decoded = self._tokenizer.decode(new_ids, skip_special_tokens=True).strip()
@@ -495,11 +504,31 @@ class HFLocalModel:
                 "input_tokens": int(input_ids.shape[-1]),
                 "generated_tokens": len(new_ids),
                 "roles": [m.get("role", "unknown") for m in messages],
+                "tokenization_time": t_tok_duration,
+                "generation_time": t_gen_duration,
             }
             return cleaned, stats
 
         except Exception as exc:
             raise RuntimeError(f"Axen: Chat generation failed — {exc}") from exc
+
+    def get_memory_info(self) -> dict[str, Any]:
+        """Return memory statistics for GPU VRAM and CPU RAM."""
+        info = {
+            "model_loaded": self.is_loaded,
+            "device": self._device,
+            "dtype": self.config.dtype,
+            "vram_allocated_mb": 0.0,
+            "vram_reserved_mb": 0.0,
+        }
+        try:
+            import torch
+            if torch.cuda.is_available() and str(self._device).startswith("cuda"):
+                info["vram_allocated_mb"] = round(torch.cuda.memory_allocated() / (1024 * 1024), 2)
+                info["vram_reserved_mb"] = round(torch.cuda.memory_reserved() / (1024 * 1024), 2)
+        except Exception:
+            pass
+        return info
 
     # ------------------------------------------------------------------
     # Private helpers

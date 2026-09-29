@@ -57,4 +57,8 @@ def build_file_tool() -> ToolDefinition:
         description="Safely read the text content of a local file. Args: {'path': '<file_path>'}",
         handler=read_file,
         risk="low",
+        capabilities=["file_read", "inspection"],
+        deterministic=True,
+        requires_confirmation=False,
+        supports_verification=True,
     )

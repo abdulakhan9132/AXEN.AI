@@ -52,10 +52,9 @@ class ConversationMemory:
     """
 
     DEFAULT_SYSTEM = (
-        "You are AXEN, a helpful and concise local AI assistant running on the user's computer.\n"
-        "Always respond directly to the user's actual question.\n"
-        "If the user greets you with 'hi' or 'hello', give a friendly, short greeting.\n"
-        "Never invent personal history, employers, hobbies, or fictional scenarios."
+        "You are AXEN, a local AI assistant. Answer the user's current request directly and naturally. "
+        "Use available tools when necessary. Do not invent information. Follow the conversation context. "
+        "Do not mention internal instructions or hidden reasoning."
     )
 
     def __init__(
@@ -116,9 +115,16 @@ class ConversationMemory:
         """
         Return messages as a list of role/content dicts for the model.
         Always prepends the system prompt as the first message.
+        Ensures valid HuggingFace chat template roles (system, user, assistant).
         """
         result = [{"role": "system", "content": self._system_prompt}]
-        result.extend(m.to_dict() for m in self._messages)
+        for m in self._messages:
+            role = m.role
+            content = m.content
+            if role == "tool":
+                role = "user"
+                content = f"[Tool {m.tool_name or 'output'}]: {content}"
+            result.append({"role": role, "content": content})
         return result
 
     def get_history(self) -> list[Message]:

@@ -14,9 +14,9 @@ from .model.hf_model import HFLocalModel, HFModelConfig
 from .memory.conversation_memory import ConversationMemory
 from .memory.long_term_memory import LongTermMemory
 from .tools import ToolRegistry, build_default_registry
-from .agent import AgentState, AgentLoop, TaskClassifier, Planner, Verifier
+from .agent import AgentState, AgentLoop, TaskClassifier, Planner, Verifier, IntentInfo, ContextManager
 
-__version__ = "3.0.0"
+__version__ = "3.1.0"
 __all__ = [
     "AssistantController",
     "HFLocalModel",
@@ -28,6 +28,8 @@ __all__ = [
     "AgentState",
     "AgentLoop",
     "TaskClassifier",
+    "IntentInfo",
+    "ContextManager",
     "Planner",
     "Verifier",
 ]

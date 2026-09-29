@@ -2,16 +2,46 @@
   "my_name_is_alex": {
     "value": "my name is Alex",
     "category": "general",
-    "timestamp": "2026-09-28T16:48:49"
+    "timestamp": "2026-09-29T14:04:07"
   },
   "name": {
     "value": "Alex",
     "category": "general",
-    "timestamp": "2026-09-28T16:48:49"
+    "timestamp": "2026-09-29T14:04:07"
   },
   "my_project_is_axen": {
     "value": "my project is AXEN",
     "category": "general",
-    "timestamp": "2026-09-28T16:48:50"
+    "timestamp": "2026-09-29T14:04:09"
+  },
+  "ui_preference": {
+    "value": "I prefer minimal dark UI with sleek typography.",
+    "category": "general",
+    "timestamp": "2026-09-29T14:04:16"
+  },
+  "favorite_snack": {
+    "value": "Chocolate chip cookies.",
+    "category": "general",
+    "timestamp": "2026-09-29T14:04:16"
+  },
+  "axen_project_goal": {
+    "value": "AXEN is an offline, general-purpose local AI.",
+    "category": "general",
+    "timestamp": "2026-09-29T14:04:16"
+  },
+  "preferred_stack": {
+    "value": "Python & React",
+    "category": "general",
+    "timestamp": "2026-09-29T14:04:16"
+  },
+  "user_style": {
+    "value": "I prefer minimal dark UI with sleek typography.",
+    "category": "general",
+    "timestamp": "2026-09-28T17:56:21"
+  },
+  "pet": {
+    "value": "Cat named Luna.",
+    "category": "general",
+    "timestamp": "2026-09-28T17:56:21"
   }
 }

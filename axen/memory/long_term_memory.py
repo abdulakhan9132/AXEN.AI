@@ -83,6 +83,88 @@ class LongTermMemory:
                 results.append({"key": key, **entry})
         return results
 
+    def retrieve_relevant(self, query: str, top_k: int = 3) -> list[dict[str, Any]]:
+        """
+        Relevance-based retrieval for long-term memory.
+        
+        Extracts salient query terms and domain associations, scores stored facts
+        by keyword/token overlap, and returns only relevant memories.
+        Does NOT return unrelated memories for greetings or simple conversation.
+        """
+        import re
+
+        clean_q = query.strip().lower()
+
+        # Greetings and conversational pleasantries must NEVER retrieve long-term memory
+        if re.match(
+            r"^(?:hello|hi|hey|greetings|good\s+(?:morning|afternoon|evening|day)|howdy|sup)(?:[\s,]+(?:there|axen|friend|everyone|everybody))?[\s\.\!\?]*$|"
+            r"^(?:how\s+are\s+you(?:\s+doing|\s+today)?|what'?s\s+up(?:\s+axen|\s+there)?|how's\s+it\s+going)[\s\.\!\?]*$",
+            clean_q,
+            re.I,
+        ):
+            return []
+
+        stopwords = {
+            "a", "an", "the", "is", "are", "was", "were", "do", "does", "did",
+            "you", "your", "my", "me", "i", "what", "which", "who", "whom",
+            "this", "that", "these", "those", "have", "has", "had", "for", "to",
+            "in", "on", "at", "by", "from", "and", "or", "but", "about", "with",
+            "can", "could", "would", "should", "will", "tell", "show", "give", "please",
+            "hi", "hello", "hey", "howdy", "sup", "greetings", "good", "morning",
+            "afternoon", "evening", "thanks", "thank", "ok", "okay", "yes", "no",
+        }
+        words = re.findall(r"[a-zA-Z0-9]+", clean_q)
+        salient = [w for w in words if len(w) > 1 and w not in stopwords]
+        if not salient:
+            return []
+
+        # Domain associations for common conceptual overlaps
+        DOMAIN_ASSOCIATIONS = {
+            "dashboard": {"ui", "interface", "design", "theme", "dark", "light", "minimal", "frontend"},
+            "website": {"ui", "design", "html", "css", "web", "frontend"},
+            "portfolio": {"website", "ui", "projects", "resume"},
+            "app": {"software", "ui", "application"},
+            "ui": {"dashboard", "interface", "design", "theme"},
+        }
+
+        # Expand salient terms with domain associations
+        expanded_terms = set(salient)
+        for term in salient:
+            if term in DOMAIN_ASSOCIATIONS:
+                expanded_terms.update(DOMAIN_ASSOCIATIONS[term])
+
+        scored_results: list[tuple[float, dict[str, Any]]] = []
+        for key, entry in self._store.items():
+            key_words = set(re.findall(r"[a-zA-Z0-9]+", key.lower()))
+            val_str = str(entry.get("value", "")).lower()
+            val_words = set(re.findall(r"[a-zA-Z0-9]+", val_str))
+
+            score = 0.0
+            for term in expanded_terms:
+                is_direct = term in salient
+                weight = 1.0 if is_direct else 0.6
+
+                # Direct match in key words or prefix match for terms >= 4 chars
+                if term in key_words:
+                    score += 2.0 * weight
+                elif len(term) >= 4 and any(kw.startswith(term) for kw in key_words):
+                    score += 1.0 * weight
+
+                # Direct match in value words or prefix match for terms >= 4 chars
+                # NEVER do generic substring matching (e.g. 'hi' in 'chip')
+                if term in val_words:
+                    score += 1.5 * weight
+                elif len(term) >= 4 and any(vw.startswith(term) for vw in val_words):
+                    score += 0.8 * weight
+
+            if score > 0:
+                scored_results.append((score, {"key": key, **entry}))
+
+        scored_results.sort(key=lambda x: x[0], reverse=True)
+        return [item[1] for item in scored_results[:top_k]]
+
+
+
     def all_facts(self) -> dict[str, Any]:
         """Return a summary of all stored facts (key → value)."""
         return {k: v["value"] for k, v in self._store.items()}

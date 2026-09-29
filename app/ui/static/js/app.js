@@ -42,6 +42,8 @@
   let isGenerating = false;
   let speechRecognition = null;
   let isRecording = false;
+  let activeRequestId = null;
+  let activeAbortController = null;
 
   // =========================================================================
   // Initialization
@@ -275,7 +277,9 @@
     if (toolName === 'calculator') return 'Calculator Verified';
     if (toolName === 'python') return 'Python Executed';
     if (toolName === 'math_solver') return 'Math Solver Verified';
+    if (toolName === 'computer') return 'Computer Systems Verified';
     if (toolName === 'file') return 'File Tool';
+    if (toolName === 'memory') return 'Memory Recalled';
     return toolName;
   }
 
@@ -285,27 +289,139 @@
     }
   }
 
+  function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   // =========================================================================
-  // Chat Dispatch
+  // Thinking / Processing State Management (Matches Reference Screenshot)
   // =========================================================================
 
-  async function sendMessage() {
-    const text = composerInput.value.trim();
-    if (!text || isGenerating) return;
+  const SEND_ICON_SVG = `
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+    </svg>
+  `;
 
-    isGenerating = true;
-    btnSend.disabled = true;
+  const RADIAL_SPINNER_SVG = `
+    <svg class="radial-spinner" width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="3.5" r="1.5" fill="#1F2937" opacity="1.0"/>
+      <circle cx="18" cy="6" r="1.5" fill="#1F2937" opacity="0.875"/>
+      <circle cx="20.5" cy="12" r="1.5" fill="#1F2937" opacity="0.75"/>
+      <circle cx="18" cy="18" r="1.5" fill="#1F2937" opacity="0.625"/>
+      <circle cx="12" cy="20.5" r="1.5" fill="#1F2937" opacity="0.5"/>
+      <circle cx="6" cy="18" r="1.5" fill="#1F2937" opacity="0.375"/>
+      <circle cx="3.5" cy="12" r="1.5" fill="#1F2937" opacity="0.25"/>
+      <circle cx="6" cy="6" r="1.5" fill="#1F2937" opacity="0.125"/>
+    </svg>
+  `;
 
-    // Immediately display user message
+  function showThinkingUI(statusText = 'Thinking') {
+    removeThinkingUI();
     welcomeScreen.classList.add('hidden');
-    appendMessageToDOM('user', text);
-    composerInput.value = '';
-    autoResizeTextarea();
 
-    // Create temporary thinking indicator message
-    const tempRow = document.createElement('div');
-    tempRow.className = 'message-row assistant';
-    tempRow.id = 'temp-assistant-response';
+    const container = document.createElement('div');
+    container.className = 'axen-thinking-container';
+    container.id = 'axen-thinking-live';
+
+    const clean = (statusText || 'Thinking').replace(/\.+$/, '').trim();
+
+    container.innerHTML = `
+      <div class="axen-thinking-logo" aria-hidden="true">
+        <div class="sq-orange"></div>
+        <div class="sq-black-lg"></div>
+        <div class="sq-black-sm"></div>
+      </div>
+      <div class="axen-thinking-status">
+        <span class="axen-thinking-label" id="axen-thinking-label">${escapeHtml(clean)}</span>
+        <span class="axen-thinking-dots" aria-hidden="true">
+          <span>.</span><span>.</span><span>.</span><span>.</span><span>.</span><span>.</span>
+        </span>
+      </div>
+    `;
+
+    messagesWrapper.appendChild(container);
+    scrollToBottom();
+  }
+
+  function updateThinkingStatus(statusText) {
+    const label = document.getElementById('axen-thinking-label');
+    const clean = (statusText || 'Thinking').replace(/\.+$/, '').trim();
+    if (label) {
+      label.textContent = clean;
+    } else {
+      showThinkingUI(clean);
+    }
+  }
+
+  function removeThinkingUI() {
+    const el = document.getElementById('axen-thinking-live');
+    if (el && el.parentNode) {
+      el.parentNode.removeChild(el);
+    }
+  }
+
+  function setComposerLoadingState(loading) {
+    if (loading) {
+      btnSend.classList.add('loading');
+      btnSend.innerHTML = RADIAL_SPINNER_SVG;
+      btnSend.title = 'Stop generating (Click to cancel)';
+      btnSend.setAttribute('aria-label', 'Stop generating');
+      btnSend.disabled = false;
+      composerInput.disabled = true;
+      btnVoice.disabled = true;
+      btnVoice.style.opacity = '0.35';
+    } else {
+      btnSend.classList.remove('loading');
+      btnSend.innerHTML = SEND_ICON_SVG;
+      btnSend.title = 'Send message';
+      btnSend.setAttribute('aria-label', 'Send message');
+      btnSend.disabled = false;
+      composerInput.disabled = false;
+      btnVoice.disabled = false;
+      btnVoice.style.opacity = '1';
+      activeRequestId = null;
+      activeAbortController = null;
+      composerInput.focus();
+    }
+  }
+
+  async function cancelActiveRequest() {
+    if (!isGenerating) return;
+
+    const reqId = activeRequestId;
+    if (activeAbortController) {
+      try {
+        activeAbortController.abort();
+      } catch (e) {
+        console.warn('Abort error:', e);
+      }
+    }
+
+    if (reqId) {
+      try {
+        fetch('/api/chat/cancel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ request_id: reqId }),
+        }).catch((e) => console.warn('Cancel ping failed:', e));
+      } catch (e) {
+        console.warn('Cancel error:', e);
+      }
+    }
+
+    removeThinkingUI();
+    isGenerating = false;
+    setComposerLoadingState(false);
+    showToast('Generation cancelled.');
+  }
+
+  function appendErrorMessage(message) {
+    const row = document.createElement('div');
+    row.className = 'message-row assistant';
 
     const avatar = document.createElement('div');
     avatar.className = 'assistant-avatar';
@@ -320,70 +436,160 @@
     const wrapper = document.createElement('div');
     wrapper.className = 'assistant-content-wrapper';
 
-    const statusBadge = document.createElement('div');
-    statusBadge.className = 'tool-status-badge';
-    statusBadge.id = 'live-tool-status';
-    statusBadge.innerHTML = `
-      <div class="spinner"></div>
-      <span id="live-status-text">Thinking...</span>
-    `;
-
     const body = document.createElement('div');
     body.className = 'assistant-body';
+    body.innerHTML = `<span style="color: #DC2626; font-weight: 500;">${escapeHtml(message)}</span>`;
 
-    wrapper.appendChild(statusBadge);
     wrapper.appendChild(body);
-    tempRow.appendChild(avatar);
-    tempRow.appendChild(wrapper);
-    messagesWrapper.appendChild(tempRow);
+    row.appendChild(avatar);
+    row.appendChild(wrapper);
+    messagesWrapper.appendChild(row);
     scrollToBottom();
+  }
 
-    // Send to backend
+  // =========================================================================
+  // Chat Dispatch via Real-Time SSE Stream with Instant Fallback
+  // =========================================================================
+
+  async function sendMessage() {
+    const text = composerInput.value.trim();
+    if (!text || isGenerating) return;
+
+    // Immediately lock submission to prevent duplicate clicks
+    isGenerating = true;
+    setComposerLoadingState(true);
+
+    // Immediately display user message
+    welcomeScreen.classList.add('hidden');
+    appendMessageToDOM('user', text);
+    composerInput.value = '';
+    autoResizeTextarea();
+
+    // Setup request tracking & cancellation controller
+    const requestId = 'req_' + Math.random().toString(36).substring(2, 10) + Date.now();
+    activeRequestId = requestId;
+    activeAbortController = new AbortController();
+
+    let finalResultReceived = false;
+
     try {
-      // Use standard POST endpoint with structured result
-      const res = await fetch('/api/chat', {
+      const res = await fetch('/api/chat/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: text,
           session_id: activeSessionId,
+          request_id: requestId,
         }),
+        signal: activeAbortController.signal,
       });
 
       if (!res.ok) {
         throw new Error(`Server returned status ${res.status}`);
       }
 
-      const data = await res.json();
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
 
-      // Remove temp element and append permanent message
-      if (tempRow && tempRow.parentNode) {
-        tempRow.parentNode.removeChild(tempRow);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const parts = buffer.split('\n\n');
+        buffer = parts.pop() || '';
+
+        for (const part of parts) {
+          if (!part.trim()) continue;
+          let eventType = 'message';
+          let dataStr = '';
+
+          const lines = part.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('event: ')) {
+              eventType = line.slice(7).trim();
+            } else if (line.startsWith('data: ')) {
+              dataStr = line.slice(6);
+            }
+          }
+
+          if (!dataStr) continue;
+
+          try {
+            const parsed = JSON.parse(dataStr);
+            if (eventType === 'state') {
+              if (parsed.state === 'ERROR') {
+                finalResultReceived = true;
+                removeThinkingUI();
+                appendErrorMessage(parsed.text || 'Something went wrong while processing your request.');
+              } else if (parsed.state === 'COMPLETED' && parsed.meta && parsed.meta.cancelled) {
+                finalResultReceived = true;
+                removeThinkingUI();
+                showToast('Generation cancelled.');
+              } else {
+                updateThinkingStatus(parsed.text || parsed.state);
+              }
+            } else if (eventType === 'result') {
+              finalResultReceived = true;
+              removeThinkingUI();
+              appendMessageToDOM('assistant', parsed.response, {
+                tool_used: parsed.tool_used,
+                selected_tool: parsed.tool_name,
+                verification: parsed.verification,
+              });
+            } else if (eventType === 'error') {
+              finalResultReceived = true;
+              removeThinkingUI();
+              appendErrorMessage(parsed.error || parsed.detail || 'Something went wrong while processing your request.');
+            }
+          } catch (e) {
+            console.warn('Error parsing SSE event:', e, dataStr);
+          }
+        }
       }
 
-      appendMessageToDOM('assistant', data.response, {
-        tool_used: data.tool_used,
-        selected_tool: data.tool_name,
-        verification: data.verification,
-      });
+      if (!finalResultReceived && !activeAbortController.signal.aborted) {
+        removeThinkingUI();
+        appendErrorMessage('Something went wrong while processing your request.');
+      }
 
-      // Refresh session list to update titles/ordering
       await loadSessions();
 
     } catch (err) {
-      console.error('Chat dispatch error:', err);
-      if (tempRow) {
-        const liveStatus = tempRow.querySelector('#live-tool-status');
-        if (liveStatus) liveStatus.style.display = 'none';
-        const bodyElem = tempRow.querySelector('.assistant-body');
-        if (bodyElem) {
-          bodyElem.innerHTML = `<span style="color: #DC2626;">Error: Could not reach AXEN backend. Details: ${err.message}</span>`;
+      if (err.name === 'AbortError') {
+        console.log('Request aborted by user');
+        removeThinkingUI();
+      } else {
+        console.error('SSE chat error, falling back to standard /api/chat:', err);
+        try {
+          updateThinkingStatus('Thinking');
+          const fallbackRes = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: text,
+              session_id: activeSessionId,
+              request_id: requestId,
+            }),
+          });
+          if (!fallbackRes.ok) throw new Error(`Fallback failed: ${fallbackRes.status}`);
+          const data = await fallbackRes.json();
+          removeThinkingUI();
+          appendMessageToDOM('assistant', data.response, {
+            tool_used: data.tool_used,
+            selected_tool: data.tool_name,
+            verification: data.verification,
+          });
+          await loadSessions();
+        } catch (fallbackErr) {
+          removeThinkingUI();
+          appendErrorMessage('Something went wrong while processing your request.');
         }
       }
     } finally {
       isGenerating = false;
-      btnSend.disabled = false;
-      composerInput.focus();
+      setComposerLoadingState(false);
     }
   }
 
@@ -454,13 +660,21 @@
   // =========================================================================
 
   function setupEventListeners() {
-    // Send message
-    btnSend.onclick = sendMessage;
+    // Send message or Cancel if currently generating
+    btnSend.onclick = () => {
+      if (isGenerating) {
+        cancelActiveRequest();
+      } else {
+        sendMessage();
+      }
+    };
 
     composerInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        sendMessage();
+        if (!isGenerating) {
+          sendMessage();
+        }
       }
     });
 

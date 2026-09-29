@@ -22,7 +22,7 @@
   --axen-orange-active: #BF3C12;
   --axen-orange-subtle: rgba(240, 90, 40, 0.08);
   --axen-orange-glow: rgba(240, 90, 40, 0.28);
-  
+
   --axen-black: #000000;
   --axen-dark-900: #0A0A0A;
   --axen-dark-800: #141416;
@@ -61,7 +61,9 @@
 }
 
 /* Base Reset */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -69,7 +71,8 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-html, body {
+html,
+body {
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -78,7 +81,9 @@ html, body {
   color: var(--axen-dark-900);
 }
 
-button, input, textarea {
+button,
+input,
+textarea {
   font-family: inherit;
   color: inherit;
 }
@@ -475,8 +480,15 @@ button, input, textarea {
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); opacity: 0.8; }
-  100% { transform: scale(2.2); opacity: 0; }
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
 }
 
 /* ==========================================================================
@@ -509,7 +521,7 @@ button, input, textarea {
   pointer-events: none;
 }
 
-.main-top-bar > * {
+.main-top-bar>* {
   pointer-events: auto;
 }
 
@@ -533,7 +545,7 @@ button, input, textarea {
   border-color: var(--axen-gray-300);
 }
 
-.sidebar.collapsed ~ .main-content .btn-floating-toggle {
+.sidebar.collapsed~.main-content .btn-floating-toggle {
   display: flex;
 }
 
@@ -725,27 +737,44 @@ button, input, textarea {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Markdown Typography */
-.assistant-body h1, .assistant-body h2, .assistant-body h3, .assistant-body h4 {
+.assistant-body h1,
+.assistant-body h2,
+.assistant-body h3,
+.assistant-body h4 {
   color: var(--axen-black);
   margin: 18px 0 8px 0;
   font-weight: 700;
   line-height: 1.3;
 }
 
-.assistant-body h1 { font-size: 22px; }
-.assistant-body h2 { font-size: 19px; }
-.assistant-body h3 { font-size: 17px; }
-.assistant-body h4 { font-size: 15px; }
+.assistant-body h1 {
+  font-size: 22px;
+}
+
+.assistant-body h2 {
+  font-size: 19px;
+}
+
+.assistant-body h3 {
+  font-size: 17px;
+}
+
+.assistant-body h4 {
+  font-size: 15px;
+}
 
 .assistant-body p {
   margin-bottom: 12px;
 }
 
-.assistant-body ul, .assistant-body ol {
+.assistant-body ul,
+.assistant-body ol {
   margin: 8px 0 14px 22px;
 }
 
@@ -841,7 +870,8 @@ button, input, textarea {
   font-size: 14px;
 }
 
-.markdown-table th, .markdown-table td {
+.markdown-table th,
+.markdown-table td {
   padding: 10px 14px;
   border-bottom: 1px solid var(--axen-gray-200);
   text-align: left;
@@ -968,9 +998,20 @@ button, input, textarea {
 }
 
 @keyframes pulseRecording {
-  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-  70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
 }
 
 /* Send Button */
@@ -1005,6 +1046,147 @@ button, input, textarea {
   transform: none;
 }
 
+/* Processing / Loading Send Button State (matches reference screenshot) */
+.btn-composer-send.loading {
+  background-color: #FFA985 !important;
+  box-shadow: 0 2px 10px rgba(240, 90, 40, 0.18) !important;
+  cursor: pointer !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.btn-composer-send.loading:hover {
+  background-color: #F89C76 !important;
+  box-shadow: 0 4px 14px rgba(240, 90, 40, 0.28) !important;
+}
+
+/* 8-Dot Radial Spinner in Send Button */
+.radial-spinner {
+  width: 22px;
+  height: 22px;
+  animation: radialSpin 0.9s steps(8, end) infinite;
+  display: block;
+}
+
+@keyframes radialSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==========================================================================
+   Real AXEN Thinking / Processing State (matches reference screenshot)
+   ========================================================================== */
+
+.axen-thinking-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 32px 8px 32px 4px;
+  width: 100%;
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.axen-thinking-logo {
+  position: relative;
+  width: 40px;
+  height: 32px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.axen-thinking-logo .sq-orange {
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 14px;
+  height: 14px;
+  background-color: var(--axen-orange);
+  border-radius: 2.8px;
+}
+
+.axen-thinking-logo .sq-black-lg {
+  position: absolute;
+  left: 19px;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  background-color: var(--axen-black);
+  border-radius: 3.5px;
+}
+
+.axen-thinking-logo .sq-black-sm {
+  position: absolute;
+  left: 14px;
+  top: 24px;
+  width: 7.5px;
+  height: 7.5px;
+  background-color: var(--axen-black);
+  border-radius: 1.8px;
+}
+
+.axen-thinking-status {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-sans);
+  font-size: 15.5px;
+  font-weight: 500;
+  color: #4B5563;
+  letter-spacing: -0.01em;
+}
+
+.axen-thinking-label {
+  color: #374151;
+}
+
+.axen-thinking-dots {
+  display: inline-flex;
+  margin-left: 1px;
+  letter-spacing: 0.5px;
+}
+
+.axen-thinking-dots span {
+  display: inline-block;
+  animation: dotPulse 1.4s infinite ease-in-out both;
+  color: #4B5563;
+}
+
+.axen-thinking-dots span:nth-child(1) { animation-delay: 0.0s; }
+.axen-thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+.axen-thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+.axen-thinking-dots span:nth-child(4) { animation-delay: 0.6s; }
+.axen-thinking-dots span:nth-child(5) { animation-delay: 0.8s; }
+.axen-thinking-dots span:nth-child(6) { animation-delay: 1.0s; }
+
+@keyframes dotPulse {
+  0%, 80%, 100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-1.5px);
+  }
+}
+
+@media (max-width: 640px) {
+  .axen-thinking-container {
+    padding: 20px 0;
+    gap: 12px;
+  }
+  .axen-thinking-logo {
+    transform: scale(0.9);
+    transform-origin: left center;
+  }
+  .axen-thinking-status {
+    font-size: 14.5px;
+  }
+}
+
 /* ==========================================================================
    Toast / Notification Banner
    ========================================================================== */
@@ -1037,18 +1219,37 @@ button, input, textarea {
    ========================================================================== */
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes messageSlideIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideInRight {
-  from { opacity: 0; transform: translateX(20px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 /* ==========================================================================
@@ -1089,7 +1290,7 @@ button, input, textarea {
     z-index: 35;
   }
 
-  .sidebar:not(.collapsed) ~ .sidebar-backdrop {
+  .sidebar:not(.collapsed)~.sidebar-backdrop {
     display: block;
   }
 
@@ -1104,7 +1305,8 @@ button, input, textarea {
     gap: 10px;
   }
 
-  .btn-composer-plus, .btn-composer-voice {
+  .btn-composer-plus,
+  .btn-composer-voice {
     width: 40px;
     height: 40px;
   }

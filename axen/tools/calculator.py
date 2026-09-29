@@ -117,4 +117,8 @@ def build_calculator_tool() -> ToolDefinition:
             },
         },
         risk="low",
+        capabilities=["arithmetic", "eval", "exact_numeric"],
+        deterministic=True,
+        requires_confirmation=False,
+        supports_verification=True,
     )

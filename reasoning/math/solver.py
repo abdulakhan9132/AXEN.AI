@@ -19,8 +19,18 @@ from .verifier import verify_equation, verify_identity, verify_modular, verify_n
 _ALLOWED_FUNCTIONS = {"sqrt": sp.sqrt, "sin": sp.sin, "cos": sp.cos, "tan": sp.tan, "log": sp.log, "exp": sp.exp, "abs": sp.Abs}
 
 
-def _safe_expression(text: str) -> sp.Expr:
+def _normalize_math_expr(text: str) -> str:
     cleaned = text.strip().replace("^", "**")
+    cleaned = re.sub(r"(\d)([a-zA-Z])", r"\1*\2", cleaned)
+    cleaned = re.sub(r"\)\s*\(", r")*(", cleaned)
+    cleaned = re.sub(r"(\d)\s*\(", r"\1*(", cleaned)
+    cleaned = re.sub(r"\)\s*(\d)", r")*\1", cleaned)
+    cleaned = re.sub(r"\)\s*([a-zA-Z])", r")*\1", cleaned)
+    return cleaned
+
+
+def _safe_expression(text: str) -> sp.Expr:
+    cleaned = _normalize_math_expr(text)
     tree = ast.parse(cleaned, mode="eval")
     symbols: dict[str, sp.Symbol] = {}
     def visit(node: ast.AST) -> sp.Expr:
@@ -58,7 +68,7 @@ class MathSolver:
             problem.constraints = [condition.strip().rstrip(",")]
             problem.target = target.strip().rstrip("?.")
             problem.operation = "identity_from_constraint"
-        elif "derivative of" in lower: problem.operation = "derivative"
+        elif "derivative of" in lower or "differentiate" in lower: problem.operation = "derivative"
         elif "integral of" in lower: problem.operation = "integral"
         elif "limit of" in lower: problem.operation = "limit"
         return problem
@@ -104,8 +114,38 @@ class MathSolver:
             answer = combinatorics.combinations(n, k); return answer, "binomial_coefficient", f"verified: C({n}, {k}) recomputed exactly", ["Apply the multiplicative binomial formula."]
         if "permutation" in lower:
             n, k = _numbers(text)[-2:]; answer = combinatorics.permutations(n, k); return answer, "permutation", f"verified: P({n}, {k}) recomputed exactly", ["Multiply the k descending factors."]
-        if "derivative of" in lower:
-            expression = _safe_expression(text.split("derivative of", 1)[1].split("with respect", 1)[0].strip().rstrip("?.")); variable = next(iter(expression.free_symbols), sp.Symbol("x")); answer = calculus.derivative(expression, variable); return answer, "differentiation", f"verified: derivative checked symbolically for {variable}", ["Differentiate with SymPy's symbolic derivative."]
+        if "derivative of" in lower or "differentiate" in lower:
+            if "derivative of" in lower:
+                raw_expr = text.split("derivative of", 1)[1]
+            else:
+                raw_expr = re.split(r"\bdifferentiate\b", text, flags=re.I)[1]
+            raw_expr = raw_expr.split("with respect", 1)[0].strip().rstrip("?.")
+            if ":" in raw_expr:
+                raw_expr = raw_expr.split(":", 1)[1].strip()
+            if "=" in raw_expr:
+                raw_expr = raw_expr.split("=", 1)[1].strip()
+            raw_expr = re.split(r"\band\s+", raw_expr, flags=re.I)[0].strip()
+            expression = _safe_expression(raw_expr)
+            variable = next(iter(expression.free_symbols), sp.Symbol("x"))
+            answer = sp.expand(calculus.derivative(expression, variable))
+            return answer, "differentiation", f"verified: derivative checked symbolically for {variable}", ["Differentiate with SymPy's symbolic derivative."]
+        if re.search(r"\b(?:simplify|expand)\b", lower):
+            raw_expr = re.split(r"\b(?:simplify|expand)\b", text, flags=re.I)[-1].strip().rstrip("?.")
+            if ":" in raw_expr:
+                raw_expr = raw_expr.split(":", 1)[1].strip()
+            if raw_expr and raw_expr not in ("it", "this", "that", "the result"):
+                expression = _safe_expression(raw_expr)
+                answer = sp.expand(sp.simplify(expression))
+                return answer, "symbolic_simplification", "verified: expression simplified and expanded symbolically", ["Parse symbolic expression.", "Simplify/expand algebraically."]
+        if re.match(r"^\s*f\([a-z]\)\s*=", lower):
+            raw_expr = re.split(r"=", text, maxsplit=1)[1].strip().rstrip("?.")
+            expression = _safe_expression(raw_expr)
+            if "derivative" in lower or "differentiate" in lower:
+                variable = next(iter(expression.free_symbols), sp.Symbol("x"))
+                answer = sp.expand(calculus.derivative(expression, variable))
+                return answer, "differentiation", f"verified: derivative checked symbolically for {variable}", ["Differentiate with SymPy's symbolic derivative."]
+            answer = sp.expand(expression)
+            return answer, "polynomial_expansion", "verified: polynomial expanded symbolically", ["Parse polynomial f(x).", "Expand symbolic product."]
         if "integral of" in lower:
             expression = _safe_expression(text.split("integral of", 1)[1].split("with respect", 1)[0].strip().rstrip("?.")); variable = next(iter(expression.free_symbols), sp.Symbol("x")); answer = calculus.integral(expression, variable); ok, _ = verify_identity(sp.diff(answer, variable), expression); return answer, "integration", "verified: differentiating the antiderivative recovers the integrand" if ok else "not verified", ["Integrate symbolically."]
         if "limit of" in lower:
@@ -139,7 +179,11 @@ class MathSolver:
         if "solve" in lower and "=" in text:
             equation = re.split(r"solve", text, flags=re.IGNORECASE, maxsplit=1)[1].strip().rstrip("?."); left, right = equation.split("=", 1); lhs = _safe_expression(left); rhs = _safe_expression(right); expression = lhs - rhs; variable = next(iter(expression.free_symbols), sp.Symbol("x")); answer = sp.solve(expression, variable); ok, detail = verify_equation(expression, answer, variable); return answer, "symbolic_solve", f"verified: {detail}" if ok else detail, [f"Solve the equation for {variable}.", "Substitute each candidate back into the equation."]
         expression = text.split(":", 1)[-1].strip().rstrip("?.") if ":" in text else text.strip().rstrip("?.")
-        answer = symbolic.simplify(_cached_expression(expression)); return answer, "symbolic_simplification", "verified: expression parsed through a strict AST and simplified", ["Parse the expression through the allowlisted arithmetic grammar.", "Simplify the exact symbolic result."]
+        parsed_expr = _cached_expression(expression)
+        if parsed_expr.free_symbols and ("*" in str(parsed_expr) or "**" in str(parsed_expr)):
+            answer = sp.expand(parsed_expr)
+            return answer, "polynomial_expansion", "verified: polynomial expanded symbolically", ["Parse polynomial expression.", "Expand symbolic product."]
+        answer = symbolic.simplify(parsed_expr); return answer, "symbolic_simplification", "verified: expression parsed through a strict AST and simplified", ["Parse the expression through the allowlisted arithmetic grammar.", "Simplify the exact symbolic result."]
 
 
 def solve(text: str) -> MathResult:

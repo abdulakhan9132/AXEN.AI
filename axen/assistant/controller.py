@@ -25,7 +25,8 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Optional
+import threading
+from typing import Any, Callable, Optional
 
 from axen.memory.conversation_memory import ConversationMemory
 from axen.memory.long_term_memory import LongTermMemory
@@ -143,19 +144,49 @@ class AssistantController:
         long_term_memory: Optional[LongTermMemory] = None,
         config: Optional[HFModelConfig] = None,
     ) -> None:
-        self.model = model or HFLocalModel(config=config or HFModelConfig.from_yaml())
+        self._model = model or HFLocalModel(config=config or HFModelConfig.from_yaml())
         self.tools = tool_registry or build_default_registry()
-        self.memory = conversation_memory or ConversationMemory()
-        self.long_memory = long_term_memory or LongTermMemory()
+        self._memory = conversation_memory or ConversationMemory()
+        self._long_memory = long_term_memory or LongTermMemory()
         self._model_loaded: bool = False
         self.last_debug_info: dict[str, Any] = {}
         self.agent_loop = AgentLoop(
             tools=self.tools,
-            memory=self.memory,
-            long_memory=self.long_memory,
-            model=self.model,
+            memory=self._memory,
+            long_memory=self._long_memory,
+            model=self._model,
         )
         self.last_agent_state: Optional[AgentState] = None
+
+    @property
+    def model(self) -> Any:
+        return self._model
+
+    @model.setter
+    def model(self, val: Any) -> None:
+        self._model = val
+        if hasattr(self, "agent_loop") and self.agent_loop is not None:
+            self.agent_loop.model = val
+
+    @property
+    def memory(self) -> ConversationMemory:
+        return self._memory
+
+    @memory.setter
+    def memory(self, val: ConversationMemory) -> None:
+        self._memory = val
+        if hasattr(self, "agent_loop") and self.agent_loop is not None:
+            self.agent_loop.memory = val
+
+    @property
+    def long_memory(self) -> LongTermMemory:
+        return self._long_memory
+
+    @long_memory.setter
+    def long_memory(self, val: LongTermMemory) -> None:
+        self._long_memory = val
+        if hasattr(self, "agent_loop") and self.agent_loop is not None:
+            self.agent_loop.long_memory = val
 
     # ------------------------------------------------------------------
     # Model lifecycle
@@ -188,6 +219,10 @@ class AssistantController:
         *,
         verbose: bool = False,
         debug: bool = False,
+        state_callback: Optional[Callable[[str, str, Optional[dict[str, Any]]], None]] = None,
+        cancel_event: Optional[threading.Event] = None,
+        request_id: Optional[str] = None,
+        session_id: Optional[str] = None,
     ) -> str:
         """
         Generate a response to the user's input via the agentic reasoning loop.
@@ -206,7 +241,15 @@ class AssistantController:
         self.memory.add_user(user_input)
 
         # 2. Run agentic reasoning loop
-        response, state = self.agent_loop.run(user_input, verbose=verbose, debug=debug)
+        response, state = self.agent_loop.run(
+            user_input,
+            verbose=verbose,
+            debug=debug,
+            state_callback=state_callback,
+            cancel_event=cancel_event,
+            request_id=request_id,
+            session_id=session_id,
+        )
         self.last_agent_state = state
 
         # 3. Populate debug info
@@ -216,6 +259,13 @@ class AssistantController:
 
         self.last_debug_info = {
             "task_type": state.task_type,
+            "intent": state.metadata.get("intent", state.task_type),
+            "domain": state.metadata.get("domain", "general"),
+            "complexity": state.metadata.get("complexity", "simple"),
+            "confidence": state.metadata.get("confidence", 0.95),
+            "requires_reasoning": state.metadata.get("requires_reasoning", False),
+            "memory_retrieved": len(state.metadata.get("retrieved_memories", [])),
+            "tools": ", ".join(state.metadata.get("tools_needed", [])) or (state.metadata.get("selected_tool") or "none"),
             "tool_decision": "tool_required" if state.metadata.get("tool_required") else "no_tool",
             "selected_tool": state.metadata.get("selected_tool"),
             "tool_result": first_tool_res.get("result", first_tool_res.get("error", "none")),
@@ -248,11 +298,21 @@ class AssistantController:
         lower_q = user_input.lower().strip()
         lower_r = cleaned.lower()
 
-        # For simple greetings ('hi', 'hello', etc.), return concise greeting
-        if re.match(r"^(hello|hi|hey|greetings|good\s+(morning|afternoon|evening|day)|howdy|sup)[\s\.\!\?]*$", lower_q):
+        # For simple greetings ('hi', 'hello', etc.), return clean conversational greeting
+        if re.match(
+            r"^(?:hello|hi|hey|greetings|good\s+(?:morning|afternoon|evening|day)|howdy|sup)(?:[\s,]+(?:there|axen|friend|everyone|everybody))?[\s\.\!\?]*$|"
+            r"^(?:how\s+are\s+you(?:\s+doing|\s+today)?|what'?s\s+up(?:\s+axen|\s+there)?|how's\s+it\s+going)[\s\.\!\?]*$",
+            lower_q,
+        ):
+            contamination_triggers = [
+                "updated version", "chatbot", "previous interactions", "here's an updated",
+                "relevant context", "def ", "import ", "python", "```", "user's", "virtual home",
+            ]
+            if any(trig in lower_r for trig in contamination_triggers) or len(cleaned) > 200:
+                return "Hey! How can I help you today?"
             cleaned = cleaned.split("\n\n")[0].strip()
             cleaned = cleaned.split("\n")[0].strip()
-            return cleaned
+            return cleaned or "Hey! How can I help you today?"
 
         # Identity questions: "who are you", "what are you"
         if re.search(r"\b(?:who\s+are\s+you|what\s+are\s+you|what\s+is\s+your\s+name)\b", lower_q):
@@ -365,17 +425,18 @@ class AssistantController:
     # Context building
     # ------------------------------------------------------------------
 
-    def _build_messages_with_memory(self) -> list[dict]:
+    def _build_messages_with_memory(self, query: str = "") -> list[dict]:
         """
-        Build the full message list for the model, injecting relevant
-        long-term memory facts into the system prompt.
+        Build the full message list for the model, selectively injecting relevant
+        long-term memory facts into the system prompt. Never blindly dumps all facts.
         """
         messages = self.memory.to_messages()
-        facts = self.long_memory.all_facts()
+        if not query.strip():
+            return messages
+        facts = self.long_memory.retrieve_relevant(query, top_k=2)
         if facts:
-            # Inject user-saved facts as context
-            fact_lines = "\n".join(f"- {k}: {v}" for k, v in facts.items())
-            system_addendum = f"\n\nUser facts saved by user:\n{fact_lines}"
+            fact_lines = "\n".join(f"- {item['key']}: {item['value']}" for item in facts)
+            system_addendum = f"\n\nContext:\n{fact_lines}"
             if messages and messages[0]["role"] == "system":
                 messages[0] = {
                     "role": "system",
@@ -388,14 +449,24 @@ class AssistantController:
     # ------------------------------------------------------------------
 
     def reset_conversation(self) -> None:
-        """Clear the short-term conversation memory."""
+        """Clear the short-term conversation memory and isolate agent context state."""
         self.memory.clear()
+        self.last_agent_state = None
+        self.last_debug_info = {}
+        if hasattr(self, "agent_loop") and self.agent_loop is not None:
+            self.agent_loop.reset_state()
 
     def status(self) -> dict[str, Any]:
         """Return a summary of the controller's current state."""
+        mem_info = self.model.get_memory_info() if hasattr(self.model, "get_memory_info") else {}
         return {
             "model": repr(self.model),
+            "model_name": getattr(self.model, "model_name", "unknown"),
             "model_loaded": self.model_ready,
+            "device": getattr(self.model, "_device", "unknown"),
+            "dtype": getattr(self.model.config, "dtype", "unknown") if hasattr(self.model, "config") else "unknown",
+            "vram_allocated_mb": mem_info.get("vram_allocated_mb", 0.0),
+            "vram_reserved_mb": mem_info.get("vram_reserved_mb", 0.0),
             "conversation_turns": self.memory.turn_count,
             "memory_tokens_estimate": self.memory.token_estimate,
             "long_term_facts": len(self.long_memory),

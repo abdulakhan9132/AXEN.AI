@@ -34,14 +34,26 @@ from typing import Any, Callable, Optional
 
 @dataclass
 class ToolDefinition:
-    """Describes a single callable tool."""
+    """Describes a single callable tool with rich capability and safety metadata."""
     name: str
     description: str
     handler: Callable[[dict[str, Any]], Any]
     input_schema: dict[str, Any] = field(default_factory=dict)
     output_schema: dict[str, Any] = field(default_factory=dict)
-    risk: str = "low"              # "low" | "medium" | "high"
+    capabilities: list[str] = field(default_factory=list)
+    risk_level: str = "low"              # "low" | "medium" | "high"
+    risk: str = "low"                    # backward compatibility alias
+    deterministic: bool = True
+    requires_confirmation: bool = False
+    supports_batch: bool = False
+    supports_verification: bool = True
     enabled: bool = True
+
+    def __post_init__(self) -> None:
+        if self.risk != "low" and self.risk_level == "low":
+            self.risk_level = self.risk
+        elif self.risk_level != "low" and self.risk == "low":
+            self.risk = self.risk_level
 
     def call(self, args: dict[str, Any]) -> "ToolResult":
         """Execute this tool with the given arguments and return a ToolResult."""
@@ -127,13 +139,17 @@ class ToolRegistry:
             )
         return tool.call(args)
 
-    def list_tools(self) -> list[dict[str, str]]:
+    def list_tools(self) -> list[dict[str, Any]]:
         """Return a summary list of all registered tools."""
         return [
             {
                 "name": t.name,
                 "description": t.description,
                 "risk": t.risk,
+                "risk_level": t.risk_level,
+                "deterministic": t.deterministic,
+                "capabilities": t.capabilities,
+                "supports_verification": t.supports_verification,
                 "enabled": str(t.enabled),
             }
             for t in self._tools.values()

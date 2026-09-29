@@ -19,7 +19,7 @@ _KEYWORDS: dict[ProblemCategory, tuple[str, ...]] = {
     ProblemCategory.SEQUENCES_SERIES: ("sequence", "recurrence", "arithmetic progression", "geometric progression", "series", "term", "fibonacci"),
     ProblemCategory.INEQUALITIES: ("inequality", "inequalities", "less than", "greater than", "maximum", "minimum"),
     ProblemCategory.EQUATIONS: ("solve", "equation", "find x", "root", "roots"),
-    ProblemCategory.ALGEBRA: ("polynomial", "factor", "expression", "identity", "variable", "x "),
+    ProblemCategory.ALGEBRA: ("polynomial", "factor", "expression", "identity", "variable", "x ", "simplify", "expand", "f(x)", "g(x)"),
     ProblemCategory.DISCRETE_MATH: ("boolean", "set", "logic", "recurrence", "discrete"),
     ProblemCategory.ARITHMETIC: ("calculate", "compute", "what is", "sum", "product", "plus", "minus"),
 }

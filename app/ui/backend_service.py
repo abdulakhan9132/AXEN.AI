@@ -74,8 +74,10 @@ class AxenBackendService:
         self.controller = AssistantController(config=self.config)
         self.active_session_id: str = str(uuid.uuid4())
         self.conversations: Dict[str, Dict[str, Any]] = {}
+        self.active_tasks: Dict[str, Dict[str, Any]] = {}
         self.model_loading: bool = False
         self.model_load_error: Optional[str] = None
+        self._chat_lock = threading.Lock()
         self._load_conversations_from_disk()
 
         # If a session wasn't loaded, create a fresh default one
@@ -89,6 +91,26 @@ class AxenBackendService:
                 reverse=True,
             )
             self.active_session_id = sorted_convs[0]["id"]
+            self._sync_controller_memory(self.active_session_id)
+
+    # -----------------------------------------------------------------------
+    # Task Tracking & Cancellation
+    # -----------------------------------------------------------------------
+
+    def cancel_request(self, request_id: str) -> bool:
+        """Cancel an in-flight agent request without stopping the server."""
+        with self._lock:
+            task = self.active_tasks.get(request_id)
+            if task and task.get("cancel_event"):
+                task["cancel_event"].set()
+                logger.info("Cancelled request task: %s", request_id)
+                return True
+        return False
+
+    def cleanup_task(self, request_id: str) -> None:
+        """Remove a completed or aborted task from tracking."""
+        with self._lock:
+            self.active_tasks.pop(request_id, None)
 
     # -----------------------------------------------------------------------
     # Model Loading (Async / Background)
@@ -122,7 +144,10 @@ class AxenBackendService:
         self,
         message: str,
         session_id: Optional[str] = None,
+        request_id: Optional[str] = None,
         status_callback: Optional[Callable[[str], None]] = None,
+        state_callback: Optional[Callable[[str, str, Optional[Dict[str, Any]]], None]] = None,
+        cancel_event: Optional[threading.Event] = None,
     ) -> Dict[str, Any]:
         """
         Process a user message through AssistantController.
@@ -132,38 +157,70 @@ class AxenBackendService:
         if sid not in self.conversations:
             sid = self.new_session(title=message[:30].strip())
 
+        self.active_session_id = sid
         conv = self.conversations[sid]
-        
-        # Determine likely tool to give immediate UI status feedback
-        classified_type, tool_req, sel_tool = self.controller.agent_loop.classifier.classify(message)
-        initial_status = _format_tool_status(classified_type, sel_tool)
-        if status_callback:
-            status_callback(initial_status)
 
-        # Record user message in session
-        user_msg = {
-            "id": str(uuid.uuid4()),
-            "role": "user",
-            "content": message,
-            "timestamp": datetime.now().isoformat(),
-        }
-        conv["messages"].append(user_msg)
+        with self._chat_lock:
+            # Isolate session history: synchronize controller memory with this session
+            self._sync_controller_memory(sid)
 
-        # Update title if it's the first message
-        if len(conv["messages"]) == 1 or conv.get("title") == "New Chat":
-            clean_title = message.strip().split("\n")[0][:36].strip()
-            if clean_title:
-                conv["title"] = clean_title
+            if request_id:
+                with self._lock:
+                    if cancel_event is None:
+                        cancel_event = threading.Event()
+                    self.active_tasks[request_id] = {
+                        "cancel_event": cancel_event,
+                        "session_id": sid,
+                        "start_time": time.time(),
+                    }
 
-        # Execute through AssistantController
-        start_time = time.perf_counter()
-        response_text = self.controller.respond(message)
-        elapsed_sec = time.perf_counter() - start_time
+            # Combine state and status callbacks
+            def _combined_callback(st_name: str, disp_status: str, meta: Optional[Dict[str, Any]] = None):
+                if state_callback:
+                    try:
+                        state_callback(st_name, disp_status, meta or {})
+                    except Exception as cb_err:
+                        logger.debug("state_callback error: %s", cb_err)
+                if status_callback:
+                    try:
+                        status_callback(disp_status)
+                    except Exception as cb_err:
+                        logger.debug("status_callback error: %s", cb_err)
+
+            # Record user message in session
+            user_msg = {
+                "id": str(uuid.uuid4()),
+                "role": "user",
+                "content": message,
+                "timestamp": datetime.now().isoformat(),
+            }
+            conv["messages"].append(user_msg)
+
+            # Update title if it's the first message
+            if len(conv["messages"]) == 1 or conv.get("title") == "New Chat":
+                clean_title = message.strip().split("\n")[0][:36].strip()
+                if clean_title:
+                    conv["title"] = clean_title
+
+            # Execute through AssistantController
+            try:
+                start_time = time.perf_counter()
+                response_text = self.controller.respond(
+                    message,
+                    state_callback=_combined_callback,
+                    cancel_event=cancel_event,
+                    request_id=request_id,
+                    session_id=sid,
+                )
+                elapsed_sec = time.perf_counter() - start_time
+            finally:
+                if request_id:
+                    self.cleanup_task(request_id)
 
         state: Optional[AgentState] = getattr(self.controller, "last_agent_state", None)
         debug_info = getattr(self.controller, "last_debug_info", {})
 
-        task_type = state.task_type if state else classified_type
+        task_type = state.task_type if state else "unknown"
         tool_used = bool(state.tool_calls) if state else bool(debug_info.get("tool_used"))
         selected_tool = (
             state.metadata.get("selected_tool")
@@ -227,18 +284,28 @@ class AxenBackendService:
         self._save_conversations_to_disk()
         return new_id
 
+    def _sync_controller_memory(self, session_id: str) -> None:
+        """Synchronize controller short-term memory to exclusively contain this session's history."""
+        self.controller.reset_conversation()
+        conv = self.conversations.get(session_id)
+        if not conv:
+            return
+        for msg in conv.get("messages", []):
+            role = msg.get("role")
+            content = msg.get("content", "")
+            if not content:
+                continue
+            if role == "user":
+                self.controller.memory.add_user(content)
+            elif role == "assistant":
+                self.controller.memory.add_assistant(content)
+
     def switch_session(self, session_id: str) -> Optional[Dict[str, Any]]:
         """Switch active conversation, restoring previous turns to memory if needed."""
         if session_id not in self.conversations:
             return None
         self.active_session_id = session_id
-        self.controller.reset_conversation()
-        # Re-populate short-term memory with this session's history
-        for msg in self.conversations[session_id].get("messages", []):
-            if msg.get("role") == "user":
-                self.controller.memory.add_user(msg.get("content", ""))
-            elif msg.get("role") == "assistant":
-                self.controller.memory.add_assistant(msg.get("content", ""))
+        self._sync_controller_memory(session_id)
         return self.conversations[session_id]
 
     def delete_session(self, session_id: str) -> bool:
@@ -323,6 +390,9 @@ class AxenBackendService:
             "cuda_available": cuda_available,
             "cuda_device": cuda_device,
             "device": getattr(self.controller.model, "_device", "cpu"),
+            "dtype": st.get("dtype", "unknown"),
+            "vram_allocated_mb": st.get("vram_allocated_mb", 0.0),
+            "vram_reserved_mb": st.get("vram_reserved_mb", 0.0),
             "conversation_turns": st.get("conversation_turns", 0),
             "long_term_facts": st.get("long_term_facts", 0),
             "tools": st.get("tools", []),
