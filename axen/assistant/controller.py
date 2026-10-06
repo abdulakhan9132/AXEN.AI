@@ -143,11 +143,27 @@ class AssistantController:
         conversation_memory: Optional[ConversationMemory] = None,
         long_term_memory: Optional[LongTermMemory] = None,
         config: Optional[HFModelConfig] = None,
+        knowledge_manager: Optional[Any] = None,
+        coding_agent: Optional[Any] = None,
+        workspace_path: Optional[str] = None,
+        web_agent: Optional[Any] = None,
+        file_manager: Optional[Any] = None,
+        registry: Optional[ToolRegistry] = None,
+        memory_manager: Optional[Any] = None,
+        project_manager: Optional[Any] = None,
+        **kwargs: Any,
     ) -> None:
         self._model = model or HFLocalModel(config=config or HFModelConfig.from_yaml())
-        self.tools = tool_registry or build_default_registry()
+        self.tools = tool_registry or registry or build_default_registry()
         self._memory = conversation_memory or ConversationMemory()
         self._long_memory = long_term_memory or LongTermMemory()
+        self._knowledge_manager = knowledge_manager
+        self._coding_agent = coding_agent
+        self._workspace_path = workspace_path or "."
+        self._web_agent = web_agent
+        self._file_manager = file_manager
+        self._memory_manager = memory_manager
+        self._project_manager = project_manager
         self._model_loaded: bool = False
         self.last_debug_info: dict[str, Any] = {}
         self.agent_loop = AgentLoop(
@@ -155,8 +171,95 @@ class AssistantController:
             memory=self._memory,
             long_memory=self._long_memory,
             model=self._model,
+            knowledge_manager=self._knowledge_manager,
+            coding_agent=self._coding_agent,
+            workspace_path=self._workspace_path,
+            web_agent=self._web_agent,
+            file_manager=self._file_manager,
+            project_manager=self._project_manager,
         )
+        if self._knowledge_manager is None:
+            self._knowledge_manager = self.agent_loop.knowledge_manager
+        if self._file_manager is None:
+            self._file_manager = self.agent_loop.file_manager
+        if self._project_manager is None:
+            self._project_manager = self.agent_loop.project_manager
         self.last_agent_state: Optional[AgentState] = None
+
+    @property
+    def project_manager(self) -> Any:
+        return self._project_manager
+
+    @project_manager.setter
+    def project_manager(self, val: Any) -> None:
+        self._project_manager = val
+        if hasattr(self, "agent_loop") and self.agent_loop is not None:
+            self.agent_loop.project_manager = val
+
+    @property
+    def file_manager(self) -> Any:
+        return self._file_manager
+
+    @file_manager.setter
+    def file_manager(self, val: Any) -> None:
+        self._file_manager = val
+        if hasattr(self, "agent_loop") and self.agent_loop is not None:
+            self.agent_loop.file_manager = val
+
+    @property
+    def memory_manager(self) -> Any:
+        return self._memory_manager
+
+    @property
+    def context_engine(self) -> Any:
+        if hasattr(self, "agent_loop") and self.agent_loop is not None:
+            return getattr(self.agent_loop, "context_engine", None)
+        return None
+
+    @context_engine.setter
+    def context_engine(self, val: Any) -> None:
+        if hasattr(self, "agent_loop") and self.agent_loop is not None:
+            self.agent_loop.context_engine = val
+
+    @property
+    def web_agent(self) -> Any:
+        return self._web_agent
+
+    @web_agent.setter
+    def web_agent(self, val: Any) -> None:
+        self._web_agent = val
+        if hasattr(self, "agent_loop") and self.agent_loop is not None:
+            self.agent_loop.web_agent = val
+
+    @property
+    def coding_agent(self) -> Any:
+        return self._coding_agent
+
+    @coding_agent.setter
+    def coding_agent(self, val: Any) -> None:
+        self._coding_agent = val
+        if hasattr(self, "agent_loop") and self.agent_loop is not None:
+            self.agent_loop.coding_agent = val
+
+    @property
+    def workspace_path(self) -> str:
+        return self._workspace_path
+
+    @workspace_path.setter
+    def workspace_path(self, val: str) -> None:
+        self._workspace_path = val
+        if hasattr(self, "agent_loop") and self.agent_loop is not None:
+            self.agent_loop.workspace_path = val
+
+    @property
+    def knowledge_manager(self) -> Any:
+        return self._knowledge_manager
+
+    @knowledge_manager.setter
+    def knowledge_manager(self, val: Any) -> None:
+        self._knowledge_manager = val
+        if hasattr(self, "agent_loop") and self.agent_loop is not None:
+            self.agent_loop.knowledge_manager = val
 
     @property
     def model(self) -> Any:
@@ -187,6 +290,17 @@ class AssistantController:
         self._long_memory = val
         if hasattr(self, "agent_loop") and self.agent_loop is not None:
             self.agent_loop.long_memory = val
+            if hasattr(self.agent_loop, "context_engine") and self.agent_loop.context_engine is not None:
+                if hasattr(val, "manager"):
+                    self.agent_loop.context_engine.memory_manager = val.manager
+
+    @property
+    def long_term_memory(self) -> LongTermMemory:
+        return self._long_memory
+
+    @long_term_memory.setter
+    def long_term_memory(self, val: LongTermMemory) -> None:
+        self.long_memory = val
 
     # ------------------------------------------------------------------
     # Model lifecycle
@@ -217,6 +331,8 @@ class AssistantController:
         self,
         user_input: str,
         *,
+        attachments: Optional[List[str]] = None,
+        project_id: Optional[str] = None,
         verbose: bool = False,
         debug: bool = False,
         state_callback: Optional[Callable[[str, str, Optional[dict[str, Any]]], None]] = None,
@@ -243,6 +359,8 @@ class AssistantController:
         # 2. Run agentic reasoning loop
         response, state = self.agent_loop.run(
             user_input,
+            attachments=attachments,
+            project_id=project_id,
             verbose=verbose,
             debug=debug,
             state_callback=state_callback,
@@ -397,7 +515,12 @@ class AssistantController:
     # ------------------------------------------------------------------
 
     def _try_memory_ops(self, text: str) -> Optional[str]:
-        """Handle explicit memory store/recall requests."""
+        """Handle explicit memory store/recall/forget/update requests."""
+        if hasattr(self.long_memory, "manager"):
+            cmd_res = self.long_memory.manager.handle_explicit_command(text)
+            if cmd_res:
+                return cmd_res
+
         if _REMEMBER_PATTERN.search(text):
             # Extract the fact after "remember that" / "note that" etc.
             match = re.search(

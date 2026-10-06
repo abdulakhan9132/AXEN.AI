@@ -1,165 +1,262 @@
 """
 axen/tools/tool_registry.py
-=============================
-The AXEN tool registry — a safe, typed catalogue of callable tools.
+===========================
+The canonical AXEN Tool Registry — a safe, typed, provider-independent Tool Runtime.
 
-Each tool has:
-  - name: unique dotted identifier (e.g. "calculator.evaluate")
-  - description: plain-English explanation for the task router
-  - input_schema: dict describing expected arguments
-  - handler: the Python callable that actually performs the work
-  - risk: "low", "medium", or "high"
-  - enabled: whether the tool is active
-
-The controller uses this registry to:
-  1. Look up which tools are available.
-  2. Dispatch to the correct handler.
-  3. Return a typed ToolResult with success/error status.
+Enforces:
+  1. Standard Tool Contract (name, description, schemas, permission, risk_level, execute)
+  2. Complete Execution Lifecycle:
+     REQUEST -> VALIDATE -> AUTHORIZE -> EXECUTE -> LIMIT -> OBSERVE -> RETURN RESULT
+  3. Execution states (pending, authorized, running, completed, failed, cancelled, timeout)
+  4. Explicit permissions and project sandbox isolation
+  5. Strict cancellation and process termination support
+  6. Output size limiting and Untrusted Data tagging
 
 SAFETY RULES:
-  - High-risk tools require explicit user confirmation before execution.
   - Tools may never invoke the shell arbitrarily.
-  - Tool output is NEVER fabricated — it is always the actual return value.
+  - The model/runtime never directly executes arbitrary commands.
+  - All execution passes through this Tool Runtime.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Callable, Optional
+import logging
+import threading
+import time
+import uuid
+from typing import Any, Callable, Dict, List, Optional, Set
 
+from .base import (
+    ExecutionState,
+    Tool,
+    ToolDefinition,
+    ToolExecutionContext,
+    ToolPermission,
+    ToolResult,
+    ToolRiskLevel,
+)
+from .verifier import ToolVerifier
 
-# ------------------------------------------------------------------
-# Data types
-# ------------------------------------------------------------------
+logger = logging.getLogger("axen.tools.registry")
 
-@dataclass
-class ToolDefinition:
-    """Describes a single callable tool with rich capability and safety metadata."""
-    name: str
-    description: str
-    handler: Callable[[dict[str, Any]], Any]
-    input_schema: dict[str, Any] = field(default_factory=dict)
-    output_schema: dict[str, Any] = field(default_factory=dict)
-    capabilities: list[str] = field(default_factory=list)
-    risk_level: str = "low"              # "low" | "medium" | "high"
-    risk: str = "low"                    # backward compatibility alias
-    deterministic: bool = True
-    requires_confirmation: bool = False
-    supports_batch: bool = False
-    supports_verification: bool = True
-    enabled: bool = True
-
-    def __post_init__(self) -> None:
-        if self.risk != "low" and self.risk_level == "low":
-            self.risk_level = self.risk
-        elif self.risk_level != "low" and self.risk == "low":
-            self.risk = self.risk_level
-
-    def call(self, args: dict[str, Any]) -> "ToolResult":
-        """Execute this tool with the given arguments and return a ToolResult."""
-        if not self.enabled:
-            return ToolResult(
-                tool_name=self.name,
-                success=False,
-                error="This tool is currently disabled.",
-            )
-        try:
-            output = self.handler(args)
-            return ToolResult(tool_name=self.name, success=True, output=output)
-        except Exception as exc:
-            return ToolResult(
-                tool_name=self.name,
-                success=False,
-                error=str(exc),
-            )
-
-
-@dataclass
-class ToolResult:
-    """The result of executing a tool."""
-    tool_name: str
-    success: bool
-    output: Any = None
-    error: Optional[str] = None
-
-    def to_dict(self) -> dict[str, Any]:
-        result: dict[str, Any] = {
-            "tool": self.tool_name,
-            "success": self.success,
-        }
-        if self.success:
-            result["output"] = self.output
-        else:
-            result["error"] = self.error
-        return result
-
-    @property
-    def display(self) -> str:
-        """Human-readable summary for the CLI."""
-        if self.success:
-            return str(self.output)
-        return f"Tool error: {self.error}"
-
-
-# ------------------------------------------------------------------
-# Registry
-# ------------------------------------------------------------------
 
 class ToolRegistry:
     """
-    Central registry for all AXEN tools.
+    Central authoritative registry for all AXEN tools.
 
     Usage:
         registry = ToolRegistry()
-        registry.register(some_tool_definition)
-        result = registry.call("calculator.evaluate", {"expression": "2+2"})
+        registry.register(some_tool)
+        result = registry.execute("calculator.evaluate", {"expression": "2+2"}, context=ctx)
     """
 
     def __init__(self) -> None:
-        self._tools: dict[str, ToolDefinition] = {}
+        self._tools: Dict[str, ToolDefinition] = {}
+        self._lock = threading.RLock()
+        self._execution_history: List[ToolResult] = []
+        self._active_executions: Dict[str, ToolExecutionContext] = {}
 
-    def register(self, tool: ToolDefinition) -> None:
-        """Register a tool. Raises ValueError if the name is already taken."""
-        if tool.name in self._tools:
-            raise ValueError(f"Tool '{tool.name}' is already registered.")
-        self._tools[tool.name] = tool
+    def register(self, tool: ToolDefinition) -> ToolDefinition:
+        """Register a tool. Raises ValueError if already registered."""
+        with self._lock:
+            if tool.name in self._tools:
+                raise ValueError(f"Tool '{tool.name}' is already registered.")
+            self._tools[tool.name] = tool
+            return tool
+
+    def unregister(self, name: str) -> bool:
+        """Unregister a tool by name."""
+        with self._lock:
+            if name in self._tools:
+                del self._tools[name]
+                return True
+            return False
 
     def get(self, name: str) -> Optional[ToolDefinition]:
         """Look up a tool by name."""
-        return self._tools.get(name)
+        with self._lock:
+            return self._tools.get(name)
 
-    def call(self, name: str, args: dict[str, Any]) -> ToolResult:
-        """Execute a tool by name. Returns an error result if not found."""
-        tool = self._tools.get(name)
-        if tool is None:
+    def has(self, name: str) -> bool:
+        """Check if a tool exists in registry."""
+        with self._lock:
+            return name in self._tools
+
+    def list(self) -> List[ToolDefinition]:
+        """Return all registered tool definitions."""
+        with self._lock:
+            return list(self._tools.values())
+
+    def names(self) -> List[str]:
+        """Return names of all registered tools."""
+        with self._lock:
+            return list(self._tools.keys())
+
+    def list_tools(self) -> List[Dict[str, Any]]:
+        """Return human-readable metadata summaries of registered tools."""
+        with self._lock:
+            return [
+                {
+                    "name": t.name,
+                    "description": t.description,
+                    "permission": t.permission.value if hasattr(t.permission, "value") else str(t.permission),
+                    "risk": t.risk,
+                    "risk_level": t.risk_level,
+                    "deterministic": t.deterministic,
+                    "capabilities": t.capabilities,
+                    "supports_verification": t.supports_verification,
+                    "enabled": str(t.enabled),
+                    "input_schema": t.input_schema,
+                }
+                for t in self._tools.values()
+            ]
+
+    # ------------------------------------------------------------------
+    # Canonical Execution Lifecycle
+    # ------------------------------------------------------------------
+
+    def execute(
+        self,
+        name: str,
+        arguments: Optional[Dict[str, Any]] = None,
+        context: Optional[ToolExecutionContext] = None,
+    ) -> ToolResult:
+        """
+        Execute a tool through the full canonical lifecycle:
+        REQUEST -> VALIDATE -> AUTHORIZE -> EXECUTE -> LIMIT -> OBSERVE -> RETURN RESULT
+
+        Args:
+            name: tool identifier (e.g. "calculator.evaluate")
+            arguments: parameter dictionary
+            context: runtime execution context (project_id, cancel_event, limits)
+
+        Returns:
+            ToolResult with execution_id, status, and output.
+        """
+        execution_id = f"exec_{uuid.uuid4().hex[:12]}"
+        args = arguments if arguments is not None else {}
+        ctx = context or ToolExecutionContext()
+        t_start = time.perf_counter()
+
+        # Step 1: REQUEST & CANCELLATION PRE-CHECK
+        if ctx.is_cancelled():
             return ToolResult(
                 tool_name=name,
                 success=False,
-                error=f"No tool named '{name}' is registered.",
+                error="Execution was cancelled before tool invocation.",
+                state=ExecutionState.CANCELLED,
+                execution_id=execution_id,
             )
-        return tool.call(args)
 
-    def list_tools(self) -> list[dict[str, Any]]:
-        """Return a summary list of all registered tools."""
-        return [
-            {
-                "name": t.name,
-                "description": t.description,
-                "risk": t.risk,
-                "risk_level": t.risk_level,
-                "deterministic": t.deterministic,
-                "capabilities": t.capabilities,
-                "supports_verification": t.supports_verification,
-                "enabled": str(t.enabled),
-            }
-            for t in self._tools.values()
-        ]
+        tool = self.get(name)
 
-    def names(self) -> list[str]:
-        return list(self._tools.keys())
+        # Step 2: VALIDATE (Existence, schema, parameter types, project sandbox bounds)
+        is_valid, err_msg = ToolVerifier.validate_tool_request(tool, name, args, ctx)
+        if not is_valid or tool is None:
+            return ToolResult(
+                tool_name=name,
+                success=False,
+                error=err_msg or f"Tool '{name}' failed validation.",
+                state=ExecutionState.FAILED,
+                execution_id=execution_id,
+                duration_seconds=time.perf_counter() - t_start,
+            )
+
+        # Step 3: AUTHORIZE (Permission checks)
+        if not ctx.is_permission_authorized(tool.permission):
+            return ToolResult(
+                tool_name=name,
+                success=False,
+                error=f"Unauthorized: Execution context lacks '{tool.permission.value}' permission.",
+                state=ExecutionState.FAILED,
+                execution_id=execution_id,
+                duration_seconds=time.perf_counter() - t_start,
+            )
+
+        # Track active execution
+        with self._lock:
+            self._active_executions[execution_id] = ctx
+
+        # Step 4: EXECUTE
+        try:
+            # Check cancellation again right before execution
+            if ctx.is_cancelled():
+                return ToolResult(
+                    tool_name=name,
+                    success=False,
+                    error="Execution cancelled before invocation.",
+                    state=ExecutionState.CANCELLED,
+                    execution_id=execution_id,
+                )
+
+            result = tool.execute(args, context=ctx)
+            result.execution_id = execution_id
+            result.duration_seconds = time.perf_counter() - t_start
+
+            # Check if cancelled during execution
+            if ctx.is_cancelled() and result.state != ExecutionState.CANCELLED:
+                result.state = ExecutionState.CANCELLED
+                result.success = False
+                result.error = "Execution was cancelled during tool run."
+
+            # Step 5: LIMIT (Resource & output size bounds)
+            result = ToolVerifier.sanitize_output(result, max_bytes=ctx.max_output_bytes)
+
+            # Step 6: OBSERVE & RECORD
+            with self._lock:
+                self._execution_history.append(result)
+                if len(self._execution_history) > 200:
+                    self._execution_history = self._execution_history[-100:]
+
+            return result
+
+        except TimeoutError as exc:
+            return ToolResult(
+                tool_name=name,
+                success=False,
+                error=f"Tool execution timed out: {exc}",
+                state=ExecutionState.TIMEOUT,
+                execution_id=execution_id,
+                duration_seconds=time.perf_counter() - t_start,
+            )
+        except Exception as exc:
+            return ToolResult(
+                tool_name=name,
+                success=False,
+                error=str(exc),
+                state=ExecutionState.FAILED,
+                execution_id=execution_id,
+                duration_seconds=time.perf_counter() - t_start,
+            )
+        finally:
+            with self._lock:
+                self._active_executions.pop(execution_id, None)
+
+    def call(
+        self,
+        name: str,
+        args: Dict[str, Any],
+        context: Optional[ToolExecutionContext] = None,
+    ) -> ToolResult:
+        """Backward-compatible call interface."""
+        return self.execute(name, arguments=args, context=context)
 
     def __len__(self) -> int:
-        return len(self._tools)
+        with self._lock:
+            return len(self._tools)
 
     def __repr__(self) -> str:
-        return f"ToolRegistry(tools={list(self._tools.keys())})"
+        with self._lock:
+            return f"ToolRegistry(tools={list(self._tools.keys())})"
+
+
+__all__ = [
+    "ToolRegistry",
+    "ToolDefinition",
+    "ToolResult",
+    "ToolPermission",
+    "ToolRiskLevel",
+    "ExecutionState",
+    "ToolExecutionContext",
+    "ToolVerifier",
+]

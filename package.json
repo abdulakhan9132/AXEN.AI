@@ -1,0 +1,14 @@
+{
+  "name": "axen-ai",
+  "version": "3.0.0",
+  "description": "Axen AI — Local-First Personal AI with from-scratch Neural Brain",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "train": "node ai/brain/train.js 600"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {}
+}

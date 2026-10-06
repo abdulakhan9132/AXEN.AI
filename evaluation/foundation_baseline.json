@@ -1,0 +1,80 @@
+{
+  "benchmark_name": "axen_foundation_baseline",
+  "model_checkpoint": "axen-ai/checkpoints/best.pt",
+  "model_parameters": 141312,
+  "loss_metrics": {
+    "train_loss": 3.4171,
+    "validation_loss": 5.0162,
+    "perplexity": 150.83
+  },
+  "capability_benchmark": {
+    "total_tasks": 11,
+    "passed": 10,
+    "failed": 1,
+    "accuracy": 0.9091,
+    "decision_sources": {
+      "brain_native": 2,
+      "planner_fallback": 8,
+      "specialist_qwen": 1
+    },
+    "rates": {
+      "native_brain_rate": 0.1818,
+      "planner_fallback_rate": 0.7273,
+      "specialist_qwen_rate": 0.0909
+    },
+    "capabilities": {
+      "general_conversation": {
+        "total": 3,
+        "passed": 3,
+        "native_brain_passed": 0,
+        "planner_fallback_passed": 3
+      },
+      "instruction_following": {
+        "total": 1,
+        "passed": 1,
+        "native_brain_passed": 0,
+        "planner_fallback_passed": 1
+      },
+      "tool_selection": {
+        "total": 3,
+        "passed": 2,
+        "accuracy": 0.6667,
+        "native_brain_passed": 0,
+        "planner_fallback_passed": 2
+      },
+      "tool_chaining": {
+        "total": 1,
+        "passed": 1,
+        "native_brain_passed": 0,
+        "planner_fallback_passed": 1
+      },
+      "coding_specialist": {
+        "total": 1,
+        "passed": 1,
+        "specialist_qwen_passed": 1
+      },
+      "general_knowledge": {
+        "total": 2,
+        "passed": 2,
+        "native_brain_passed": 2,
+        "specialist_qwen_passed": 0
+      }
+    },
+    "structured_tool_calls": {
+      "native_emitted_valid": 0,
+      "native_validity_rate": 0.0,
+      "tool_selection_accuracy": 0.6667
+    },
+    "reflection_correction": {
+      "tested": 0,
+      "native_emitted_valid": 0,
+      "runtime_support": true
+    }
+  },
+  "raw_generation_audit": {
+    "hello_output": "<BOS><UNK>ello<EOS>alortel serorof\\n\\n\\n\\nAtere aoce ",
+    "contains_unk": true,
+    "structured_json_capable": false
+  },
+  "timestamp": "2026-10-06T05:13:00+00:00"
+}

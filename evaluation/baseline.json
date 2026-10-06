@@ -1,0 +1,117 @@
+{
+  "total_tasks": 11,
+  "passed": 10,
+  "failed": 1,
+  "categories": {
+    "conversation": {
+      "total": 3,
+      "passed": 3
+    },
+    "instruction": {
+      "total": 1,
+      "passed": 1
+    },
+    "tool_selection": {
+      "total": 3,
+      "passed": 2
+    },
+    "tool_chaining": {
+      "total": 1,
+      "passed": 1
+    },
+    "coding": {
+      "total": 1,
+      "passed": 1
+    },
+    "general_knowledge": {
+      "total": 2,
+      "passed": 2
+    }
+  },
+  "decision_sources": {
+    "planner_fallback": 8,
+    "specialist_qwen": 1,
+    "brain_native": 2
+  },
+  "accuracy": 0.9091,
+  "results": [
+    {
+      "id": "conv_01",
+      "category": "conversation",
+      "passed": true,
+      "tool_used": null,
+      "decision_source": "planner_fallback"
+    },
+    {
+      "id": "conv_02",
+      "category": "conversation",
+      "passed": true,
+      "tool_used": null,
+      "decision_source": "planner_fallback"
+    },
+    {
+      "id": "conv_03",
+      "category": "conversation",
+      "passed": true,
+      "tool_used": null,
+      "decision_source": "planner_fallback"
+    },
+    {
+      "id": "inst_01",
+      "category": "instruction",
+      "passed": true,
+      "tool_used": null,
+      "decision_source": "planner_fallback"
+    },
+    {
+      "id": "tool_01",
+      "category": "tool_selection",
+      "passed": true,
+      "tool_used": "calculator",
+      "decision_source": "planner_fallback"
+    },
+    {
+      "id": "tool_02",
+      "category": "tool_selection",
+      "passed": true,
+      "tool_used": "file_search",
+      "decision_source": "planner_fallback"
+    },
+    {
+      "id": "tool_03",
+      "category": "tool_selection",
+      "passed": false,
+      "tool_used": null,
+      "decision_source": "planner_fallback"
+    },
+    {
+      "id": "chain_01",
+      "category": "tool_chaining",
+      "passed": true,
+      "tool_used": "file_search",
+      "decision_source": "planner_fallback"
+    },
+    {
+      "id": "code_01",
+      "category": "coding",
+      "passed": true,
+      "tool_used": null,
+      "decision_source": "specialist_qwen"
+    },
+    {
+      "id": "know_01",
+      "category": "general_knowledge",
+      "passed": true,
+      "tool_used": null,
+      "decision_source": "brain_native"
+    },
+    {
+      "id": "know_02",
+      "category": "general_knowledge",
+      "passed": true,
+      "tool_used": null,
+      "decision_source": "brain_native"
+    }
+  ],
+  "timestamp": "2026-10-01T06:57:41.185148+00:00"
+}

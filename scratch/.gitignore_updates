@@ -1,0 +1,7 @@
+# Training & Knowledge
+training/train.jsonl
+training/eval.jsonl
+training/my_examples.jsonl
+training/axen-coder-outputs/
+training/axen-coder-gguf/
+knowledge/chroma_db/

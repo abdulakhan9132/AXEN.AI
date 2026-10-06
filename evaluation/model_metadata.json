@@ -1,0 +1,18 @@
+{
+  "model_name": "axen_foundation",
+  "parameters": 141312,
+  "trainable_parameters": 141312,
+  "vocab_size": 256,
+  "context_length": 128,
+  "layers": 2,
+  "hidden_size": 64,
+  "heads": 4,
+  "ff_dim": 256,
+  "activation": "gelu",
+  "optimizer": "AdamW",
+  "learning_rate": 0.0003,
+  "precision": "float32",
+  "estimated_VRAM_MB": 2.16,
+  "checkpoint": "axen-ai/checkpoints/best.pt",
+  "checkpoint_size_bytes": 1735790
+}

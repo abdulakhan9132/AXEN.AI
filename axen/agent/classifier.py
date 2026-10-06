@@ -75,7 +75,49 @@ class TaskClassifier:
     )
     _FILE_OPERATION = re.compile(
         r"\b(?:read|show|view|open|cat)\s+(?:this\s+)?file[:\s]+[^\s,;]+|"
-        r"\b(?:read|view|inspect)\s+(?:my\s+|the\s+)?file\s+[^\s,;]+",
+        r"\b(?:read|show|view|open)\s+[a-zA-Z0-9_\-\.\/\\]+\.(?:md|txt|py|json|csv)\b|"
+        r"\b(?:read|view|inspect|summarize|explain)\s+(?:this\s+|my\s+|the\s+)?(?:file|document|pdf|code|csv)\b|"
+        r"\b(?:find|search|locate)\s+.*?\b(?:in\s+(?:this\s+|the\s+)?(?:project|workspace|repo|codebase)|in\s+files)\b|"
+        r"\b(?:find|search|locate)\s+(?:for\s+)?(?:all\s+)?(?:references\s+to\s+|references\s+in\s+|files\s+matching\s+|files\s+named\s+|csv|data|files?\b)[^\s,;]*|"
+        r"\b(?:what\s+does\s+this\s+(?:file|document|pdf)\s+say|"
+        r"tell\s+me\s+what\s+(?:it|this\s+file)\s+says|"
+        r"compare\s+these\s+(?:files|documents)|"
+        r"total\s+(?:of|in)\s+(?:the\s+)?(?:sales|revenue|column)|"
+        r"explain\s+what\s+this\s+code\s+does)\b",
+        re.IGNORECASE,
+    )
+
+    _KNOWLEDGE_DOC_QUERY = re.compile(
+        r"\b(?:according\s+to\s+(?:the|my)\s+(?:document|documentation|docs|notes|pdf|file)|"
+        r"what\s+does\s+(?:the|my)\s+(?:[a-zA-Z0-9_\-\.]+\s+)?(?:document|documentation|docs|guide|architecture|readme|file)\s+say|"
+        r"based\s+on\s+(?:the|my)\s+(?:document|documentation|project\s+files|codebase|docs)|"
+        r"in\s+(?:the|my)\s+(?:document|documentation|docs|architecture|notes|knowledge\s+base)|"
+        r"search\s+(?:the|my)\s+(?:knowledge|documents|notes|files)\s+for|"
+        r"summarize\s+(?:this|the|my)\s+(?:document|pdf|file)|"
+        r"from\s+(?:the|my)\s+(?:indexed\s+)?(?:documents|knowledge\s+base))\b",
+        re.IGNORECASE,
+    )
+    _CODING_WORKSPACE_TASK = re.compile(
+        r"\b(?:fix\s+(?:the\s+)?bug|fix\s+(?:the\s+)?error|debug\s+(?:the\s+)?failure|"
+        r"review\s+(?:this|the|my)?\s*(?:project|codebase|code)|"
+        r"inspect\s+(?:this|the|my)?\s*project|"
+        r"show\s+(?:this|the|my)?\s*project\s+map|"
+        r"run\s+(?:the\s+)?tests?\b|"
+        r"refactor\s+(?:this|the|my)?\s*(?:module|class|function|file)|"
+        r"search\s+code\s+for|"
+        r"where\s+is\s+.*implemented\s+in\s+(?:my|the)?\s*project|"
+        r"(?:add|implement)\s+.*(?:in|to)\s+(?:this|the|my)\s*(?:project|codebase|app))\b",
+        re.IGNORECASE,
+    )
+    _WEB_RESEARCH_TASK = re.compile(
+        r"\b(?:search\s+the\s+web|look\s+up\s+online|browse\s+the\s+web|find\s+online|"
+        r"what\s+is\s+the\s+latest\s+.*(?:version|release|update|price|announcement|news)|"
+        r"latest\s+.*(?:release|version|announcement|specifications|specs)|"
+        r"current\s+.*(?:version|release|price|status|specs|specifications)|"
+        r"(?:find|search\s+for)\s+(?:the\s+)?official\s+(?:documentation|docs)\s+for|"
+        r"official\s+(?:documentation|docs)\s+for|"
+        r"compare\s+.*(?:from\s+(?:three|multiple|different)?\s*sources|specifications|current)|"
+        r"what\s+happened\s+in\s+the\s+latest\b)\b",
         re.IGNORECASE,
     )
     _MEMORY_OP = re.compile(
@@ -116,10 +158,11 @@ class TaskClassifier:
     )
     _MIXED_TASK = re.compile(
         r"\b(?:and\s+then|after\s+that|first\s+read.*then\s+calculate|write\s+.*and\s+(?:run|test)\s+it|"
-        r"read\s+.*and\s+(?:calculate|explain|compute)|check\s+my.*and\s+fix|"
+        r"read\s+.*and\s+(?:calculate|explain|compute)|find\s+.*(?:calculate|average|sum|explain)|check\s+my.*and\s+fix|"
         r"(?:calculate|compute|differentiate|solve|convert|run|execute)\b.*\band\s+(?:explain|describe|show\s+how|walk\s+through))\b",
         re.IGNORECASE,
     )
+
     _COMPUTER_SYSTEMS = re.compile(
         # Conversion keywords
         r"\bconvert\s+[0-9a-fA-F]+\s+(?:from\s+\w+\s+)?to\s+(?:binary|decimal|hex(?:adecimal)?|octal)\b"
@@ -370,6 +413,7 @@ class TaskClassifier:
 
         # 3. File operation
         if self._FILE_OPERATION.search(cleaned):
+            tool_name = "file_search" if re.search(r"\b(?:find|search|locate|where)\b", lower) else "file"
             return IntentInfo(
                 intent="file_operation",
                 domain="file_system",
@@ -378,9 +422,54 @@ class TaskClassifier:
                 requires_memory=False,
                 requires_verification=True,
                 complexity=ComplexityEstimator.LOW,
-                tools_needed=["file"],
-                primary_tool="file",
+                tools_needed=[tool_name],
+                primary_tool=tool_name,
                 confidence=0.95,
+            )
+
+        # 3b. Local Document Knowledge Retrieval (RAG)
+        if self._KNOWLEDGE_DOC_QUERY.search(cleaned):
+            return IntentInfo(
+                intent="knowledge_retrieval",
+                domain="knowledge_base",
+                requires_reasoning=True,
+                requires_tool=True,
+                requires_memory=False,
+                requires_verification=True,
+                complexity=ComplexityEstimator.MEDIUM,
+                tools_needed=["knowledge"],
+                primary_tool="knowledge",
+                confidence=0.96,
+            )
+
+        # 3c. Software Engineering / Workspace Coding Task
+        if self._CODING_WORKSPACE_TASK.search(cleaned):
+            return IntentInfo(
+                intent="coding",
+                domain="software_engineering",
+                requires_reasoning=True,
+                requires_tool=True,
+                requires_memory=False,
+                requires_verification=True,
+                complexity=ComplexityEstimator.HIGH,
+                tools_needed=["coding"],
+                primary_tool="coding",
+                confidence=0.96,
+            )
+
+        # 3d. Web Research / Live Web Information
+        if self._WEB_RESEARCH_TASK.search(cleaned):
+            return IntentInfo(
+                intent="web_search",
+                domain="web",
+                requires_reasoning=True,
+                requires_tool=True,
+                requires_memory=False,
+                requires_verification=True,
+                complexity=ComplexityEstimator.MEDIUM,
+                tools_needed=["web.research"],
+                primary_tool="web.research",
+                confidence=0.96,
             )
 
         # 4. Code execution
@@ -602,4 +691,5 @@ class TaskClassifier:
         elif legacy_type == "computer_systems":
             legacy_type = "computer_systems"
 
-        return legacy_type, intent_info.requires_tool, intent_info.primary_tool
+        selected_tool = "multi_step" if legacy_type == "mixed" else intent_info.primary_tool
+        return legacy_type, intent_info.requires_tool, selected_tool

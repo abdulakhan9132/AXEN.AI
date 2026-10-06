@@ -1,0 +1,25 @@
+{
+  "file_id": "upl_7b1b5c9378ec",
+  "filename": "architecture.md",
+  "stored_filename": "upl_7b1b5c9378ec.md",
+  "size": 45,
+  "size_bytes": 45,
+  "size_formatted": "45 B",
+  "sha256": "d4a8f5a168446f526ca680ebe30de234f7bdff1d95deabfdc4f88f25fde85094",
+  "extension": ".md",
+  "mime_type": "text/markdown",
+  "category": "document",
+  "status": "ready",
+  "created_at": 1790747422.6065598,
+  "is_truncated": false,
+  "text": "# AXEN Architecture\n\nModular local AI engine.",
+  "extracted_text": "# AXEN Architecture\n\nModular local AI engine.",
+  "text_length": 45,
+  "metadata": {
+    "headings": [
+      "AXEN Architecture"
+    ],
+    "format": "markdown"
+  },
+  "error": null
+}

@@ -1,0 +1,5 @@
+{"category": "conversation", "input": "Hi there", "target": "Hello! How can I assist you today?"}
+{"category": "instruction", "input": "Define an algorithm in one sentence.", "target": "An algorithm is a step-by-step sequence of unambiguous instructions to solve a problem."}
+{"category": "knowledge", "input": "What is a neural network?", "target": "A neural network is a computational model inspired by biological brains, organized in interconnected layers of nodes."}
+{"category": "tool_intent", "input": "Search for auth.py in workspace.", "target": "{\"type\": \"tool_call\", \"tool\": \"file_search\", \"arguments\": {\"query\": \"auth.py\"}}"}
+{"category": "tool_intent", "input": "Read the contents of settings.json.", "target": "{\"type\": \"tool_call\", \"tool\": \"file_read\", \"arguments\": {\"path\": \"settings.json\"}}"}

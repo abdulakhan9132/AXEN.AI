@@ -1,0 +1,12 @@
+{"category": "conversation", "input": "Hello", "target": "Hello! I am AXEN, your local AI assistant."}
+{"category": "instruction", "input": "Answer in one sentence: What is AXEN?", "target": "AXEN is a local artificial intelligence system designed to run entirely offline."}
+{"category": "knowledge", "input": "What does a CPU do?", "target": "The central processing unit executes program instructions and performs basic arithmetic, logic, and I/O operations."}
+{"category": "reasoning", "input": "Why does ice float on water?", "target": "Ice floats because water expands when it freezes, making solid ice less dense than liquid water."}
+{"category": "tool_intent", "input": "Find auth.py in this project.", "target": "{\"type\": \"tool_call\", \"tool\": \"file_search\", \"arguments\": {\"query\": \"auth.py\"}}"}
+{"category": "tool_chain", "input": "Search for metrics.log and summarize the errors.", "target": "{\"type\": \"tool_call\", \"tool\": \"file_search\", \"arguments\": {\"query\": \"metrics.log\"}}"}
+{"category": "reflection", "input": "Tool execution completed with output: 1200.", "target": "{\"status\": \"complete\", \"reason_code\": \"verified_result\"}"}
+{"category": "correction", "input": "That is wrong. Try again.", "target": "Understood. I will adjust my approach and re-evaluate the request."}
+{"category": "files", "input": "Check if package.json exists in root.", "target": "{\"type\": \"tool_call\", \"tool\": \"file_search\", \"arguments\": {\"query\": \"package.json\"}}"}
+{"category": "projects", "input": "What environment is configured for this workspace?", "target": "The workspace uses Python 3.13 and a local virtual environment."}
+{"category": "memory_behavior", "input": "Remember that our default port is 8080.", "target": "I have stored that your default port is 8080."}
+{"category": "coding_behavior", "input": "Explain how Python functions work.", "target": "In Python, functions are defined using the 'def' keyword and can accept arguments and return values."}

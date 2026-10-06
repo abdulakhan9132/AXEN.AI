@@ -41,7 +41,10 @@ def test_local_model_requests_json_format_and_limits():
     generated.json.return_value = {"response": '{"ok": true}'}
     with patch("app.ai.local_model.requests.get", return_value=tags), patch("app.ai.local_model.requests.post", return_value=generated) as post:
         model = LocalModel(config=settings)
-        assert model.structured_output("return JSON") == {"ok": True}
+        from app.context.models import ModelRequest, ContextComponent, AssembledContext
+        ctx = AssembledContext(messages_for_model=[{"role": "user", "content": "return JSON"}])
+        req = ModelRequest(context=ctx, generation_settings={}, session_metadata={})
+        assert model.structured_output(req) == {"ok": True}
 
     payload = post.call_args.kwargs["json"]
     assert payload["format"] == "json"

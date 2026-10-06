@@ -68,7 +68,7 @@ class IntentInfo:
             "requires_multiple_steps": self.requires_multiple_steps,
             "requires_memory": self.requires_memory,
             "requires_verification": self.requires_verification,
-            "complexity": str(self.complexity),
+            "complexity": self.complexity,
             "tools_needed": self.tools_needed,
             "primary_tool": self.primary_tool,
             "needs_clarification": self.needs_clarification,

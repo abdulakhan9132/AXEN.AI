@@ -1,0 +1,42 @@
+{
+  "total_examples": 69,
+  "training_count": 52,
+  "validation_count": 12,
+  "test_count": 5,
+  "duplicate_count": 0,
+  "sanitized_count": 69,
+  "rejected_count": 0,
+  "invalid_target_count": 0,
+  "categories_count": {
+    "conversation": 10,
+    "instruction": 8,
+    "knowledge": 8,
+    "reasoning": 5,
+    "tool_intent": 14,
+    "tool_chain": 3,
+    "reflection": 4,
+    "correction": 4,
+    "files": 3,
+    "projects": 3,
+    "memory_behavior": 4,
+    "coding_behavior": 3
+  },
+  "category_distribution_percentage": {
+    "conversation": 14.49,
+    "instruction": 11.59,
+    "knowledge": 11.59,
+    "reasoning": 7.25,
+    "tool_intent": 20.29,
+    "tool_chain": 4.35,
+    "reflection": 5.8,
+    "correction": 5.8,
+    "files": 4.35,
+    "projects": 4.35,
+    "memory_behavior": 5.8,
+    "coding_behavior": 4.35
+  },
+  "average_sequence_length": 129.75,
+  "maximum_sequence_length": 184,
+  "tokenizer_vocab_size": 101,
+  "tokenizer_coverage_printable_ascii": true
+}

@@ -1,0 +1,253 @@
+{
+ "facts": [
+  "my name is Alex"
+ ],
+ "exchanges": [
+  {
+   "user": "hi",
+   "axen": "Hello! I am Axen. How can I help you today?",
+   "good": false,
+   "at": 1790751522092
+  },
+  {
+   "user": "what is 12*(3+4)",
+   "axen": "12*(3+4) = 84",
+   "good": false,
+   "at": 1790751522100
+  },
+  {
+   "user": "favorite color",
+   "axen": "I wat can do male! I am yo rnle from the texeis t you tell me, and from replieplierou thayou tell me, and earn from replies you like to you",
+   "good": false,
+   "at": 1790751523411
+  },
+  {
+   "user": "what is your favorite movie",
+   "axen": "I wa wabailel from s s tcratchats can I rat do male t cran you do\nAxen: I can chat, do math, remember facts you tell me, and from thhtelp.",
+   "good": true,
+   "at": 1790751594029
+  },
+  {
+   "user": "what is your favorite movie",
+   "axen": "I wa wabailel from s s tcratchats can I rat do male t cran you do\nAxen: I can chat, do math, remember facts you tell me, and from thhtelp.",
+   "good": true,
+   "at": 1790751594272
+  },
+  {
+   "user": "what is 12*(3+4)",
+   "axen": "12*(3+4) = 84",
+   "good": false,
+   "at": 1790752388594
+  },
+  {
+   "user": "My name is Alex.",
+   "axen": "My name is Axen. I am a sma small brain that learns from the text I read.",
+   "good": false,
+   "at": 1790753089075
+  },
+  {
+   "user": "What is 12*(3+4)?",
+   "axen": "12*(3+4) = 84",
+   "good": false,
+   "at": 1790753089095
+  },
+  {
+   "user": "Explain why 12*(3+4)=84",
+   "axen": "t datourat is ye",
+   "good": false,
+   "at": 1790753089286
+  },
+  {
+   "user": "what is 12*(3+4)",
+   "axen": "12*(3+4) = 84",
+   "good": false,
+   "at": 1790760023719
+  },
+  {
+   "user": "what is 12*(3+4)",
+   "axen": "12*(3+4) = 84",
+   "good": false,
+   "at": 1790760403278
+  },
+  {
+   "user": "hi",
+   "axen": "Hello! I am Axen. How can I help you today?",
+   "good": true,
+   "at": 1790760544335
+  },
+  {
+   "user": "hi",
+   "axen": "Hello! I am Axen. How can I help you today?",
+   "good": true,
+   "at": 1790760765990
+  },
+  {
+   "user": "What is 6*7?",
+   "axen": "6*7 = 42",
+   "good": false,
+   "at": 1790760902077
+  },
+  {
+   "user": "hi",
+   "axen": "Hello! I am Axen. How can I help you today?",
+   "good": true,
+   "at": 1790764224597
+  },
+  {
+   "user": "hi",
+   "axen": "Hello! I am Axen. How can I help you today?",
+   "good": true,
+   "at": 1790767781715
+  },
+  {
+   "user": "hi",
+   "axen": "Hello! I am Axen. How can I help you today?",
+   "good": true,
+   "at": 1790767904761
+  },
+  {
+   "user": "hi",
+   "axen": "Hello! I am Axen. How can I help you today?",
+   "good": true,
+   "at": 1790767989248
+  },
+  {
+   "user": "What is a computer?",
+   "axen": "I was built from scratch on this computer, and my weights belong only to me.",
+   "good": false,
+   "at": 1790768027503
+  },
+  {
+   "user": "What is a computer?",
+   "axen": "I was built from scratch on this computer, and my weights belong only to me.",
+   "good": false,
+   "at": 1790768294552
+  },
+  {
+   "user": "Explain what artificial intelligence is in simple words.",
+   "axen": "chan this computer, an my d weights belong only to me.",
+   "good": false,
+   "at": 1790768356024
+  },
+  {
+   "user": "Write a Python program that prints Hello World.",
+   "axen": "Hi thean from the text I read.",
+   "good": false,
+   "at": 1790768368729
+  },
+  {
+   "user": "Who is the president of the fictional country Zorvia?",
+   "axen": "I wabailelond cry to lk mor atcratch on this computer, and my weights belong only to me.",
+   "good": false,
+   "at": 1790768382800
+  },
+  {
+   "user": "My dog is named Bruno.",
+   "axen": "d can this computer, and my weights belong only to me.",
+   "good": false,
+   "at": 1790768407914
+  },
+  {
+   "user": "Bruno is five years old.",
+   "axen": "what can you do\nAxen: I can chat, do math, remember facts you tell me, and learn from replies you like.",
+   "good": false,
+   "at": 1790768409243
+  },
+  {
+   "user": "How old is he?",
+   "axen": "ware w ad can learn you d to mcratch on this computer, an y d d leayou d ling well and learning something new every day.",
+   "good": false,
+   "at": 1790768410592
+  },
+  {
+   "user": "What is 25 multiplied by 48?",
+   "axen": "touis tavxe ay?",
+   "good": false,
+   "at": 1790768450038
+  },
+  {
+   "user": "Evidence: AXEN is a local AI assistant whose language brain is trained from random initialization.\nQuestion: What is AXEN?",
+   "axen": "what is your nave day?",
+   "good": false,
+   "at": 1790768606950
+  },
+  {
+   "user": "that your name",
+   "axen": "My name is Axen. I am a small brain that learns from the text I reay.",
+   "good": false,
+   "at": 1790768724311
+  },
+  {
+   "user": "what you will do for me",
+   "axen": "I am a small brain that learns from the text I reay.",
+   "good": false,
+   "at": 1790768749563
+  },
+  {
+   "user": "okay",
+   "axen": "You are welcome! I am glad to help.",
+   "good": false,
+   "at": 1790768756777
+  },
+  {
+   "user": "tell me which is the capital of India",
+   "axen": "I can chat, do math, remember facts you tell me, and learn from replies you like.",
+   "good": false,
+   "at": 1790768790145
+  },
+  {
+   "user": "A farmer has a total of 50 animals on their farm, consisting entirely of chickens and cows. When the farmer counts the total number of legs, they find there are 140 legs in all. How many chickens and how many cows does the farmer have?",
+   "axen": "I wabailelond tcrn loorn me.",
+   "good": false,
+   "at": 1790768852240
+  },
+  {
+   "user": "Question 1: Find what number would come in place of the question mark(?).\n\nSeries: 2, 5, 12.5, ?, 78.125, 195.3125\n\na) 31.25\n\nb) 40.25\n\nc) 32.50\n\nd)  21.00",
+   "axen": "ie t is ce  you tand my weights belong only to me.",
+   "good": false,
+   "at": 1790768948351
+  },
+  {
+   "user": "Hello, who are you?",
+   "axen": "I arood mathe computer, and my weights belong only to me.",
+   "good": false,
+   "at": 1790769273551
+  },
+  {
+   "user": "Hello, who are you?",
+   "axen": "areelo\nAxen: I am doing well and learning something new every day.",
+   "good": false,
+   "at": 1790769304364
+  },
+  {
+   "user": "Hello, who are you?",
+   "axen": "I am illo\nAxen: My name ig  I a hop.",
+   "good": false,
+   "at": 1790769380603
+  },
+  {
+   "user": "What is artificial intelligence?",
+   "axen": "Good morning hts you buinathat, do may dou ling I hats belong only to me.",
+   "good": false,
+   "at": 1790769406614
+  },
+  {
+   "user": "hi",
+   "axen": "Hello! I am Axen. How can I help you today?",
+   "good": true,
+   "at": 1790769407172
+  },
+  {
+   "user": "Tell me a story",
+   "axen": "is ning! I hope you have a great day.",
+   "good": false,
+   "at": 1790769416876
+  },
+  {
+   "user": "Who are you?",
+   "axen": "I was built from scratch on this computer, and my weights belong only to me.",
+   "good": false,
+   "at": 1790769421234
+  }
+ ]
+}

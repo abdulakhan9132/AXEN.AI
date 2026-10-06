@@ -1,7 +1,8 @@
-# AXEN — Local AI Assistant & Thinking Brain
+# AXEN - Personal AI Assistant
 
-AXEN is a fully local personal AI assistant with its own reasoning engine. It operates with **zero external AI APIs, zero API keys, and complete privacy**, running 100% offline.
+Axen's chat runs on its built-in local assistant. It does not connect to external AI providers or require their API keys. The small built-in model is experimental and cannot reliably plan and implement complex websites or generate original images. The local project workspace and browser preview are available as foundations for a future coding workflow.
 
+Generated projects are stored in `data/generated-sites/`. The built-in preview serves project files locally. Axen can store source files in multiple programming languages, but this does not mean it can execute every language or install project dependencies.
 ---
 
 ## Architecture Overview
@@ -14,6 +15,7 @@ AXEN is a fully local personal AI assistant with its own reasoning engine. It op
    - Tied input/output embeddings
 3. **Reasoning Agent Loop**: Step-by-step thinking with `<think> ... </think>` tags and verified tool invocation (Pydantic validation, max 8 steps, bounded retries).
 4. **Polyglot Extensions**: Distinct non-Python components located in `polyglot/<language>/`, each performing **one real job** (communication strictly via HTTP, stdin/stdout JSON, gRPC, or files).
+5. **Specialized Brain Modules**: Intent classification and code generation (`./code_brain.py` at root is canonical; `axen-brain/code_brain.py` is kept for reference).
 
 ---
 
@@ -105,3 +107,12 @@ make test
 - [ ] **Milestone 8**: Scripts and containers (Bash, PowerShell, Dockerfile, Make).
 - [ ] **Milestone 9–14**: Polyglot modules (low-level, backend, mobile, functional, formats, rare).
 - [ ] **Milestone 15**: Final `languages.md` report and one-command start script.
+
+---
+
+## LICENSE NOTE (Phase 11 Image Generation)
+
+AXEN AI includes local text-to-image generation support via pretrained diffusion models:
+- **SD-Turbo (`stabilityai/sd-turbo`)**: Released under the Stability AI Non-Commercial Research Community License. It is intended for research and non-commercial personal use unless an appropriate Stability AI commercial membership/license is held.
+- **Stable Diffusion 1.5 (`stable-diffusion-v1-5/stable-diffusion-v1-5`)**: Released under the CreativeML Open RAIL-M license, which is more permissive and permits commercial usage subject to RAIL-M use-based restrictions.
+

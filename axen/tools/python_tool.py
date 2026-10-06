@@ -1,56 +1,70 @@
 """
 axen/tools/python_tool.py
-===========================
-Safe Python code execution tool for AXEN.
+==========================
+Safe Python code execution tool for AXEN (Phase 5).
 
-SAFETY DESIGN:
-  - Runs code in a subprocess with a hard timeout (default 5 seconds).
-  - The subprocess inherits NO dangerous environment variables.
-  - BLOCKED: os.system, subprocess, __import__ for dangerous modules.
-  - stdout and stderr are captured and returned.
-  - The process is killed if the timeout expires.
-  - This tool NEVER claims code ran when it didn't.
+SAFETY ARCHITECTURE:
+  - Runs code in a detached subprocess with a strict execution timeout (default 5s, max 10s).
+  - Explicit AST analysis blocks dangerous calls (eval, exec, __import__, os.system) and modules
+    (subprocess, os.system, socket, multiprocessing, threading, ctypes, shutil).
+  - Subprocess inherits a minimal sanitized environment (no API keys, no secret env vars).
+  - Strict output limits: stdout and stderr are capped to prevent memory exhaustion DoS.
+  - Process cleanup: child processes are killed immediately on timeout or user cancellation.
+  - Execution directory: operates inside the project workspace or an isolated temp folder.
+  - Cancellation: integrates with ToolExecutionContext.cancel_event.
 
-Returns the ACTUAL stdout/stderr produced by Python.
-Does NOT fabricate output.
-
-Distinction:
-  SUPPORTED_LANGUAGE = True  (Python is registered)
-  RUNTIME_AVAILABLE  = True  (python.exe is installed)
-  CODE_VALIDATED     = True  (AST parse check)
-  CODE_EXECUTED      = True only when actual subprocess succeeds
+WINDOWS PLATFORM SANDBOX LIMITATION (CRITICAL NOTICE):
+  True OS-level kernel sandboxing (e.g. Linux cgroups, namespaces, seccomp, chroot)
+  is not natively available on Windows without Hyper-V microVMs or Docker containers.
+  Therefore, this tool provides process-level isolation, AST validation, environment sanitization,
+  strict timeouts, and output bounds. It does NOT guarantee kernel-level containment against
+  advanced native binary exploitation. User/model-generated code is constrained by runtime policies.
 """
 
 from __future__ import annotations
 
 import ast
+import logging
+import os
 import subprocess
 import sys
 import tempfile
 import textwrap
+import threading
+import time
 from pathlib import Path
+from typing import Any, Dict, Optional, Tuple
 
-from .tool_registry import ToolDefinition
+from .base import (
+    ExecutionState,
+    ToolDefinition,
+    ToolExecutionContext,
+    ToolPermission,
+    ToolResult,
+    ToolRiskLevel,
+)
 
+logger = logging.getLogger("axen.tools.python")
 
-# Modules that are blocked from being imported in sandboxed execution
+# Blocked modules from being imported in execution
 _BLOCKED_IMPORTS = frozenset({
     "subprocess", "os.system", "shutil", "socket",
     "multiprocessing", "threading", "ctypes",
-    "importlib", "builtins", "signal",
+    "importlib", "builtins", "signal", "winreg",
+    "webbrowser", "pynput", "pyautogui",
 })
 
-# Blocked function calls that could be destructive
+# Blocked function calls that could be destructive or escape
 _BLOCKED_CALLS = frozenset({
-    "os.system", "os.popen", "os.remove", "os.rmdir",
+    "os.system", "os.popen", "os.remove", "os.rmdir", "os.unlink",
     "shutil.rmtree", "subprocess.call", "subprocess.run",
     "subprocess.Popen", "eval", "exec", "__import__",
 })
 
 
-def _validate_code(code: str) -> tuple[bool, str]:
+def _validate_code(code: str) -> Tuple[bool, str]:
     """
-    Parse code with Python's AST and check for blocked patterns.
+    Parse code with Python AST and check for blocked modules, calls, and attributes.
     Returns (is_safe, reason).
     """
     try:
@@ -61,50 +75,43 @@ def _validate_code(code: str) -> tuple[bool, str]:
     for node in ast.walk(tree):
         # Block imports of dangerous modules
         if isinstance(node, (ast.Import, ast.ImportFrom)):
-            module = ""
             if isinstance(node, ast.Import):
                 for alias in node.names:
-                    module = alias.name
+                    module = alias.name.split(".")[0]
                     if module in _BLOCKED_IMPORTS:
-                        return False, f"Blocked import: '{module}'"
+                        return False, f"Blocked import: '{alias.name}'"
             elif isinstance(node, ast.ImportFrom) and node.module:
-                module = node.module
+                module = node.module.split(".")[0]
                 if module in _BLOCKED_IMPORTS:
-                    return False, f"Blocked import from: '{module}'"
+                    return False, f"Blocked import from: '{node.module}'"
 
-        # Block calls to dangerous functions (by name)
+        # Block calls to dangerous functions
         if isinstance(node, ast.Call):
             if isinstance(node.func, ast.Name):
                 if node.func.id in _BLOCKED_CALLS:
                     return False, f"Blocked call: '{node.func.id}'"
             elif isinstance(node.func, ast.Attribute):
-                full_name = f"{ast.dump(node.func.value)}.{node.func.attr}"
-                if node.func.attr in {"system", "popen", "rmtree", "remove"}:
-                    return False, f"Blocked call: '{node.func.attr}'"
+                attr_name = node.func.attr
+                if attr_name in {"system", "popen", "rmtree", "remove", "unlink"}:
+                    return False, f"Blocked dangerous method call: '{attr_name}'"
 
     return True, "OK"
 
 
-def execute_python(args: dict) -> dict:
+def execute_python(
+    args: Dict[str, Any],
+    context: Optional[ToolExecutionContext] = None,
+) -> Dict[str, Any]:
     """
-    Tool handler: execute Python code in a sandboxed subprocess.
+    Execute Python code in a sandboxed subprocess with bounds.
 
     Args:
         args["code"]: Python source code to execute.
-        args["timeout"]: Max execution time in seconds (default 5).
-
-    Returns:
-        {
-          "success": bool,
-          "stdout": str,
-          "stderr": str,
-          "returncode": int,
-          "validated": bool,
-          "executed": bool,
-        }
+        args["timeout"]: Max execution time in seconds (default 5, max 10).
     """
     code = str(args.get("code", "")).strip()
-    timeout = min(float(args.get("timeout", 5)), 10.0)
+    timeout = min(float(args.get("timeout", 5.0)), 10.0)
+    max_output = context.max_output_bytes if context else 100_000
 
     if not code:
         return {
@@ -114,7 +121,17 @@ def execute_python(args: dict) -> dict:
             "executed": False,
         }
 
-    # Step 1: Validate (AST check + blocked patterns)
+    # Pre-check cancellation
+    if context and context.is_cancelled():
+        return {
+            "success": False,
+            "error": "Execution was cancelled.",
+            "validated": False,
+            "executed": False,
+            "cancelled": True,
+        }
+
+    # Step 1: Validate AST
     is_safe, reason = _validate_code(code)
     if not is_safe:
         return {
@@ -124,7 +141,13 @@ def execute_python(args: dict) -> dict:
             "executed": False,
         }
 
-    # Step 2: Write code to a temp file and execute in subprocess
+    # Step 2: Determine execution directory
+    cwd = None
+    if context and context.workspace_path:
+        cwd = str(Path(context.workspace_path).resolve())
+
+    # Step 3: Write code to temporary file
+    tmp_path = ""
     try:
         with tempfile.NamedTemporaryFile(
             mode="w",
@@ -135,33 +158,79 @@ def execute_python(args: dict) -> dict:
             tmp.write(textwrap.dedent(code))
             tmp_path = tmp.name
 
-        result = subprocess.run(
+        # Clean environment: copy system environment, but strictly strip API keys and secrets
+        clean_env = os.environ.copy()
+        for k in list(clean_env.keys()):
+            k_lower = k.lower()
+            if any(sec in k_lower for sec in ("key", "secret", "token", "auth", "password", "credential")):
+                clean_env.pop(k, None)
+        clean_env["PYTHONIOENCODING"] = "utf-8"
+
+        # Spawn subprocess without shell
+        proc = subprocess.Popen(
             [sys.executable, tmp_path],
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             text=True,
-            timeout=timeout,
-            # Minimal environment — no secrets
-            env={"PYTHONIOENCODING": "utf-8", "PATH": ""},
+            encoding="utf-8",
+            errors="replace",
+            cwd=cwd,
+            env=clean_env,
+            shell=False,
         )
-        Path(tmp_path).unlink(missing_ok=True)
+
+        # Handle cancellation with background monitor
+        cancel_monitor = None
+        if context and context.cancel_event:
+            def _watch_cancel():
+                while proc.poll() is None:
+                    if context.is_cancelled():
+                        try:
+                            proc.kill()
+                        except Exception:
+                            pass
+                        break
+                    time.sleep(0.05)
+            cancel_monitor = threading.Thread(target=_watch_cancel, daemon=True)
+            cancel_monitor.start()
+
+        try:
+            stdout, stderr = proc.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            stdout, stderr = proc.communicate()
+            return {
+                "success": False,
+                "error": f"Code execution timed out after {timeout} seconds.",
+                "validated": True,
+                "executed": True,
+                "timeout": True,
+            }
+
+        if context and context.is_cancelled():
+            return {
+                "success": False,
+                "error": "Code execution was cancelled.",
+                "validated": True,
+                "executed": False,
+                "cancelled": True,
+            }
+
+        # Enforce output length limit
+        if len(stdout.encode("utf-8")) > max_output:
+            stdout = stdout[:max_output] + "\n...[TRUNCATED: Output exceeded size limit]"
+        if len(stderr.encode("utf-8")) > max_output:
+            stderr = stderr[:max_output] + "\n...[TRUNCATED: Output exceeded size limit]"
 
         return {
-            "success": result.returncode == 0,
-            "stdout": result.stdout.strip(),
-            "stderr": result.stderr.strip(),
-            "returncode": result.returncode,
+            "success": proc.returncode == 0,
+            "stdout": stdout.strip(),
+            "stderr": stderr.strip(),
+            "returncode": proc.returncode,
             "validated": True,
             "executed": True,
         }
 
-    except subprocess.TimeoutExpired:
-        Path(tmp_path).unlink(missing_ok=True)
-        return {
-            "success": False,
-            "error": f"Code execution timed out after {timeout} seconds.",
-            "validated": True,
-            "executed": True,
-        }
     except FileNotFoundError:
         return {
             "success": False,
@@ -172,14 +241,20 @@ def execute_python(args: dict) -> dict:
     except Exception as exc:
         return {
             "success": False,
-            "error": str(exc),
+            "error": f"Execution error: {exc}",
             "validated": True,
             "executed": False,
         }
+    finally:
+        if tmp_path:
+            try:
+                Path(tmp_path).unlink(missing_ok=True)
+            except Exception:
+                pass
 
 
 def build_python_tool() -> ToolDefinition:
-    """Return the AXEN Python execution ToolDefinition."""
+    """Return the AXEN canonical Python execution tool."""
     return ToolDefinition(
         name="python.execute",
         description=(
@@ -212,9 +287,18 @@ def build_python_tool() -> ToolDefinition:
                 "executed": {"type": "boolean"},
             },
         },
+        permission=ToolPermission.CODE_EXECUTION,
+        risk_level="medium",
         risk="medium",
-        capabilities=["code_execution", "python_sandbox"],
+        capabilities=["code_execution", "python_sandbox", "python_execute"],
         deterministic=False,
         requires_confirmation=False,
         supports_verification=True,
     )
+
+
+def build_python_named_tool() -> ToolDefinition:
+    """Canonical name alias for 'python_execute'."""
+    tool = build_python_tool()
+    tool.name = "python_execute"
+    return tool

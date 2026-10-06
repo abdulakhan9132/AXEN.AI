@@ -35,7 +35,7 @@ const dataset = [
 const LEARNING_RATE = 0.5;           // How big of a step we take down the error gradient
 const MAX_TRAINING_STEPS = 100000;    // Safety limit to prevent infinite loops
 const TARGET_ERROR = 0.01;           // Training stops when average dataset squared error < 0.01
-const BRAIN_FILE = path.join(__dirname, "axen_brain.json");
+const BRAIN_FILE = path.join(__dirname, "archive", "axen_brain.json");
 
 // ==================================================
 // ACTIVATION FUNCTIONS

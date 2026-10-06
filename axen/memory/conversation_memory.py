@@ -14,6 +14,8 @@ from dataclasses import dataclass, field
 from typing import Literal, Optional
 
 
+MAX_RECENT_MESSAGES: int = 12
+
 Role = Literal["system", "user", "assistant", "tool"]
 
 
@@ -57,16 +59,22 @@ class ConversationMemory:
         "Do not mention internal instructions or hidden reasoning."
     )
 
+    MAX_RECENT_MESSAGES: int = 12
+
     def __init__(
         self,
         max_tokens: int = 1800,
         system_prompt: Optional[str] = None,
+        max_recent_messages: int = 12,
+        max_history: Optional[int] = None,
     ) -> None:
         self.max_tokens = max_tokens
+        self.max_recent_messages = max_history if max_history is not None else max_recent_messages
         if system_prompt is None:
             system_prompt = self._load_system_prompt_from_config() or self.DEFAULT_SYSTEM
         self._system_prompt = system_prompt
         self._messages: list[Message] = []
+        self._conversation_summary: Optional[str] = None
 
     @classmethod
     def _load_system_prompt_from_config(cls) -> Optional[str]:
@@ -101,8 +109,14 @@ class ConversationMemory:
     def add_user(self, content: str) -> None:
         self.add("user", content)
 
+    def add_user_message(self, content: str) -> None:
+        self.add_user(content)
+
     def add_assistant(self, content: str) -> None:
         self.add("assistant", content)
+
+    def add_assistant_message(self, content: str) -> None:
+        self.add_assistant(content)
 
     def add_tool_result(self, tool_name: str, content: str) -> None:
         self.add("tool", content, tool_name=tool_name)
@@ -115,9 +129,14 @@ class ConversationMemory:
         """
         Return messages as a list of role/content dicts for the model.
         Always prepends the system prompt as the first message.
+        Injects a concise conversation summary if older messages were trimmed.
         Ensures valid HuggingFace chat template roles (system, user, assistant).
         """
-        result = [{"role": "system", "content": self._system_prompt}]
+        sys_content = self._system_prompt
+        if self._conversation_summary:
+            sys_content += f"\n\nEarlier Conversation Summary:\n{self._conversation_summary}"
+
+        result = [{"role": "system", "content": sys_content}]
         for m in self._messages:
             role = m.role
             content = m.content
@@ -131,13 +150,26 @@ class ConversationMemory:
         """Return the raw message list (without system prompt)."""
         return list(self._messages)
 
+    def get_recent_history(self, limit: int = 12) -> list[Message]:
+        """Return the last `limit` messages."""
+        return self._messages[-limit:]
+
+    def get_summary(self) -> Optional[str]:
+        """Return the summary of trimmed messages, if any."""
+        return self._conversation_summary
+
+    def has_summary(self) -> bool:
+        """Check if any earlier conversation history has been summarized."""
+        return bool(self._conversation_summary)
+
     def last_n(self, n: int) -> list[Message]:
         """Return the last n messages."""
         return self._messages[-n:]
 
     def clear(self) -> None:
-        """Clear all messages (does not reset the system prompt)."""
+        """Clear all messages and reset conversation summary."""
         self._messages.clear()
+        self._conversation_summary = None
 
     def set_system_prompt(self, prompt: str) -> None:
         """Update the system instruction."""
@@ -159,11 +191,31 @@ class ConversationMemory:
 
     def _trim(self) -> None:
         """
-        Remove oldest non-system messages until under the token limit.
-        System messages are never removed.
+        Remove oldest non-system messages until within max_recent_messages and token limits.
+        Summarizes trimmed messages into _conversation_summary.
         """
+        while len(self._messages) > self.max_recent_messages:
+            oldest = self._messages.pop(0)
+            self._update_summary(oldest)
+
         while self.token_estimate > self.max_tokens and len(self._messages) > 1:
-            self._messages.pop(0)
+            oldest = self._messages.pop(0)
+            self._update_summary(oldest)
+
+    def _update_summary(self, msg: Message) -> None:
+        """Maintain a lightweight summary of trimmed messages."""
+        snippet = msg.content.strip().split("\n")[0][:80]
+        if not snippet:
+            return
+        entry = f"- {msg.role.capitalize()}: {snippet}"
+        if not self._conversation_summary:
+            self._conversation_summary = entry
+        else:
+            lines = self._conversation_summary.split("\n")
+            if len(lines) >= 6:
+                lines = lines[-5:]
+            lines.append(entry)
+            self._conversation_summary = "\n".join(lines)
 
     def __repr__(self) -> str:
         return (

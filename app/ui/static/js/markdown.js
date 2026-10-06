@@ -27,7 +27,7 @@
     // 1. Extract and protect fenced code blocks
     const codeBlocks = [];
     src = src.replace(/```([a-zA-Z0-9_\-\+]*)\n([\s\S]*?)```/g, function (match, lang, code) {
-      const id = `__CODE_BLOCK_${codeBlocks.length}__`;
+      const id = `%%CODEBLOCK${codeBlocks.length}%%`;
       codeBlocks.push({ lang: lang.trim() || 'code', code: code.trimEnd() });
       return id;
     });
@@ -35,7 +35,7 @@
     // 2. Extract and protect inline code
     const inlineCodes = [];
     src = src.replace(/`([^`\n]+)`/g, function (match, code) {
-      const id = `__INLINE_CODE_${inlineCodes.length}__`;
+      const id = `%%INLINECODE${inlineCodes.length}%%`;
       inlineCodes.push(escapeHtml(code));
       return id;
     });
@@ -85,6 +85,45 @@
     src = src.replace(/_([^_]+)_/g, '<em>$1</em>');
     src = src.replace(/~~([^~]+)~~/g, '<del>$1</del>');
 
+    // 6.5 Images (markdown syntax: ![alt](url))
+    src = src.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, function (match, alt, url) {
+      const cleanAlt = escapeHtml(alt || 'Generated Image');
+      return `
+        <div class="generated-image-card">
+          <img src="${url}" alt="${cleanAlt}" class="generated-image-preview" loading="lazy" />
+          <div class="image-card-actions">
+            <a href="${url}" download class="image-download-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Download</span>
+            </a>
+          </div>
+        </div>
+      `.trim();
+    });
+
+    // 6.6 Standalone /images/... URLs in agent replies
+    src = src.replace(/(?:URL:\s*)?(\/images\/[a-zA-Z0-9_\-\.]+\.(?:png|jpg|jpeg|webp))/g, function (match, url) {
+      return `
+        <div class="generated-image-card">
+          <img src="${url}" alt="Generated Image" class="generated-image-preview" loading="lazy" />
+          <div class="image-card-actions">
+            <a href="${url}" download class="image-download-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Download</span>
+            </a>
+          </div>
+        </div>
+      `.trim();
+    });
+
     // 7. Links
     src = src.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
 
@@ -108,7 +147,8 @@
         block.startsWith('<ol') ||
         block.startsWith('<blockquote') ||
         block.startsWith('<div class="table-container"') ||
-        block.startsWith('__CODE_BLOCK_')
+        block.startsWith('<div class="generated-image-card"') ||
+        block.startsWith('%%CODEBLOCK')
       ) {
         return block;
       }
@@ -118,7 +158,7 @@
 
     // 10. Restore inline code
     inlineCodes.forEach((code, index) => {
-      src = src.replace(`__INLINE_CODE_${index}__`, `<code class="inline-code">${code}</code>`);
+      src = src.replaceAll(`%%INLINECODE${index}%%`, `<code class="inline-code">${code}</code>`);
     });
 
     // 11. Restore fenced code blocks with copy button
@@ -140,7 +180,7 @@
           <pre class="code-block-pre"><code class="code-block-content language-${escapeHtml(item.lang)}">${escapedCode}</code></pre>
         </div>
       `.trim();
-      src = src.replace(`__CODE_BLOCK_${index}__`, blockHtml);
+      src = src.replaceAll(`%%CODEBLOCK${index}%%`, blockHtml);
     });
 
     return src;

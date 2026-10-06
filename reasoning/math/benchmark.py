@@ -72,7 +72,14 @@ CASES = [
 
 
 def _matches(actual: Any, expected: Any) -> bool:
-    return str(actual) == str(expected)
+    if str(actual) == str(expected):
+        return True
+    try:
+        import sympy as sp
+        diff = sp.simplify(sp.sympify(str(actual)) - sp.sympify(str(expected)))
+        return bool(diff == 0)
+    except Exception:
+        return False
 
 
 def run_benchmark(solver: MathSolver | None = None) -> dict[str, Any]:

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Axen Image Generation</title>
+<style>
+  :root {
+    --color-bg: #09090b;
+    --color-surface: #18181b;
+    --color-surface-hover: #27272a;
+    --color-text-primary: #fafafa;
+    --color-text-muted: #a1a1aa;
+    --color-accent: #f05a28;
+    --color-accent-hover: #d94a1d;
+    --color-border: #3f3f46;
+    --color-error: #ef4444;
+    --spacing-1: 4px;
+    --spacing-2: 8px;
+    --spacing-3: 16px;
+    --spacing-4: 24px;
+    --spacing-5: 32px;
+    --radius-sm: 6px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-full: 99px;
+    --shadow-float: 0 12px 32px rgba(0, 0, 0, 0.6);
+    --font-stack: system-ui, -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-stack);
+    background-color: var(--color-bg);
+    color: var(--color-text-primary);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-3) var(--spacing-4);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+  }
+
+  .brand-icon {
+    width: 20px;
+    height: 20px;
+    background-color: var(--color-accent);
+    border-radius: var(--radius-sm);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-text-muted);
+    border: none;
+    padding: var(--spacing-2) var(--spacing-3);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .btn-ghost:hover, .btn-ghost:focus-visible {
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    outline: none;
+  }
+
+  /* Main Workspace */
+  .workspace {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-4);
+    position: relative;
+  }
+
+  /* Canvas / Image Area */
+  .canvas {
+    width: 100%;
+    max-width: 800px;
+    aspect-ratio: 16 / 9;
+    background-color: var(--color-surface);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+
+  .canvas-empty {
+    color: var(--color-text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+    align-items: center;
+  }
+
+  .canvas-empty svg {
+    width: 48px;
+    height: 48px;
+    opacity: 0.5;
+  }
+
+  .canvas-empty p {
+    font-size: 14px;
+    max-width: 250px;
+    line-height: 1.5;
+  }
+
+  /* The actual generated image */
+  .generated-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none; /* Shown when image exists */
+  }
+  
+  .error-msg {
+    color: var(--color-error, #ef4444);
+    font-size: 14px;
+    padding: var(--spacing-3);
+  }
+
+  /* Control Bar */
+  .control-dock {
+    position: absolute;
+    bottom: var(--spacing-5);
+    width: 100%;
+    max-width: 720px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    padding: var(--spacing-2);
+    display: flex;
+    gap: var(--spacing-2);
+    align-items: center;
+    box-shadow: var(--shadow-float);
+  }
+
+  .input-prompt {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--color-text-primary);
+    padding: var(--spacing-3) var(--spacing-4);
+    font-size: 15px;
+    outline: none;
+    font-family: inherit;
+  }
+
+  .input-prompt::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  .control-dock:focus-within {
+    border-color: var(--color-text-muted);
+  }
+
+  /* Settings Dropdown/Button */
+  .btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-icon:hover, .btn-icon:focus-visible {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-primary);
+    outline: none;
+  }
+
+  .btn-generate {
+    background-color: var(--color-text-primary);
+    color: var(--color-bg);
+    border: none;
+    padding: 0 var(--spacing-4);
+    height: 40px;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    transition: transform 0.1s, opacity 0.2s;
+  }
+
+  .btn-generate:hover, .btn-generate:focus-visible {
+    opacity: 0.9;
+    outline: none;
+  }
+
+  .btn-generate:active {
+    transform: scale(0.96);
+  }
+
+  .btn-generate:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* States */
+  .is-loading .btn-generate {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  
+  .is-loading .canvas {
+    border-style: solid;
+    border-color: var(--color-border);
+  }
+  
+  .loader {
+    display: none;
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  .is-loading .loader {
+    display: block;
+  }
+
+  .is-loading .canvas-empty svg, 
+  .is-loading .canvas-empty p {
+    display: none;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .control-dock {
+      max-width: calc(100% - var(--spacing-4) * 2);
+      bottom: var(--spacing-4);
+      flex-wrap: wrap;
+      border-radius: var(--radius-md);
+      padding: var(--spacing-3);
+    }
+    
+    .input-prompt {
+      width: 100%;
+      flex: none;
+      padding: var(--spacing-2) 0;
+    }
+    
+    .btn-generate {
+      width: 100%;
+      justify-content: center;
+      margin-top: var(--spacing-2);
+    }
+  }
+</style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="brand">
+      <div class="brand-icon"></div>
+      <span>AXEN Vision</span>
+    </div>
+    <a href="/" class="btn-ghost">Back to Chat</a>
+  </header>
+
+  <main class="workspace" id="workspace">
+    <!-- Image Canvas -->
+    <div class="canvas" id="canvas">
+      <!-- Empty State -->
+      <div class="canvas-empty" id="empty-state">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+        </svg>
+        <p>Describe what you want to see. The more detailed your prompt, the better the result.</p>
+      </div>
+
+      <!-- Loading State -->
+      <div class="loader" id="loader" aria-label="Generating image"></div>
+
+      <!-- Success State -->
+      <img src="" alt="Generated artwork" class="generated-image" id="result-image">
+      
+      <!-- Error State -->
+      <p class="error-msg" id="error-msg" hidden>Generation failed. Check that the server is running and try again.</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="control-dock">
+      <button class="btn-icon" aria-label="Settings" title="Aspect Ratio & Style">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+        </svg>
+      </button>
+
+      <input 
+        type="text" 
+        class="input-prompt" 
+        id="prompt-input" 
+        placeholder="A cyberpunk city skyline at dusk, neon orange and deep black..." 
+        aria-label="Image prompt"
+        autocomplete="off"
+      >
+
+      <button class="btn-generate" id="btn-generate">
+        Generate
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
+        </svg>
+      </button>
+    </div>
+  </main>
+
+  <script>
+    const btn = document.getElementById('btn-generate');
+    const input = document.getElementById('prompt-input');
+    const workspace = document.getElementById('workspace');
+    const img = document.getElementById('result-image');
+    const emptyState = document.getElementById('empty-state');
+    const errorEl = document.getElementById('error-msg');
+
+    async function generate() {
+      const prompt = input.value.trim();
+      if (!prompt) return;
+
+      errorEl.hidden = true;
+      img.style.display = 'none';
+      emptyState.style.display = 'none';
+      workspace.classList.add('is-loading');
+      btn.disabled = true;
+
+      try {
+        let res = await fetch('/api/image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt, enhance: true, preset: 'turbo' })
+        });
+        if (res.status === 404) {
+          res = await fetch('/api/generate-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt, enhance: true, preset: 'turbo' })
+          });
+        }
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || errData.error || `Server returned error (${res.status})`);
+        }
+        const data = await res.json();
+        if (!data.url) throw new Error('No image URL returned by server');
+        img.src = data.url;
+        img.style.display = 'block';
+      } catch (err) {
+        emptyState.style.display = 'flex';
+        errorEl.textContent = `Generation failed: ${err.message}`;
+        errorEl.hidden = false;
+      } finally {
+        workspace.classList.remove('is-loading');
+        btn.disabled = false;
+      }
+    }
+
+    btn.addEventListener('click', generate);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') generate();
+    });
+  </script>
+</body>
+</html>

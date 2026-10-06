@@ -78,6 +78,9 @@ class AxenBackendService:
         self.model_loading: bool = False
         self.model_load_error: Optional[str] = None
         self._chat_lock = threading.Lock()
+        from axen.projects.project_manager import ProjectManager
+        self.project_manager = ProjectManager.get_instance()
+        self.controller.project_manager = self.project_manager
         self._load_conversations_from_disk()
 
         # If a session wasn't loaded, create a fresh default one
@@ -144,7 +147,9 @@ class AxenBackendService:
         self,
         message: str,
         session_id: Optional[str] = None,
+        project_id: Optional[str] = None,
         request_id: Optional[str] = None,
+        attachments: Optional[List[str]] = None,
         status_callback: Optional[Callable[[str], None]] = None,
         state_callback: Optional[Callable[[str, str, Optional[Dict[str, Any]]], None]] = None,
         cancel_event: Optional[threading.Event] = None,
@@ -155,10 +160,13 @@ class AxenBackendService:
         """
         sid = session_id or self.active_session_id
         if sid not in self.conversations:
-            sid = self.new_session(title=message[:30].strip())
+            sid = self.new_session(title=message[:30].strip(), project_id=project_id)
 
         self.active_session_id = sid
         conv = self.conversations[sid]
+        eff_project_id = project_id or conv.get("project_id")
+        if project_id and not conv.get("project_id"):
+            conv["project_id"] = project_id
 
         with self._chat_lock:
             # Isolate session history: synchronize controller memory with this session
@@ -178,9 +186,17 @@ class AxenBackendService:
             def _combined_callback(st_name: str, disp_status: str, meta: Optional[Dict[str, Any]] = None):
                 if state_callback:
                     try:
-                        state_callback(st_name, disp_status, meta or {})
+                        import inspect
+                        sig = inspect.signature(state_callback)
+                        if len(sig.parameters) == 1:
+                            state_callback({"state": st_name, "text": disp_status, "meta": meta or {}})
+                        else:
+                            state_callback(st_name, disp_status, meta or {})
                     except Exception as cb_err:
-                        logger.debug("state_callback error: %s", cb_err)
+                        try:
+                            state_callback({"state": st_name, "text": disp_status, "meta": meta or {}})
+                        except Exception:
+                            logger.debug("state_callback error: %s", cb_err)
                 if status_callback:
                     try:
                         status_callback(disp_status)
@@ -192,6 +208,7 @@ class AxenBackendService:
                 "id": str(uuid.uuid4()),
                 "role": "user",
                 "content": message,
+                "attachments": attachments or [],
                 "timestamp": datetime.now().isoformat(),
             }
             conv["messages"].append(user_msg)
@@ -207,6 +224,8 @@ class AxenBackendService:
                 start_time = time.perf_counter()
                 response_text = self.controller.respond(
                     message,
+                    attachments=attachments,
+                    project_id=eff_project_id,
                     state_callback=_combined_callback,
                     cancel_event=cancel_event,
                     request_id=request_id,
@@ -252,6 +271,7 @@ class AxenBackendService:
 
         return {
             "session_id": sid,
+            "project_id": eff_project_id,
             "response": response_text,
             "task_type": task_type,
             "tool_used": tool_used,
@@ -268,13 +288,14 @@ class AxenBackendService:
     # Session Management
     # -----------------------------------------------------------------------
 
-    def new_session(self, title: str = "New Chat") -> str:
+    def new_session(self, title: str = "New Chat", project_id: Optional[str] = None) -> str:
         """Create a fresh conversation session and reset controller short-term memory."""
         self.controller.reset_conversation()
         new_id = str(uuid.uuid4())
         now = datetime.now().isoformat()
         self.conversations[new_id] = {
             "id": new_id,
+            "project_id": project_id,
             "title": title,
             "created_at": now,
             "updated_at": now,
@@ -331,9 +352,16 @@ class AxenBackendService:
             return True
         return False
 
-    def list_sessions(self, search: Optional[str] = None) -> List[Dict[str, Any]]:
-        """List all conversations ordered by recent update, with optional search filter."""
+    def list_sessions(self, search: Optional[str] = None, project_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List conversations ordered by recent update, filtered by search query or project_id."""
         items = list(self.conversations.values())
+        if project_id == "all":
+            pass
+        elif project_id:
+            items = [c for c in items if c.get("project_id") == project_id]
+        else:
+            items = [c for c in items if not c.get("project_id")]
+
         if search:
             q = search.lower().strip()
             filtered = []
@@ -351,6 +379,7 @@ class AxenBackendService:
         return [
             {
                 "id": c["id"],
+                "project_id": c.get("project_id"),
                 "title": c.get("title", "New Chat"),
                 "created_at": c.get("created_at"),
                 "updated_at": c.get("updated_at"),
@@ -423,3 +452,303 @@ class AxenBackendService:
             )
         except Exception as e:
             logger.error("Could not write conversations file: %s", e)
+
+    # -----------------------------------------------------------------------
+    # Memory Management Layer (Step 14 & 15)
+    # -----------------------------------------------------------------------
+
+    def list_memories(self, user_id: str = "default_user") -> List[Dict[str, Any]]:
+        """List all active persistent memories."""
+        if hasattr(self.controller.long_memory, "manager"):
+            items = self.controller.long_memory.manager.store.list_active(user_id=user_id)
+            return [item.to_dict() for item in items]
+        facts = self.controller.long_memory.all_facts()
+        return [{"key": k, "value": v, "memory_type": "fact", "is_active": True} for k, v in facts.items()]
+
+    def add_memory(self, key: str, value: str, memory_type: str = "fact", user_id: str = "default_user") -> Dict[str, Any]:
+        """Save or update a memory item."""
+        if hasattr(self.controller.long_memory, "manager"):
+            ok, msg, mem_id = self.controller.long_memory.manager.remember(
+                key=key, value=value, category=memory_type, user_id=user_id
+            )
+            return {"success": ok, "message": msg, "id": mem_id}
+        self.controller.long_memory.remember(key, value, category=memory_type)
+        return {"success": True, "message": "Saved memory."}
+
+    def delete_memory(self, item_id: int) -> bool:
+        """Deactivate memory by row ID."""
+        if hasattr(self.controller.long_memory, "manager"):
+            return self.controller.long_memory.manager.store.delete_by_id(item_id, hard=False)
+        return False
+
+    def clear_memories(self, user_id: str = "default_user") -> bool:
+        """Clear all active memories for user."""
+        self.controller.long_memory.clear()
+        return True
+
+    def export_memories(self, user_id: str = "default_user") -> Dict[str, Any]:
+        """Export memories as JSON."""
+        if hasattr(self.controller.long_memory, "manager"):
+            return self.controller.long_memory.manager.export_memories(user_id=user_id)
+        facts = self.controller.long_memory.all_facts()
+        return {"memory_version": 1, "user_id": user_id, "memories": [{"key": k, "value": v} for k, v in facts.items()]}
+
+    def import_memories(self, data: Dict[str, Any], user_id: str = "default_user") -> int:
+        """Import memories from JSON dictionary."""
+        if hasattr(self.controller.long_memory, "manager"):
+            return self.controller.long_memory.manager.import_memories(data, user_id=user_id)
+        mem_list = data.get("memories", [])
+        for m in mem_list:
+            if "key" in m and "value" in m:
+                self.controller.long_memory.remember(m["key"], m["value"])
+        return len(mem_list)
+
+    # -----------------------------------------------------------------------
+    # Knowledge Base / RAG Management Layer (Step 17 & 25)
+    # -----------------------------------------------------------------------
+
+    def list_knowledge_documents(self, collection_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List all indexed documents in knowledge base."""
+        if hasattr(self.controller, "knowledge_manager") and self.controller.knowledge_manager:
+            docs = self.controller.knowledge_manager.list_documents(collection_id=collection_id)
+            return [d.to_dict() for d in docs]
+        return []
+
+    def list_knowledge_collections(self) -> List[Dict[str, Any]]:
+        """List all collections in knowledge base."""
+        if hasattr(self.controller, "knowledge_manager") and self.controller.knowledge_manager:
+            colls = self.controller.knowledge_manager.list_collections()
+            return [c.to_dict() for c in colls]
+        return []
+
+    def ingest_knowledge_file(self, file_path: str, collection_id: str = "default") -> Dict[str, Any]:
+        """Ingest a local document into knowledge base."""
+        if hasattr(self.controller, "knowledge_manager") and self.controller.knowledge_manager:
+            res = self.controller.knowledge_manager.add_document(file_path, collection_id=collection_id)
+            return res.to_dict()
+        return {"success": False, "error": "Knowledge manager not available"}
+
+    def delete_knowledge_document(self, document_id: str) -> bool:
+        """Delete a document from knowledge base."""
+        if hasattr(self.controller, "knowledge_manager") and self.controller.knowledge_manager:
+            return self.controller.knowledge_manager.remove_document(document_id)
+        return False
+
+    def clear_knowledge_collection(self, collection_id: str) -> int:
+        """Clear all documents from a knowledge collection."""
+        if hasattr(self.controller, "knowledge_manager") and self.controller.knowledge_manager:
+            return self.controller.knowledge_manager.clear_collection(collection_id)
+        return 0
+
+    def search_knowledge(self, query: str, collection_id: Optional[str] = None, top_k: int = 4) -> List[Dict[str, Any]]:
+        """Search knowledge base with hybrid retrieval."""
+        if hasattr(self.controller, "knowledge_manager") and self.controller.knowledge_manager:
+            return self.controller.knowledge_manager.search(query=query, collection_id=collection_id, top_k=top_k)
+        return []
+
+    # -----------------------------------------------------------------------
+    # File Storage & Upload Management APIs
+    # -----------------------------------------------------------------------
+
+    def upload_file(self, filename: str, file_bytes: bytes, mime_type: Optional[str] = None) -> Dict[str, Any]:
+        """Upload and extract text from a file into local storage."""
+        from axen.storage.file_manager import FileManager
+        fobj = FileManager.get_instance().upload_and_process(filename, file_bytes, mime_type=mime_type)
+        return fobj.to_dict()
+
+    def list_uploaded_files(self) -> List[Dict[str, Any]]:
+        """List all stored uploaded files."""
+        from axen.storage.file_manager import FileManager
+        files = FileManager.get_instance().list_files()
+        return [f.to_dict() for f in files]
+
+    def get_uploaded_file(self, file_id: str) -> Optional[Dict[str, Any]]:
+        """Get uploaded file details by file ID."""
+        from axen.storage.file_manager import FileManager
+        fobj = FileManager.get_instance().get_file(file_id)
+        return fobj.to_dict() if fobj else None
+
+    def delete_uploaded_file(self, file_id: str) -> bool:
+        """Delete an uploaded file from storage."""
+        from axen.storage.file_manager import FileManager
+        return FileManager.get_instance().delete_file(file_id)
+
+    def ingest_uploaded_file_to_knowledge(self, file_id: str, collection_id: str = "default") -> Dict[str, Any]:
+        """Ingest an uploaded file into persistent KnowledgeManager."""
+        from axen.storage.file_manager import FileManager
+        km = getattr(self.controller, "knowledge_manager", None)
+        if not km:
+            return {"success": False, "error": "Knowledge manager not available"}
+        return FileManager.get_instance().ingest_into_knowledge(file_id, km, collection_id=collection_id)
+
+    # -----------------------------------------------------------------------
+    # Project & Workspace APIs
+    # -----------------------------------------------------------------------
+
+    def list_projects(self, include_archived: bool = False, search: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List projects with message counts and file counts."""
+        projs = self.project_manager.list_projects(include_archived=include_archived, search=search)
+        results = []
+        for p in projs:
+            d = p.to_dict()
+            d["chat_count"] = sum(1 for c in self.conversations.values() if c.get("project_id") == p.id)
+            d["file_count"] = len(self.project_manager.store.list_project_file_ids(p.id))
+            results.append(d)
+        return results
+
+    def get_project(self, project_id: str) -> Optional[Dict[str, Any]]:
+        """Get full project details including scoped stats."""
+        p = self.project_manager.get_project(project_id)
+        if not p:
+            return None
+        d = p.to_dict()
+        d["chat_count"] = sum(1 for c in self.conversations.values() if c.get("project_id") == p.id)
+        d["file_count"] = len(self.project_manager.store.list_project_file_ids(p.id))
+        d["memories_count"] = len(self.project_manager.list_project_memories(p.id))
+        d["collections_count"] = len(self.project_manager.list_project_collections(p.id))
+        return d
+
+    def create_project(
+        self,
+        name: str,
+        description: str = "",
+        instructions: str = "",
+        icon: str = "folder",
+        settings: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Create a new project workspace."""
+        p = self.project_manager.create_project(
+            name=name,
+            description=description,
+            instructions=instructions,
+            icon=icon,
+            settings=settings,
+        )
+        return p.to_dict()
+
+    def update_project(self, project_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Update an existing project workspace."""
+        p = self.project_manager.update_project(project_id, updates)
+        return p.to_dict() if p else None
+
+    def delete_project(self, project_id: str, delete_physical_files: bool = False) -> bool:
+        """Delete a project workspace and optionally delete associated physical files."""
+        for c in self.conversations.values():
+            if c.get("project_id") == project_id:
+                c["project_id"] = None
+        self._save_conversations_to_disk()
+        return self.project_manager.delete_project(project_id, delete_physical_files=delete_physical_files)
+
+    def archive_project(self, project_id: str) -> bool:
+        """Archive a project workspace."""
+        return self.project_manager.archive_project(project_id)
+
+    def restore_project(self, project_id: str) -> bool:
+        """Restore an archived project workspace."""
+        return self.project_manager.restore_project(project_id)
+
+    def list_project_memories(self, project_id: str) -> List[Dict[str, Any]]:
+        """List scoped memories for a project."""
+        return self.project_manager.list_project_memories(project_id)
+
+    def add_project_memory(self, project_id: str, key: str, value: str, memory_type: str = "fact") -> Dict[str, Any]:
+        """Add or update a memory item scoped to a project."""
+        mid = self.project_manager.add_project_memory(project_id, key=key, value=value, memory_type=memory_type)
+        return {"success": True, "id": mid, "key": key, "value": value}
+
+    def delete_project_memory(self, project_id: str, key: str) -> bool:
+        """Deactivate a project-scoped memory."""
+        return self.project_manager.delete_project_memory(project_id, key)
+
+    def list_project_files(self, project_id: str) -> List[Dict[str, Any]]:
+        """List files linked to a project."""
+        files = self.project_manager.list_project_files(project_id)
+        return [f.to_dict() for f in files]
+
+    def add_project_file(self, project_id: str, file_id: str) -> bool:
+        """Link an uploaded file to a project."""
+        return self.project_manager.add_file_to_project(project_id, file_id)
+
+    attach_file_to_project = add_project_file
+
+    def remove_project_file(self, project_id: str, file_id: str, delete_physical: bool = False) -> bool:
+        """Unlink file from project and optionally delete physical file."""
+        return self.project_manager.remove_file_from_project(project_id, file_id, delete_physical=delete_physical)
+
+    def list_project_knowledge(self, project_id: str) -> List[str]:
+        """List knowledge collections associated with a project."""
+        return self.project_manager.list_project_collections(project_id)
+
+    def associate_project_knowledge(self, project_id: str, collection_id: str) -> bool:
+        """Associate a knowledge collection with a project."""
+        return self.project_manager.associate_knowledge(project_id, collection_id)
+
+    # -----------------------------------------------------------------------
+    # Unified Memory 2.0 Management APIs
+    # -----------------------------------------------------------------------
+
+    def list_memories(
+        self,
+        scope: Optional[str] = None,
+        project_id: Optional[str] = None,
+        search: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """List memories filtered by scope, project, or text search."""
+        mem_mgr = getattr(self.controller._long_memory, "manager", None)
+        if not mem_mgr:
+            return []
+        if search and search.strip():
+            items = mem_mgr.search(search.strip(), scope=scope, project_id=project_id)
+            return items
+        items = mem_mgr.list_memories(is_active=True, scope=scope, project_id=project_id)
+        return [m.to_dict() for m in items]
+
+    def add_memory(
+        self,
+        key: str,
+        value: str,
+        scope: str = "global",
+        project_id: Optional[str] = None,
+        memory_type: str = "fact",
+    ) -> Dict[str, Any]:
+        """Add a persistent memory under the specified scope."""
+        mem_mgr = getattr(self.controller._long_memory, "manager", None)
+        if not mem_mgr:
+            return {"success": False, "error": "Memory manager not available"}
+        item = mem_mgr.remember(
+            key=key,
+            value=value,
+            scope=scope,
+            project_id=project_id,
+            memory_type=memory_type,
+            source="explicit_user",
+        )
+        if item:
+            return {"success": True, "memory": item.to_dict()}
+        return {"success": False, "error": "Memory rejected by policy or validation"}
+
+    def delete_memory(
+        self,
+        key: str,
+        scope: Optional[str] = None,
+        project_id: Optional[str] = None,
+    ) -> bool:
+        """Delete / deactivate a memory item by key and scope."""
+        mem_mgr = getattr(self.controller._long_memory, "manager", None)
+        if not mem_mgr:
+            return False
+        return mem_mgr.forget(key, scope=scope, project_id=project_id)
+
+    def clear_memories(
+        self,
+        scope: Optional[str] = None,
+        project_id: Optional[str] = None,
+    ) -> bool:
+        """Clear memories within a given scope or project."""
+        mem_mgr = getattr(self.controller._long_memory, "manager", None)
+        if not mem_mgr:
+            return False
+        mem_mgr.clear(scope=scope, project_id=project_id)
+        return True
+
+

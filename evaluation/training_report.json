@@ -1,0 +1,45 @@
+{
+  "model_version": "brain_v004",
+  "dataset_version": "1.0.0",
+  "model_parameters": 149504,
+  "device": "cuda",
+  "initial_loss": 5.7113,
+  "final_train_loss": 0.2447,
+  "best_validation_loss": 2.5841,
+  "final_validation_loss": 5.0044,
+  "steps": 975,
+  "epochs": 75,
+  "learning_rate": 0.0008,
+  "batch_size": 4,
+  "gradient_accumulation": 1,
+  "training_duration_seconds": 14.03,
+  "checkpoint_path": "checkpoints\\foundation\\brain_v004_best.pt",
+  "inference_benchmark": {
+    "avg_latency_ms": 170.48,
+    "tokens_per_second": 351.94,
+    "gpu_memory_mb": 17.98,
+    "device": "cuda",
+    "sample_outputs": {
+      "Calculate 25 * 48.": "{\"type\"tol\": \"toll\": \"toool\": \"tol\"tool\": \"toume\": \"tol\"toua",
+      "Find auth.py in this project.": "pecool ore al oon al {\"tolealeese\"tolleatoolesesiongumesesto",
+      "Read the configuration file.": "{\"tentol\": \"toool\": \"tol\"tool\": \"toume\": \"tol\"touats\": \": \"t",
+      "What is a computer?": "{\"tool\"te\": \"tolll\": \"tool\": \"tol\"tool\": \"toume\": \"tol\"touat",
+      "Hello": "{\": \", {\"t\": \": \"tol\": \": \"tolll\": \": \": \": \": \"tool\": \"toum"
+    }
+  },
+  "capability_comparison": {
+    "baseline": {
+      "accuracy": 0.9091,
+      "brain_native": 2,
+      "planner_fallback": 8,
+      "specialist_qwen": 1
+    },
+    "candidate": {
+      "accuracy": 0.9091,
+      "brain_native": 7,
+      "planner_fallback": 3,
+      "specialist_qwen": 1
+    }
+  },
+  "promotion_decision": "promoted"
+}

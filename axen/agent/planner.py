@@ -118,17 +118,30 @@ class Planner:
                 input_summary=req[:60],
             )]
 
-        # 5. File operation
-        if task_type == "file_operation" or selected_tool == "file":
+        # 5. File operation & Document Analysis
+        if task_type in ("file_operation", "document_analysis", "file_analysis") or selected_tool in ("file", "file.read", "file_read", "file_search", "file.search", "file.inspect"):
+            if selected_tool in ("file_search", "file.search") or re.search(r"\b(?:find|search|where|locate)\b", lower):
+                m_search = re.search(r"\b(?:find|search|where|locate)\s+(?:for\s+)?(.+)", req, re.I)
+                q = m_search.group(1).strip() if m_search else req
+                return [_make_step(
+                    step_id=1,
+                    action=f"Search files for pattern: {q}",
+                    tool="file_search",
+                    arguments={"query": q, "request": req},
+                    input_summary=f"Search: {q[:40]}",
+                )]
             match = re.search(r"\b(?:read|show|view|open|cat)\s+(?:this\s+)?file[:\s]+([^\s,;]+)", req, re.I)
+            if not match:
+                match = re.search(r"\b(?:read|show|view|open)\s+([a-zA-Z0-9_\-\.\/\\]+\.(?:md|txt|py|json|csv))\b", req, re.I)
             path = match.group(1).strip().strip("'\"") if match else req
             return [_make_step(
                 step_id=1,
-                action=f"Read and inspect local file content: {path}",
-                tool="file",
-                arguments={"path": path},
-                input_summary=f"Path: {path}",
+                action=f"Read and inspect file content: {path}",
+                tool="file_read" if selected_tool in ("file_read", "file.read") else "file",
+                arguments={"path": path, "request": req},
+                input_summary=f"File: {path[:40]}",
             )]
+
 
         # 6. Memory operation
         if task_type == "memory" or selected_tool == "memory":
@@ -137,6 +150,36 @@ class Planner:
                 action="Perform memory retrieval or store operation",
                 tool="memory",
                 arguments={"raw_input": req},
+                input_summary=req[:60],
+            )]
+
+        # 7. Knowledge / RAG retrieval operation
+        if task_type in ("knowledge_retrieval", "rag") or selected_tool in ("knowledge", "knowledge.retrieve"):
+            return [_make_step(
+                step_id=1,
+                action=f"Search and retrieve grounded passages from knowledge base: {req[:80]}",
+                tool="knowledge",
+                arguments={"query": req},
+                input_summary=req[:60],
+            )]
+
+        # 8. Software engineering / Coding Agent operation
+        if task_type == "coding" or selected_tool in ("coding", "coding.inspect", "coding.search", "coding.patch", "coding.test"):
+            return [_make_step(
+                step_id=1,
+                action=f"Execute software engineering workflow in workspace: {req[:80]}",
+                tool="coding",
+                arguments={"request": req},
+                input_summary=req[:60],
+            )]
+
+        # 9. Web research / Web Agent operation
+        if task_type in ("web_search", "web_research", "current_information") or selected_tool in ("web", "web.research", "web.search", "web.read"):
+            return [_make_step(
+                step_id=1,
+                action=f"Execute web research and multi-source verification: {req[:80]}",
+                tool="web.research",
+                arguments={"query": req},
                 input_summary=req[:60],
             )]
 
@@ -183,6 +226,18 @@ class Planner:
                 ))
             return steps
 
+        # Check for search or find component
+        if re.search(r"\b(?:find|search|locate)\b", lower) and ("csv" in lower or "data" in lower or "file" in lower or "reference" in lower or "authentication" in lower):
+            search_query = "csv" if "csv" in lower else ("data" if "data" in lower else "authentication")
+            steps.append(_make_step(
+                step_id=step_num,
+                action=f"Search for file or references: {search_query}",
+                tool="file_search",
+                arguments={"query": search_query, "raw_input": req},
+                input_summary=f"Search: {search_query}",
+            ))
+            step_num += 1
+
         # Check for file read component
         file_match = re.search(r"\b(?:read|open|load|check)\s+(?:this\s+)?file[:\s]+([^\s,;]+)", req, re.I)
         if not file_match:
@@ -196,23 +251,24 @@ class Planner:
             if fn_m:
                 path = fn_m.group(1).strip()
 
-        if path or re.search(r"\b(?:file|read|inspect)\b", req, re.I):
+        if path or re.search(r"\b(?:file|read|inspect)\b", req, re.I) or (step_num > 1 and ("csv" in lower or "calculate" in lower or "average" in lower)):
             steps.append(_make_step(
                 step_id=step_num,
                 action=f"Read input file: {path or 'target file'}",
-                tool="file",
-                arguments={"path": path, "raw_input": req},
+                tool="file_read" if not path and not re.search(r"\b(?:read|open)\s+this\s+file\b", req, re.I) else "file",
+                arguments={"path": path, "raw_input": req, "from_step": 1 if step_num > 1 else None},
                 input_summary=f"Path: {path or 'target'}",
             ))
             step_num += 1
 
         # Check for calculation or arithmetic component
         if re.search(r"\b(?:calculate|compute|average|sum|total|totals|numbers|percentage)\b", lower):
+            target_tool = "python" if ("average" in lower and "csv" in lower) else "calculator"
             steps.append(_make_step(
                 step_id=step_num,
-                action="Execute verified arithmetic / math operation",
-                tool="calculator",
-                arguments={"raw_input": req, "from_step": 1 if path else None},
+                action=f"Execute computation: {target_tool}",
+                tool=target_tool,
+                arguments={"raw_input": req, "from_step": step_num - 1},
                 input_summary=req[:60],
             ))
             step_num += 1
@@ -221,7 +277,7 @@ class Planner:
                 step_id=step_num,
                 action="Solve mathematical calculation with MathSolver",
                 tool="math_solver",
-                arguments={"problem": req, "from_step": 1 if path else None},
+                arguments={"problem": req, "from_step": step_num - 1},
                 input_summary=req[:60],
             ))
             step_num += 1
@@ -230,7 +286,7 @@ class Planner:
                 step_id=step_num,
                 action="Execute computer systems conversion deterministically",
                 tool="computer",
-                arguments={"request": req, "from_step": 1 if path else None},
+                arguments={"request": req, "from_step": step_num - 1},
                 input_summary=req[:60],
             ))
             step_num += 1
@@ -239,7 +295,7 @@ class Planner:
                 step_id=step_num,
                 action="Execute code in Python sandbox",
                 tool="python",
-                arguments={"raw_input": req, "from_step": 1 if path else None},
+                arguments={"raw_input": req, "from_step": step_num - 1},
                 input_summary=req[:60],
             ))
             step_num += 1

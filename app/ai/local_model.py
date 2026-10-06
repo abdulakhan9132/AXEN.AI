@@ -8,6 +8,7 @@ import requests
 
 from .base_model import AIModel
 from .config import LocalAIConfig, load_local_config
+from app.context.models import ModelRequest
 
 
 class LocalModel(AIModel):
@@ -29,14 +30,7 @@ class LocalModel(AIModel):
         except Exception:
             return False
 
-    def generate(
-        self,
-        prompt: str,
-        *,
-        system: Optional[str] = None,
-        context: Optional[Dict[str, Any]] = None,
-        response_format: str = "text",
-    ) -> str:
+    def generate(self, request: ModelRequest) -> str:
         if not self.health_check():
             raise RuntimeError(
                 "Local AI model is unavailable. Install Ollama and pull a model, or use the framework fallback."
@@ -44,63 +38,50 @@ class LocalModel(AIModel):
 
         payload = {
             "model": self.model_name,
-            "prompt": prompt,
+            "messages": request.context.messages_for_model,
             "stream": False,
-            "system": system or "You are a helpful local AI agent.",
             "options": {
                 "temperature": self.temperature,
                 "num_ctx": self.context_length,
                 "num_predict": self.max_output_tokens,
             },
         }
-        if response_format == "json":
-            payload["format"] = "json"
-        if context:
-            payload["context"] = json.dumps(context)
+        if request.generation_settings.get("format"):
+            payload["format"] = request.generation_settings["format"]
 
-        response = requests.post(f"{self.base_url}/api/generate", json=payload, timeout=self.timeout)
+        response = requests.post(f"{self.base_url}/api/chat", json=payload, timeout=self.timeout)
         response.raise_for_status()
         data = response.json()
-        return str(data.get("response", ""))
+        msg_content = data.get("message", {}).get("content", "") if isinstance(data.get("message"), dict) else ""
+        return str(msg_content or data.get("response", ""))
 
-    def stream(
-        self,
-        prompt: str,
-        *,
-        system: Optional[str] = None,
-        context: Optional[Dict[str, Any]] = None,
-        response_format: str = "text",
-    ) -> Iterator[str]:
+    def stream(self, request: ModelRequest) -> Iterator[str]:
         if not self.health_check():
             raise RuntimeError("Local AI model is unavailable.")
 
         payload = {
             "model": self.model_name,
-            "prompt": prompt,
+            "messages": request.context.messages_for_model,
             "stream": True,
-            "system": system or "You are a helpful local AI agent.",
         }
-        if context:
-            payload["context"] = json.dumps(context)
 
-        response = requests.post(f"{self.base_url}/api/generate", json=payload, timeout=self.timeout, stream=True)
+        response = requests.post(f"{self.base_url}/api/chat", json=payload, timeout=self.timeout, stream=True)
         response.raise_for_status()
         for line in response.iter_lines():
             if not line:
                 continue
             chunk = json.loads(line)
-            if "response" in chunk:
-                yield chunk["response"]
+            if "message" in chunk and "content" in chunk["message"]:
+                yield chunk["message"]["content"]
 
-    def structured_output(
-        self,
-        prompt: str,
-        *,
-        schema: Optional[Dict[str, Any]] = None,
-        system: Optional[str] = None,
-        context: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
-        text = self.generate(prompt, system=system, context=context, response_format="json")
+    def structured_output(self, request: ModelRequest, schema: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        req_json = ModelRequest(
+            context=request.context,
+            generation_settings={**request.generation_settings, "format": "json"},
+            session_metadata=request.session_metadata,
+            cancel_event=request.cancel_event,
+        )
+        text = self.generate(req_json)
         cleaned = text.strip()
         if cleaned.startswith("```"):
             cleaned = cleaned.strip("`\n ")

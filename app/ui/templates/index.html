@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AXEN® — Local AI Assistant</title>
-  <meta name="description" content="AXEN Offline Local AI Assistant powered by TinyLlama on CUDA with Agentic Reasoning and Deterministic Tools." />
-  <link rel="stylesheet" href="/static/css/styles.css" />
+  <meta name="description" content="AXEN personal AI assistant with a from-scratch language brain, memory, and exact reasoning tools." />
+  <link rel="stylesheet" href="/static/css/styles.css?v=6" />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 28'><rect x='0' y='14' width='14' height='14' rx='3' fill='%23F05A28'/><rect x='12' y='0' width='20' height='20' rx='4' fill='%23000000'/><rect x='12' y='20' width='8' height='8' rx='2' fill='%23000000'/></svg>" />
 </head>
 <body>
@@ -34,61 +34,219 @@
         </button>
       </div>
 
-      <!-- NEW CHAT BUTTON -->
-      <button class="btn-new-chat" id="btn-new-chat" aria-label="Start a new chat">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="16"></line>
-          <line x1="8" y1="12" x2="16" y2="12"></line>
-        </svg>
-        <span>NEW CHAT</span>
-      </button>
+      <!-- NEW CHAT, NEW PROJECT & VISION BUTTONS -->
+      <div class="sidebar-action-buttons">
+        <button class="btn-new-chat" id="btn-new-chat" aria-label="Start a new chat">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="16"></line>
+            <line x1="8" y1="12" x2="16" y2="12"></line>
+          </svg>
+          <span>NEW CHAT</span>
+        </button>
+        <button class="btn-new-project" id="btn-new-project" aria-label="Create a new project workspace" title="New Project">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            <line x1="12" y1="11" x2="12" y2="17"></line>
+            <line x1="9" y1="14" x2="15" y2="14"></line>
+          </svg>
+        </button>
+        <a href="/vision" class="btn-new-project" style="text-decoration: none; color: inherit; width: auto;" title="Axen Vision Image Generation">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+        </a>
+      </div>
 
-      <!-- CHATS SECTION HEADER -->
-      <div class="chats-section-header">
-        <span class="chats-title">Chats</span>
-        <div class="chats-header-actions">
-          <button class="btn-header-action" id="btn-search" title="Search chats" aria-label="Search chats">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-          </button>
-          <button class="btn-header-action" id="btn-filter" title="Chat settings" aria-label="Chat settings">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="4" y1="21" x2="4" y2="14"></line>
-              <line x1="4" y1="10" x2="4" y2="3"></line>
-              <line x1="12" y1="21" x2="12" y2="12"></line>
-              <line x1="12" y1="8" x2="12" y2="3"></line>
-              <line x1="20" y1="21" x2="20" y2="16"></line>
-              <line x1="20" y1="12" x2="20" y2="3"></line>
-              <line x1="1" y1="14" x2="7" y2="14"></line>
-              <line x1="9" y1="8" x2="15" y2="8"></line>
-              <line x1="17" y1="16" x2="23" y2="16"></line>
-            </svg>
-          </button>
+      <!-- SIDEBAR NAV TABS -->
+      <nav class="sidebar-nav-tabs" role="tablist" aria-label="Sidebar Navigation">
+        <button class="nav-tab active" id="tab-chats" role="tab" aria-selected="true" title="Chats">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <span>Chats</span>
+        </button>
+        <button class="nav-tab" id="tab-projects" role="tab" aria-selected="false" title="Projects & Workspaces">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          <span>Projects</span>
+        </button>
+        <button class="nav-tab" id="tab-files" role="tab" aria-selected="false" title="Uploaded Files">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+          <span>Files</span>
+        </button>
+        <button class="nav-tab" id="tab-knowledge" role="tab" aria-selected="false" title="Knowledge Base">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          <span>Knowledge</span>
+        </button>
+        <button class="nav-tab" id="tab-memory" role="tab" aria-selected="false" title="Memory Settings">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <span>Memory</span>
+        </button>
+        <button class="nav-tab" id="tab-brain" role="tab" aria-selected="false" title="Brain Status & Learning">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 0-4 4c0 .88.29 1.7.78 2.37A6.5 6.5 0 0 0 4 14.5a6.5 6.5 0 0 0 5 6.32V22h6v-1.18a6.5 6.5 0 0 0 5-6.32 6.5 6.5 0 0 0-4.78-6.13A4 4 0 0 0 16 6a4 4 0 0 0-4-4z"></path></svg>
+          <span>Brain</span>
+        </button>
+      </nav>
+
+      <!-- CHATS VIEW CONTAINER -->
+      <div class="sidebar-view" id="view-chats">
+        <!-- CHATS SECTION HEADER -->
+        <div class="chats-section-header">
+          <span class="chats-title">Chats</span>
+          <div class="chats-header-actions">
+            <button class="btn-header-action" id="btn-search" title="Search chats" aria-label="Search chats">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Expandable Search Input -->
+        <div class="sidebar-search-box" id="sidebar-search-box">
+          <svg class="sidebar-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" class="sidebar-search-input" id="sidebar-search-input" placeholder="Search conversations..." aria-label="Search conversations" />
+        </div>
+
+        <!-- CONVERSATION LIST AREA -->
+        <div class="conversation-list" id="conversation-list" role="list">
+          <!-- Rendered dynamically via app.js -->
         </div>
       </div>
 
-      <!-- Expandable Search Input -->
-      <div class="sidebar-search-box" id="sidebar-search-box">
-        <svg class="sidebar-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        <input type="text" class="sidebar-search-input" id="sidebar-search-input" placeholder="Search conversations..." aria-label="Search conversations" />
+      <!-- PROJECTS VIEW CONTAINER -->
+      <div class="sidebar-view hidden" id="view-projects">
+        <div class="chats-section-header">
+          <span class="chats-title">Projects</span>
+          <div class="chats-header-actions">
+            <button class="btn-header-action" id="btn-projects-search" title="Search projects" aria-label="Search projects">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </button>
+          </div>
+        </div>
+        <div class="sidebar-search-box visible" style="display:flex;">
+          <input type="text" class="sidebar-search-input" id="projects-search-input" placeholder="Search projects..." aria-label="Filter projects" />
+        </div>
+        <div class="projects-list" id="projects-list" role="list">
+          <!-- Rendered dynamically via app.js -->
+        </div>
       </div>
 
-      <!-- CONVERSATION LIST AREA -->
-      <div class="conversation-list" id="conversation-list" role="list">
-        <!-- Rendered dynamically via app.js -->
+      <!-- FILES VIEW CONTAINER -->
+      <div class="sidebar-view hidden" id="view-files">
+        <div class="chats-section-header">
+          <span class="chats-title">Files</span>
+          <div class="chats-header-actions">
+            <button class="btn-header-action" id="btn-upload-direct" title="Upload files" aria-label="Upload files">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            </button>
+          </div>
+        </div>
+        <div class="sidebar-search-box visible" style="display:flex;">
+          <input type="text" class="sidebar-search-input" id="files-search-input" placeholder="Search files..." aria-label="Filter files" />
+        </div>
+        <div class="files-list" id="files-list" role="list"></div>
+      </div>
+
+      <!-- KNOWLEDGE VIEW CONTAINER -->
+      <div class="sidebar-view hidden" id="view-knowledge">
+        <div class="chats-section-header">
+          <span class="chats-title">Knowledge</span>
+          <div class="chats-header-actions">
+            <button class="btn-header-action" id="btn-knowledge-upload-direct" title="Add document to knowledge" aria-label="Add document">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+            </button>
+          </div>
+        </div>
+        <div class="sidebar-search-box visible" style="display:flex;">
+          <input type="text" class="sidebar-search-input" id="knowledge-search-input" placeholder="Search indexed docs..." aria-label="Search knowledge" />
+        </div>
+        <div class="knowledge-docs-list" id="knowledge-docs-list" role="list"></div>
+      </div>
+
+      <!-- MEMORY VIEW CONTAINER -->
+      <div class="sidebar-view hidden" id="view-memory">
+        <div class="chats-section-header">
+          <span class="chats-title">Memory 2.0</span>
+          <div class="chats-header-actions">
+            <button class="btn-header-action" id="btn-memory-refresh" title="Refresh memories" aria-label="Refresh memories">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            </button>
+          </div>
+        </div>
+        <div class="sidebar-search-box visible" style="display:flex;">
+          <input type="text" class="sidebar-search-input" id="memory-search-input" placeholder="Search saved memories..." aria-label="Search memories" />
+        </div>
+        <div class="memory-items-list" id="memory-items-list" style="padding: 12px; overflow-y: auto; flex: 1;" role="list"></div>
+      </div>
+
+      <!-- BRAIN VIEW CONTAINER -->
+      <div class="sidebar-view hidden" id="view-brain">
+        <div class="chats-section-header">
+          <span class="chats-title">Axen Brain</span>
+          <div class="chats-header-actions">
+            <button class="btn-header-action" id="btn-brain-refresh" title="Refresh status" aria-label="Refresh brain status">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            </button>
+          </div>
+        </div>
+        <div class="brain-panel-card">
+          <div class="brain-stat-grid">
+            <div class="brain-stat-box">
+              <div class="brain-stat-label">Parameters</div>
+              <div class="brain-stat-val" id="brain-params">62,208</div>
+            </div>
+            <div class="brain-stat-box">
+              <div class="brain-stat-label">Trained Steps</div>
+              <div class="brain-stat-val" id="brain-steps">0</div>
+            </div>
+            <div class="brain-stat-box">
+              <div class="brain-stat-label">Loss</div>
+              <div class="brain-stat-val" id="brain-loss">--</div>
+            </div>
+            <div class="brain-stat-box">
+              <div class="brain-stat-label">State</div>
+              <div class="brain-stat-val" id="brain-state" style="font-size: 13px;">Awake</div>
+            </div>
+          </div>
+
+          <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #6B7280; margin: 12px 0 6px 0; font-weight: 600;">Personality Traits</div>
+          <div id="brain-traits-list">
+            <div class="brain-trait-row"><span>Curiosity</span><div class="brain-trait-bar-bg"><div class="brain-trait-bar-fill" id="trait-curiosity" style="width: 50%;"></div></div></div>
+            <div class="brain-trait-row"><span>Caution</span><div class="brain-trait-bar-bg"><div class="brain-trait-bar-fill" id="trait-caution" style="width: 50%;"></div></div></div>
+            <div class="brain-trait-row"><span>Talkativeness</span><div class="brain-trait-bar-bg"><div class="brain-trait-bar-fill" id="trait-talkativeness" style="width: 50%;"></div></div></div>
+            <div class="brain-trait-row"><span>Creativity</span><div class="brain-trait-bar-bg"><div class="brain-trait-bar-fill" id="trait-creativity" style="width: 50%;"></div></div></div>
+            <div class="brain-trait-row"><span>Formality</span><div class="brain-trait-bar-bg"><div class="brain-trait-bar-fill" id="trait-formality" style="width: 50%;"></div></div></div>
+          </div>
+
+          <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #6B7280; margin: 12px 0 6px 0; font-weight: 600;">Memory Brain</div>
+          <div class="brain-stat-grid" style="margin-bottom: 6px;">
+            <div class="brain-stat-box">
+              <div class="brain-stat-label">Saved Facts</div>
+              <div class="brain-stat-val" id="brain-facts-count">0</div>
+            </div>
+            <div class="brain-stat-box">
+              <div class="brain-stat-label">Recalled Exchanges</div>
+              <div class="brain-stat-val" id="brain-exchanges-count">0</div>
+            </div>
+          </div>
+
+          <button class="btn-sleep-learn" id="btn-sleep-learn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            <span id="btn-sleep-text">Sleep and Learn (500 steps)</span>
+          </button>
+        </div>
       </div>
 
       <!-- SIDEBAR FOOTER -->
       <div class="sidebar-footer">
         <div class="status-pill" id="status-pill" title="Local AI Runtime Status">
           <div class="status-dot pulsing" id="status-dot"></div>
-          <span id="status-text">RTX 3050 • Local Model</span>
+          <span id="status-text">Brain: checking…</span>
         </div>
       </div>
     </aside>
@@ -107,6 +265,112 @@
             <line x1="9" y1="3" x2="9" y2="21"></line>
           </svg>
         </button>
+      </div>
+
+      <!-- PROJECT WORKSPACE HEADER BANNER -->
+      <div class="project-workspace-header hidden" id="project-workspace-header">
+        <div class="project-header-left">
+          <div class="project-header-icon" id="project-header-icon">📁</div>
+          <div class="project-header-meta">
+            <div class="project-title-row">
+              <h2 class="project-title-text" id="project-header-title">Project Workspace</h2>
+              <span class="project-badge">Active Workspace</span>
+            </div>
+            <p class="project-desc-text" id="project-header-desc">Manage project chats, instructions, files, and knowledge</p>
+          </div>
+        </div>
+        <div class="project-header-center">
+          <nav class="project-tabs" role="tablist">
+            <button class="project-tab-btn active" id="tab-proj-chats" data-subpanel="chat">Chats</button>
+            <button class="project-tab-btn" id="tab-proj-files" data-subpanel="files">Files</button>
+            <button class="project-tab-btn" id="tab-proj-knowledge" data-subpanel="knowledge">Knowledge</button>
+            <button class="project-tab-btn" id="tab-proj-memory" data-subpanel="memory">Memory</button>
+            <button class="project-tab-btn" id="tab-proj-settings" data-subpanel="settings">Settings</button>
+          </nav>
+        </div>
+        <div class="project-header-right">
+          <button class="btn-project-exit" id="btn-project-exit" title="Exit to Global Chat">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <span>Exit Project</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- PROJECT SUBPANEL: FILES -->
+      <div class="project-subpanel-view hidden" id="subpanel-project-files">
+        <div class="subpanel-header">
+          <div class="subpanel-header-title">
+            <h3>Project Files</h3>
+            <span class="subpanel-subtitle">Files attached to this project workspace</span>
+          </div>
+          <button class="btn-action-primary" id="btn-proj-upload-file">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Upload File</span>
+          </button>
+        </div>
+        <div class="subpanel-content" id="proj-files-container"></div>
+      </div>
+
+      <!-- PROJECT SUBPANEL: KNOWLEDGE -->
+      <div class="project-subpanel-view hidden" id="subpanel-project-knowledge">
+        <div class="subpanel-header">
+          <div class="subpanel-header-title">
+            <h3>Project Knowledge Collections</h3>
+            <span class="subpanel-subtitle">Indexed knowledge documents isolated to this project</span>
+          </div>
+          <button class="btn-action-primary" id="btn-proj-add-knowledge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Add Document</span>
+          </button>
+        </div>
+        <div class="subpanel-content" id="proj-knowledge-container"></div>
+      </div>
+
+      <!-- PROJECT SUBPANEL: MEMORY -->
+      <div class="project-subpanel-view hidden" id="subpanel-project-memory">
+        <div class="subpanel-header">
+          <div class="subpanel-header-title">
+            <h3>Project Memory</h3>
+            <span class="subpanel-subtitle">Persistent key-value facts specific to this project</span>
+          </div>
+        </div>
+        <div class="memory-form-card">
+          <input type="text" id="proj-mem-key-input" placeholder="Memory key (e.g., tech_stack)" class="subpanel-input" />
+          <input type="text" id="proj-mem-val-input" placeholder="Value (e.g., Node.js, a due date)" class="subpanel-input flex-grow" />
+          <button class="btn-action-primary" id="btn-proj-save-mem">Save Memory</button>
+        </div>
+        <div class="subpanel-content" id="proj-memory-container"></div>
+      </div>
+
+      <!-- PROJECT SUBPANEL: SETTINGS -->
+      <div class="project-subpanel-view hidden" id="subpanel-project-settings">
+        <div class="subpanel-header">
+          <div class="subpanel-header-title">
+            <h3>Project Settings & Instructions</h3>
+            <span class="subpanel-subtitle">Customize behavior and security bounds for this workspace</span>
+          </div>
+        </div>
+        <div class="settings-card">
+          <div class="settings-field">
+            <label for="proj-settings-instructions">Custom Project Instructions</label>
+            <textarea id="proj-settings-instructions" class="settings-textarea" rows="4" placeholder="Instructions applied to all chats in this project (e.g. 'Use TypeScript. Prefer local tools.')..."></textarea>
+            <span class="field-hint">Project instructions are trusted configuration and guide the AgentLoop without bypassing security bounds.</span>
+          </div>
+          <div class="settings-field">
+            <label>Workspace Feature Toggles</label>
+            <div class="settings-toggle-group">
+              <label class="toggle-item"><input type="checkbox" id="toggle-proj-memory" checked /> Enable Project Memory</label>
+              <label class="toggle-item"><input type="checkbox" id="toggle-proj-knowledge" checked /> Enable Knowledge Retrieval</label>
+              <label class="toggle-item"><input type="checkbox" id="toggle-proj-files" checked /> Enable File Search</label>
+              <label class="toggle-item"><input type="checkbox" id="toggle-proj-web" checked /> Enable Web Agent Access</label>
+            </div>
+          </div>
+          <div class="settings-actions">
+            <button class="btn-action-primary" id="btn-save-project-settings">Save Changes</button>
+            <button class="btn-action-secondary" id="btn-archive-project-action">Archive Project</button>
+            <button class="btn-action-danger" id="btn-delete-project-trigger">Delete Project</button>
+          </div>
+        </div>
       </div>
 
       <!-- SCROLLABLE MESSAGES VIEWPORT -->
@@ -128,17 +392,65 @@
         <div class="messages-wrapper" id="messages-wrapper"></div>
       </div>
 
+      <!-- DRAG & DROP OVERLAY -->
+      <div class="drag-drop-overlay hidden" id="drag-drop-overlay">
+        <div class="drag-drop-box">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <h3 class="drag-drop-title">Drop files here</h3>
+          <p class="drag-drop-subtitle">PDF, TXT, DOCX, CSV, JSON, Code, or Images</p>
+        </div>
+      </div>
+
+      <!-- ATTACHMENTS TRAY (Shown when attachments are selected) -->
+      <div class="composer-attachments-tray hidden" id="composer-attachments-tray"></div>
+
       <!-- FLOATING MESSAGE COMPOSER -->
       <div class="composer-floating-container" id="composer-floating-container">
         
-        <!-- Left: Rounded square plus button -->
-        <button class="btn-composer-plus" id="btn-plus" title="Add or select quick prompt" aria-label="Add or select prompt">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="8" x2="12" y2="16"></line>
-            <line x1="8" y1="12" x2="16" y2="12"></line>
-          </svg>
-        </button>
+        <!-- Left: Rounded square plus button with menu -->
+        <div class="composer-plus-wrapper">
+          <button class="btn-composer-plus" id="btn-plus" title="Add files or knowledge" aria-label="Add files or knowledge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="16"></line>
+              <line x1="8" y1="12" x2="16" y2="12"></line>
+            </svg>
+          </button>
+
+          <!-- Plus Dropdown Menu -->
+          <div class="composer-plus-menu hidden" id="composer-plus-menu" role="menu">
+            <button class="plus-menu-item" id="menu-upload-files" role="menuitem">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <span>Upload files</span>
+            </button>
+            <button class="plus-menu-item" id="menu-add-knowledge" role="menuitem">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+              </svg>
+              <span>Add document to Knowledge</span>
+            </button>
+            <button class="plus-menu-item" id="menu-cancel" role="menuitem">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+              <span>Cancel</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Hidden Native File Inputs -->
+        <input type="file" id="file-input-chat" multiple class="hidden-file-input" style="display:none;" />
+        <input type="file" id="file-input-knowledge" multiple class="hidden-file-input" style="display:none;" />
 
         <!-- Center: Text input area -->
         <div class="composer-input-wrapper">
@@ -175,11 +487,73 @@
 
   </div>
 
+  <!-- MODAL: CREATE NEW PROJECT -->
+  <div class="modal-backdrop hidden" id="modal-new-project">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Create New Project Workspace</h3>
+        <button class="modal-close-btn" id="btn-modal-project-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-field">
+          <label for="new-project-name">Project Name <span class="required">*</span></label>
+          <input type="text" id="new-project-name" class="modal-input" placeholder="e.g. AXEN AI, Portfolio, Job Search" required />
+        </div>
+        <div class="modal-field">
+          <label for="new-project-desc">Description</label>
+          <input type="text" id="new-project-desc" class="modal-input" placeholder="e.g. Development of personal local AI assistant" />
+        </div>
+        <div class="modal-field">
+          <label for="new-project-icon">Icon / Emoji</label>
+          <input type="text" id="new-project-icon" class="modal-input" placeholder="📁" value="📁" maxlength="4" style="width: 80px;" />
+        </div>
+        <div class="modal-field">
+          <label for="new-project-instructions">Custom Instructions (Optional)</label>
+          <textarea id="new-project-instructions" class="modal-textarea" rows="3" placeholder="e.g. You are assisting with AXEN. Prefer local solutions. Do not use cloud AI APIs."></textarea>
+          <span class="field-hint">These instructions will guide all conversations within this project.</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-cancel" id="btn-modal-project-cancel">Cancel</button>
+        <button class="btn-action-primary" id="btn-modal-project-submit">Create Project</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIRM DELETE PROJECT -->
+  <div class="modal-backdrop hidden" id="modal-delete-project">
+    <div class="modal-dialog danger-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Delete Project Workspace</h3>
+        <button class="modal-close-btn" id="btn-modal-delete-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-warning-text">Are you sure you want to permanently delete <strong id="delete-project-name-display">this project</strong>?</p>
+        <div class="modal-warning-box">
+          <p><strong>What will be deleted:</strong></p>
+          <ul>
+            <li>All conversations belonging to this project</li>
+            <li>All project memories and custom instructions</li>
+            <li>Project file references and knowledge collection links</li>
+          </ul>
+          <p class="modal-subnote">Physical files shared in global storage will remain preserved.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-cancel" id="btn-modal-delete-cancel">Cancel</button>
+        <button class="btn-action-danger" id="btn-modal-delete-confirm">Delete Project</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Notification Container -->
   <div class="toast-container" id="toast-container"></div>
 
+  <!-- Hidden Native File Inputs -->
+  <input type="file" id="file-input-project" multiple class="hidden-file-input" style="display:none;" />
+
   <!-- Scripts: 100% offline Markdown parser + App Logic -->
   <script src="/static/js/markdown.js"></script>
-  <script src="/static/js/app.js"></script>
+  <script src="/static/js/app.js?v=6"></script>
 </body>
 </html>

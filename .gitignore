@@ -12,3 +12,11 @@ __pycache__/
 pip_stdout.txt
 pip_stderr.txt
 *.log
+data/generated-sites/
+
+# Training & Knowledge outputs
+training/*.jsonl
+training/axen-coder-outputs/
+training/axen-coder-gguf/
+knowledge/chroma_db/
+axen-coder/

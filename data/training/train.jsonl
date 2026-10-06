@@ -1,0 +1,52 @@
+{"category": "conversation", "input": "Good morning", "target": "Good morning! Ready to assist you with your tasks."}
+{"category": "conversation", "input": "Who are you?", "target": "I am AXEN, an independent local AI assistant with native reasoning capabilities."}
+{"category": "conversation", "input": "Hey AXEN", "target": "Greetings! What can I help you with?"}
+{"category": "conversation", "input": "Good evening", "target": "Good evening! How can I help you tonight?"}
+{"category": "conversation", "input": "What can you do?", "target": "I can answer questions, analyze files, execute safe calculations, and coordinate specialized tools."}
+{"category": "conversation", "input": "Tell me what you are capable of.", "target": "I provide general conversation, knowledge reasoning, tool execution, and project awareness."}
+{"category": "conversation", "input": "Thanks for your help", "target": "You are welcome! Let me know if you need anything else."}
+{"category": "conversation", "input": "What is your identity?", "target": "I am AXEN, an offline-first foundation model and AI assistant."}
+{"category": "instruction", "input": "Format your response in three bullets about computers.", "target": "- Computers process digital data.\n- They execute algorithmic instructions.\n- They store information in memory."}
+{"category": "instruction", "input": "Answer briefly: Why use local models?", "target": "Local models ensure complete privacy, offline availability, and zero data leakage."}
+{"category": "instruction", "input": "Summarize the purpose of an operating system in one sentence.", "target": "An operating system manages computer hardware and provides common services for application software."}
+{"category": "instruction", "input": "Explain machine learning in one short sentence.", "target": "Machine learning is algorithms finding patterns in data to make predictions."}
+{"category": "instruction", "input": "Explain RAM in one sentence.", "target": "RAM is fast, volatile primary memory used by the CPU to store actively running programs and data."}
+{"category": "instruction", "input": "Respond concisely: What is open source?", "target": "Open source software makes its source code freely available for inspection, modification, and enhancement."}
+{"category": "knowledge", "input": "What is artificial intelligence?", "target": "Artificial intelligence is the simulation of human intelligence processes by computer systems."}
+{"category": "knowledge", "input": "What is machine learning?", "target": "Machine learning is a subset of artificial intelligence where algorithms learn patterns directly from data."}
+{"category": "knowledge", "input": "What is a computer?", "target": "A computer is an electronic device for storing and processing data according to instructions."}
+{"category": "knowledge", "input": "What is the speed of light?", "target": "The speed of light in a vacuum is approximately 299,792 kilometers per second."}
+{"category": "knowledge", "input": "What is a Transformer model?", "target": "A Transformer is a neural network architecture that relies on self-attention mechanisms to process sequential data."}
+{"category": "knowledge", "input": "What is a database?", "target": "A database is an organized collection of structured information or data stored electronically."}
+{"category": "reasoning", "input": "Which is larger: 1.05 or 1.5?", "target": "1.5 is larger than 1.05 because 1.50 is greater than 1.05."}
+{"category": "reasoning", "input": "A bat and ball cost $1.10. The bat costs $1.00 more than the ball. How much is the ball?", "target": "The ball costs $0.05, and the bat costs $1.05."}
+{"category": "reasoning", "input": "If all roses are flowers and some flowers fade quickly, do all roses fade quickly?", "target": "No, it does not necessarily follow that all roses fade quickly."}
+{"category": "reasoning", "input": "If today is Tuesday, what day was it three days ago?", "target": "Three days ago was Saturday."}
+{"category": "tool_intent", "input": "Read configuration.", "target": "{\"type\": \"tool_call\", \"tool\": \"file_read\", \"arguments\": {\"path\": \"config.py\"}}"}
+{"category": "tool_intent", "input": "Read the config file.", "target": "{\"type\": \"tool_call\", \"tool\": \"file_read\", \"arguments\": {\"path\": \"config.py\"}}"}
+{"category": "tool_intent", "input": "Calculate 25 multiplied by 48.", "target": "{\"type\": \"tool_call\", \"tool\": \"calculator.evaluate\", \"arguments\": {\"expression\": \"25 * 48\"}}"}
+{"category": "tool_intent", "input": "Find the file named config.yaml.", "target": "{\"type\": \"tool_call\", \"tool\": \"file_search\", \"arguments\": {\"query\": \"config.yaml\"}}"}
+{"category": "tool_intent", "input": "Read the configuration file.", "target": "{\"type\": \"tool_call\", \"tool\": \"file_read\", \"arguments\": {\"path\": \"config.py\"}}"}
+{"category": "tool_intent", "input": "Search for requirements.txt in workspace.", "target": "{\"type\": \"tool_call\", \"tool\": \"file_search\", \"arguments\": {\"query\": \"requirements.txt\"}}"}
+{"category": "tool_intent", "input": "Calculate 25 * 48.", "target": "{\"type\": \"tool_call\", \"tool\": \"calculator.evaluate\", \"arguments\": {\"expression\": \"25 * 48\"}}"}
+{"category": "tool_intent", "input": "Calculate 1024 * 768.", "target": "{\"type\": \"tool_call\", \"tool\": \"calculator.evaluate\", \"arguments\": {\"expression\": \"1024 * 768\"}}"}
+{"category": "tool_intent", "input": "What is 500 + 350?", "target": "{\"type\": \"tool_call\", \"tool\": \"calculator.evaluate\", \"arguments\": {\"expression\": \"500 + 350\"}}"}
+{"category": "tool_intent", "input": "Compute 144 / 12.", "target": "{\"type\": \"tool_call\", \"tool\": \"calculator.evaluate\", \"arguments\": {\"expression\": \"144 / 12\"}}"}
+{"category": "tool_intent", "input": "Evaluate 15 ** 2.", "target": "{\"type\": \"tool_call\", \"tool\": \"calculator.evaluate\", \"arguments\": {\"expression\": \"15 ** 2\"}}"}
+{"category": "tool_chain", "input": "Find the CSV, calculate its average, and explain it.", "target": "{\"type\": \"tool_call\", \"tool\": \"file_search\", \"arguments\": {\"query\": \"*.csv\"}}"}
+{"category": "tool_chain", "input": "Locate data.json and read its contents.", "target": "{\"type\": \"tool_call\", \"tool\": \"file_search\", \"arguments\": {\"query\": \"data.json\"}}"}
+{"category": "reflection", "input": "Calculation result contradicted expected constraints.", "target": "{\"status\": \"correction\", \"reason_code\": \"incorrect_previous_result\"}"}
+{"category": "reflection", "input": "File search returned 0 matches for target.", "target": "{\"status\": \"needs_next_step\", \"reason_code\": \"missing_information\"}"}
+{"category": "reflection", "input": "Network timeout occurred while accessing resource.", "target": "{\"status\": \"retry\", \"reason_code\": \"transient_tool_failure\"}"}
+{"category": "correction", "input": "Use the second file, not the first.", "target": "Understood, updating the active selection to the second file."}
+{"category": "correction", "input": "That calculation is incorrect.", "target": "I will re-run the calculation with the corrected parameters."}
+{"category": "correction", "input": "No, use auth.py instead.", "target": "{\"type\": \"tool_call\", \"tool\": \"file_read\", \"arguments\": {\"path\": \"auth.py\"}}"}
+{"category": "files", "input": "Search for all python files in tests directory.", "target": "{\"type\": \"tool_call\", \"tool\": \"file_search\", \"arguments\": {\"query\": \"tests/*.py\"}}"}
+{"category": "files", "input": "Read README.md to see project instructions.", "target": "{\"type\": \"tool_call\", \"tool\": \"file_read\", \"arguments\": {\"path\": \"README.md\"}}"}
+{"category": "projects", "input": "What is the active project structure?", "target": "The project contains core runtime, tools, memory, and foundation model modules."}
+{"category": "projects", "input": "Where are project test cases stored?", "target": "Test cases are located under the tests/ directory."}
+{"category": "memory_behavior", "input": "Do you recall my default port?", "target": "Yes, your default port is 8080."}
+{"category": "memory_behavior", "input": "My project uses Python.", "target": "I will note that your project uses Python for subsequent context."}
+{"category": "memory_behavior", "input": "What language does my project use?", "target": "Based on our project context, your project uses Python."}
+{"category": "coding_behavior", "input": "What is a Python decorator?", "target": "A decorator is a function that takes another function as an argument and extends its behavior without modifying it."}
+{"category": "coding_behavior", "input": "What is recursion in computer programming?", "target": "Recursion is a method where a function solves a problem by calling itself with smaller subproblems."}

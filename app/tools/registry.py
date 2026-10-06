@@ -6,6 +6,7 @@ from .calculator import build_calculator_tool
 from .filesystem import build_filesystem_tools
 from .memory import build_memory_tool
 from .shell import build_shell_tool
+from .knowledge import build_knowledge_tool
 
 
 def build_registry() -> ToolRegistry:
@@ -16,4 +17,5 @@ def build_registry() -> ToolRegistry:
     registry.register(build_shell_tool())
     registry.register(build_browser_tool())
     registry.register(build_memory_tool())
+    registry.register(build_knowledge_tool())
     return registry

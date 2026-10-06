@@ -16,7 +16,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, AsyncGenerator, Dict, Optional
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, File, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -35,11 +35,10 @@ STATIC_DIR = BASE_DIR / "static"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Automatically start loading the local model into GPU memory on startup
+    # Initialize singleton instance on startup
     service = AxenBackendService.get_instance()
-    service.start_model_load_in_background()
+    # DO NOT start model load in background; ModelManager will lazy-load via ModelRouter.
     yield
-
 
 app = FastAPI(
     title="AXEN Local AI Assistant",
@@ -56,8 +55,48 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from pydantic import BaseModel, Field
+
 # Mount static assets
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+# Mount generated image outputs
+OUTPUTS_IMAGES_DIR = Path("outputs/images")
+OUTPUTS_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/images", StaticFiles(directory=str(OUTPUTS_IMAGES_DIR)), name="images")
+
+
+class ImageApiRequest(BaseModel):
+    prompt: str = Field(..., min_length=1)
+    enhance: bool = True
+    preset: str = "turbo"
+
+
+@app.post("/api/image")
+async def generate_image_endpoint(req: ImageApiRequest) -> Dict[str, Any]:
+    """Generate image using local diffusion pipeline."""
+    from fastapi.concurrency import run_in_threadpool
+    from image_brain import ImageBrain
+
+    def _execute():
+        brain = ImageBrain(preset=req.preset)
+        return brain.generate(req.prompt, enhance=req.enhance)
+
+    try:
+        res = await run_in_threadpool(_execute)
+        paths = res.get("paths", [])
+        first_path = paths[0] if paths else ""
+        filename = Path(first_path).name if first_path else ""
+        url = f"/images/{filename}" if filename else ""
+        return {
+            "prompt": res.get("prompt", req.prompt),
+            "url": url,
+            "path": first_path,
+        }
+    except Exception as e:
+        logger.error("Image generation API error: %s", e)
+        raise HTTPException(status_code=500, detail=f"Image generation failed: {e}")
+
 
 
 # ---------------------------------------------------------------------------
@@ -90,13 +129,107 @@ async def chat_endpoint(payload: Dict[str, Any]) -> Dict[str, Any]:
     """
     message = str(payload.get("message") or payload.get("goal") or "").strip()
     session_id = payload.get("session_id")
+    project_id = payload.get("project_id")
     request_id = payload.get("request_id")
+    attachments = payload.get("attachments") or []
     if not message:
         return {"status": "error", "summary": "A message is required."}
 
     service = AxenBackendService.get_instance()
-    result = service.chat(message=message, session_id=session_id, request_id=request_id)
+    result = service.chat(
+        message=message,
+        session_id=session_id,
+        project_id=project_id,
+        request_id=request_id,
+        attachments=attachments,
+    )
     return result
+
+
+@app.post("/api/v2/chat")
+async def chat_v2_endpoint(request: Request):
+    """
+    Backwards-compatible Phase 4 streaming endpoint.
+    Emits raw tokens using the format expected by the legacy UI:
+    data: {"type": "token", "data": "..."}
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+        
+    messages = body.get("messages", [])
+    if not messages:
+        raise HTTPException(status_code=400, detail="messages array is required")
+        
+    last_msg = messages[-1].get("content", "") if messages else ""
+    
+    async def event_generator() -> AsyncGenerator[str, None]:
+        try:
+            from app.ai.router import ModelRouter
+            from app.context.engine import ContextEngine
+            from app.context.models import ContextRequest, ContextComponent, ContextPriority, ModelCapability, ModelRequest
+            
+            router = ModelRouter()
+            engine = ContextEngine()
+            
+            # Step 1: Create ContextRequest
+            req = ContextRequest()
+            
+            for msg in messages:
+                comp = ContextComponent(
+                    source="user" if msg.get("role") == "user" else "assistant",
+                    content=msg.get("content", ""),
+                    priority=ContextPriority.CURRENT_USER_MESSAGE if msg == messages[-1] else ContextPriority.CONVERSATION_CONTEXT_RECENT,
+                    metadata={"role": msg.get("role", "user")}
+                )
+                if msg == messages[-1]:
+                    req.current_message = comp
+                else:
+                    req.conversation_history.append(comp)
+                    
+            # Step 2: Define Capabilities
+            # In a real app we might load this from a config
+            cap = ModelCapability(
+                context_length=4096,
+                max_output_tokens=512,
+                tokenizer="default",
+                provider="router",
+                model_id="default"
+            )
+            
+            # Step 3: Assemble Context
+            assembled = engine.assemble(req, cap)
+            
+            # Step 4: Create Model Request
+            model_req = ModelRequest(
+                context=assembled,
+                generation_settings={},
+                session_metadata={}
+            )
+            
+            yield f"data: {json.dumps({'type': 'stage', 'data': 'Routing task...' })}\n\n"
+            
+            final_answer = ""
+            for token in router.stream(model_req):
+                final_answer += token
+                yield f"data: {json.dumps({'type': 'token', 'data': token})}\n\n"
+                
+            yield f"data: {json.dumps({'type': 'done', 'data': final_answer})}\n\n"
+        except Exception as e:
+            logger.exception("v2 chat error")
+            yield f"data: {json.dumps({'type': 'error', 'data': str(e)})}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
 
 
 @app.api_route("/api/chat/stream", methods=["GET", "POST"])
@@ -104,6 +237,7 @@ async def chat_stream(
     request: Request,
     message: Optional[str] = Query(None, description="User prompt message"),
     session_id: Optional[str] = Query(None, description="Active session ID"),
+    project_id: Optional[str] = Query(None, description="Project ID"),
     request_id: Optional[str] = Query(None, description="Unique request ID for cancellation"),
 ):
     """
@@ -112,12 +246,15 @@ async def chat_stream(
     'USING_TOOL', 'VERIFYING', 'GENERATING', 'COMPLETED', 'ERROR') and the final answer
     without exposing internal chain-of-thought.
     """
+    attachments = []
     if request.method == "POST":
         try:
             body = await request.json()
             message = str(body.get("message") or body.get("goal") or message or "").strip()
             session_id = body.get("session_id") or session_id
+            project_id = body.get("project_id") or project_id
             request_id = body.get("request_id") or request_id
+            attachments = body.get("attachments") or []
         except Exception:
             pass
 
@@ -145,7 +282,9 @@ async def chat_stream(
             res = service.chat(
                 message=message,
                 session_id=session_id,
+                project_id=project_id,
                 request_id=req_id,
+                attachments=attachments,
                 state_callback=_state_callback,
                 cancel_event=cancel_event,
             )
@@ -228,20 +367,25 @@ async def cancel_chat(payload: Dict[str, Any]) -> Dict[str, Any]:
 def new_session(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Create a new conversation session and reset controller short-term memory."""
     title = (payload or {}).get("title", "New Chat")
+    project_id = (payload or {}).get("project_id")
     service = AxenBackendService.get_instance()
-    new_id = service.new_session(title=title)
+    new_id = service.new_session(title=title, project_id=project_id)
     return {
         "status": "ok",
         "session_id": new_id,
+        "project_id": project_id,
         "title": title,
     }
 
 
 @app.get("/api/sessions")
-def list_sessions(q: Optional[str] = Query(None, description="Search query")) -> Dict[str, Any]:
-    """List all saved conversations, with optional search filter."""
+def list_sessions(
+    q: Optional[str] = Query(None, description="Search query"),
+    project_id: Optional[str] = Query(None, description="Project ID filter"),
+) -> Dict[str, Any]:
+    """List saved conversations filtered by search query or project_id."""
     service = AxenBackendService.get_instance()
-    sessions = service.list_sessions(search=q)
+    sessions = service.list_sessions(search=q, project_id=project_id)
     return {
         "sessions": sessions,
         "active_session_id": service.active_session_id,
@@ -333,3 +477,525 @@ def tools() -> Dict[str, Any]:
             for t in service.controller.tools.list_tools()
         ]
     }
+
+
+# ---------------------------------------------------------------------------
+# Phase 3 Memory Management APIs (Step 14 & 15)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/memory")
+def get_memories() -> Dict[str, Any]:
+    """List all active persistent memories."""
+    service = AxenBackendService.get_instance()
+    return {"memories": service.list_memories()}
+
+
+@app.post("/api/memory")
+def add_memory(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Add or update a persistent memory."""
+    key = str(payload.get("key", "")).strip()
+    value = str(payload.get("value", "")).strip()
+    mtype = str(payload.get("memory_type", "fact")).strip()
+    if not key or not value:
+        raise HTTPException(status_code=400, detail="Both 'key' and 'value' are required.")
+    service = AxenBackendService.get_instance()
+    return service.add_memory(key=key, value=value, memory_type=mtype)
+
+
+@app.delete("/api/memory/{item_id}")
+def delete_memory(item_id: int) -> Dict[str, Any]:
+    """Deactivate or remove a memory by ID."""
+    service = AxenBackendService.get_instance()
+    ok = service.delete_memory(item_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Memory item not found or could not be deactivated.")
+    return {"status": "ok", "message": f"Memory {item_id} deactivated."}
+
+
+@app.post("/api/memory/clear")
+def clear_memories() -> Dict[str, Any]:
+    """Clear all active user memories."""
+    service = AxenBackendService.get_instance()
+    service.clear_memories()
+    return {"status": "ok", "message": "All memories cleared."}
+
+
+@app.get("/api/memory/export")
+def export_memories() -> Dict[str, Any]:
+    """Export all user memories as JSON."""
+    service = AxenBackendService.get_instance()
+    return service.export_memories()
+
+
+@app.post("/api/memory/import")
+def import_memories(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Import memories from exported JSON dictionary."""
+    service = AxenBackendService.get_instance()
+    imported_count = service.import_memories(payload)
+    return {"status": "ok", "imported_count": imported_count}
+
+
+# ---------------------------------------------------------------------------
+# Knowledge & RAG Endpoints (Step 17 & 25)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/knowledge/collections")
+def list_knowledge_collections() -> Dict[str, Any]:
+    """List all knowledge collections."""
+    service = AxenBackendService.get_instance()
+    collections = service.list_knowledge_collections()
+    return {"status": "ok", "collections": collections}
+
+
+@app.get("/api/knowledge/documents")
+def list_knowledge_documents(collection_id: Optional[str] = None) -> Dict[str, Any]:
+    """List indexed documents, optionally filtered by collection."""
+    service = AxenBackendService.get_instance()
+    docs = service.list_knowledge_documents(collection_id=collection_id)
+    return {"status": "ok", "documents": docs}
+
+
+@app.post("/api/knowledge/ingest")
+def ingest_knowledge_document(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Ingest a document into the knowledge base."""
+    service = AxenBackendService.get_instance()
+    file_path = payload.get("file_path", "")
+    collection_id = payload.get("collection_id", "default")
+    if not file_path:
+        raise HTTPException(status_code=400, detail="Missing 'file_path'")
+    result = service.ingest_knowledge_file(file_path, collection_id=collection_id)
+    return {"status": "ok", "result": result}
+
+
+@app.delete("/api/knowledge/documents/{document_id}")
+def delete_knowledge_document(document_id: str) -> Dict[str, Any]:
+    """Delete a document from the knowledge base."""
+    service = AxenBackendService.get_instance()
+    success = service.delete_knowledge_document(document_id)
+    return {"status": "ok", "deleted": success}
+
+
+@app.post("/api/knowledge/clear")
+def clear_knowledge_collection(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Clear all documents in a collection."""
+    service = AxenBackendService.get_instance()
+    collection_id = payload.get("collection_id", "default")
+    count = service.clear_knowledge_collection(collection_id)
+    return {"status": "ok", "cleared_count": count}
+
+
+@app.post("/api/knowledge/search")
+def search_knowledge(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Hybrid search over indexed knowledge chunks."""
+    service = AxenBackendService.get_instance()
+    query = payload.get("query", "")
+    collection_id = payload.get("collection_id")
+    top_k = payload.get("top_k", 4)
+    results = service.search_knowledge(query, collection_id=collection_id, top_k=top_k)
+    return {"status": "ok", "results": results}
+
+
+# ---------------------------------------------------------------------------
+# File Upload & Attachment Endpoints
+# ---------------------------------------------------------------------------
+
+@app.post("/api/files/upload")
+async def upload_files_endpoint(
+    file: Optional[UploadFile] = File(None),
+    files: Optional[List[UploadFile]] = File(None),
+) -> Dict[str, Any]:
+    """Upload one or multiple files and extract their contents."""
+    service = AxenBackendService.get_instance()
+    to_process: List[UploadFile] = []
+    if file:
+        to_process.append(file)
+    if files:
+        to_process.extend(files)
+
+    if not to_process:
+        raise HTTPException(status_code=400, detail="No files provided.")
+
+    from axen.storage.storage_models import UploadConfig
+    cfg = UploadConfig()
+
+    if len(to_process) > cfg.max_files_per_message:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Too many files ({len(to_process)}). Maximum allowed is {cfg.max_files_per_message} files.",
+        )
+
+    file_payloads = []
+    total_batch_bytes = 0
+    for f in to_process:
+        content = await f.read()
+        total_batch_bytes += len(content)
+        file_payloads.append((f, content))
+
+    if total_batch_bytes > cfg.max_total_upload_bytes:
+        max_mb = cfg.max_total_upload_bytes // (1024 * 1024)
+        raise HTTPException(
+            status_code=400,
+            detail=f"Total upload size ({total_batch_bytes / (1024 * 1024):.1f} MB) exceeds maximum allowed limit ({max_mb} MB).",
+        )
+
+    uploaded_results = []
+    has_rejected = False
+    rejection_msg = ""
+    for f, content in file_payloads:
+        try:
+            res = service.upload_file(f.filename or "unnamed", content, mime_type=f.content_type)
+            uploaded_results.append(res)
+        except Exception as exc:
+            has_rejected = True
+            rejection_msg = str(exc)
+            uploaded_results.append({
+                "file_id": "",
+                "filename": f.filename or "unnamed",
+                "status": "failed",
+                "error": str(exc),
+            })
+
+    if has_rejected and len(to_process) == 1:
+        raise HTTPException(status_code=400, detail=rejection_msg)
+
+    first = uploaded_results[0] if uploaded_results else {}
+    return {
+        "status": "ok",
+        "count": len(uploaded_results),
+        "files": uploaded_results,
+        "file_id": first.get("file_id"),
+        "original_filename": first.get("filename") or first.get("original_filename"),
+        "category": first.get("category"),
+        "size": first.get("size") or first.get("size_bytes"),
+    }
+
+
+@app.get("/api/files")
+def list_files_endpoint() -> Dict[str, Any]:
+    """List all stored uploaded files."""
+    service = AxenBackendService.get_instance()
+    return {"status": "ok", "files": service.list_uploaded_files()}
+
+
+@app.get("/api/files/{file_id}")
+def get_file_endpoint(file_id: str) -> Dict[str, Any]:
+    """Get metadata and extracted text for an uploaded file."""
+    service = AxenBackendService.get_instance()
+    fobj = service.get_uploaded_file(file_id)
+    if not fobj:
+        raise HTTPException(status_code=404, detail="File not found")
+    return {"status": "ok", "file": fobj}
+
+
+@app.delete("/api/files/{file_id}")
+def delete_file_endpoint(file_id: str) -> Dict[str, Any]:
+    """Delete an uploaded file from disk and metadata index."""
+    service = AxenBackendService.get_instance()
+    ok = service.delete_uploaded_file(file_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="File not found")
+    return {"status": "ok", "deleted": True}
+
+
+@app.post("/api/files/{file_id}/ingest-knowledge")
+def ingest_file_to_knowledge_endpoint(file_id: str, payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Ingest an uploaded file into persistent KnowledgeManager."""
+    coll = (payload or {}).get("collection", (payload or {}).get("collection_id", "default"))
+    service = AxenBackendService.get_instance()
+    res = service.ingest_uploaded_file_to_knowledge(file_id, collection_id=coll)
+    return {
+        "status": "success" if res.get("success") else "error",
+        "result": res,
+        "chunk_count": res.get("chunk_count") or res.get("chunks_created", 1),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Projects / Workspaces System APIs
+# ---------------------------------------------------------------------------
+
+@app.get("/api/projects")
+def list_projects_endpoint(
+    include_archived: bool = Query(False, description="Include archived projects"),
+    q: Optional[str] = Query(None, description="Search query"),
+) -> Dict[str, Any]:
+    """List all projects."""
+    service = AxenBackendService.get_instance()
+    projects = service.list_projects(include_archived=include_archived, search=q)
+    return {"status": "ok", "projects": projects}
+
+
+@app.post("/api/projects")
+def create_project_endpoint(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Create a new project workspace."""
+    name = str(payload.get("name") or "").strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Project name is required.")
+    description = str(payload.get("description") or "").strip()
+    instructions = str(payload.get("instructions") or "").strip()
+    icon = str(payload.get("icon") or "folder").strip()
+    settings = payload.get("settings")
+
+    service = AxenBackendService.get_instance()
+    try:
+        project = service.create_project(
+            name=name,
+            description=description,
+            instructions=instructions,
+            icon=icon,
+            settings=settings,
+        )
+        res = dict(project)
+        res["status"] = "ok"
+        res["project"] = project
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/api/projects/{project_id}")
+def get_project_endpoint(project_id: str) -> Dict[str, Any]:
+    """Get project details."""
+    service = AxenBackendService.get_instance()
+    project = service.get_project(project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    res = dict(project)
+    res["status"] = "ok"
+    res["project"] = project
+    return res
+
+
+@app.patch("/api/projects/{project_id}")
+def update_project_endpoint(project_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Update project details or settings."""
+    service = AxenBackendService.get_instance()
+    updated = service.update_project(project_id, payload)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Project not found")
+    res = dict(updated)
+    res["status"] = "ok"
+    res["project"] = updated
+    return res
+
+
+@app.delete("/api/projects/{project_id}")
+def delete_project_endpoint(
+    project_id: str,
+    delete_physical_files: bool = Query(False, description="Also delete physical files"),
+) -> Dict[str, Any]:
+    """Delete a project workspace."""
+    service = AxenBackendService.get_instance()
+    ok = service.delete_project(project_id, delete_physical_files=delete_physical_files)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return {"status": "ok", "deleted": True}
+
+
+@app.post("/api/projects/{project_id}/archive")
+def archive_project_endpoint(project_id: str) -> Dict[str, Any]:
+    """Archive a project workspace."""
+    service = AxenBackendService.get_instance()
+    ok = service.archive_project(project_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return {"status": "ok", "archived": True}
+
+
+@app.post("/api/projects/{project_id}/restore")
+def restore_project_endpoint(project_id: str) -> Dict[str, Any]:
+    """Restore an archived project workspace."""
+    service = AxenBackendService.get_instance()
+    ok = service.restore_project(project_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return {"status": "ok", "restored": True}
+
+
+@app.get("/api/projects/{project_id}/chats")
+def list_project_chats_endpoint(project_id: str) -> Dict[str, Any]:
+    """List conversations belonging to a project."""
+    service = AxenBackendService.get_instance()
+    proj = service.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+    chats = service.list_sessions(project_id=project_id)
+    return {"status": "ok", "chats": chats}
+
+
+@app.post("/api/projects/{project_id}/chats")
+def create_project_chat_endpoint(project_id: str, payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Create a new chat conversation inside a project."""
+    service = AxenBackendService.get_instance()
+    proj = service.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+    title = (payload or {}).get("title", f"Chat in {proj['name']}")
+    new_id = service.new_session(title=title, project_id=project_id)
+    return {"status": "ok", "session_id": new_id, "project_id": project_id, "title": title}
+
+
+@app.get("/api/projects/{project_id}/memory")
+def list_project_memory_endpoint(project_id: str) -> Dict[str, Any]:
+    """List scoped memories for a project."""
+    service = AxenBackendService.get_instance()
+    proj = service.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+    memories_list = service.list_project_memories(project_id)
+    memories_dict = {m["key"]: m["value"] for m in memories_list if isinstance(m, dict) and "key" in m}
+    return {"status": "ok", "memories": memories_dict, "memories_list": memories_list}
+
+
+@app.post("/api/projects/{project_id}/memory")
+def add_project_memory_endpoint(project_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Add a scoped memory to a project."""
+    key = str(payload.get("key") or "").strip()
+    value = str(payload.get("value") or "").strip()
+    memory_type = str(payload.get("memory_type") or "fact")
+    if not key or not value:
+        raise HTTPException(status_code=400, detail="Key and value are required.")
+    service = AxenBackendService.get_instance()
+    proj = service.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+    res = service.add_project_memory(project_id, key=key, value=value, memory_type=memory_type)
+    return {"status": "ok", "result": res}
+
+
+@app.delete("/api/projects/{project_id}/memory/{key}")
+def delete_project_memory_endpoint(project_id: str, key: str) -> Dict[str, Any]:
+    """Delete a scoped memory from a project."""
+    service = AxenBackendService.get_instance()
+    proj = service.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+    ok = service.delete_project_memory(project_id, key)
+    return {"status": "ok", "deleted": ok}
+
+
+@app.get("/api/projects/{project_id}/files")
+def list_project_files_endpoint(project_id: str) -> Dict[str, Any]:
+    """List files linked to a project."""
+    service = AxenBackendService.get_instance()
+    proj = service.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+    files = service.list_project_files(project_id)
+    return {"status": "ok", "files": files}
+
+
+@app.post("/api/projects/{project_id}/files")
+def add_project_file_endpoint(project_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Associate an uploaded file with a project."""
+    file_id = str(payload.get("file_id") or "").strip()
+    if not file_id:
+        raise HTTPException(status_code=400, detail="file_id is required.")
+    service = AxenBackendService.get_instance()
+    proj = service.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+    ok = service.add_project_file(project_id, file_id)
+    return {"status": "ok", "associated": ok}
+
+
+@app.delete("/api/projects/{project_id}/files/{file_id}")
+def remove_project_file_endpoint(
+    project_id: str,
+    file_id: str,
+    delete_physical: bool = Query(False, description="Also delete physical file"),
+) -> Dict[str, Any]:
+    """Unlink file from project and optionally delete physical file."""
+    service = AxenBackendService.get_instance()
+    proj = service.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+    ok = service.remove_project_file(project_id, file_id, delete_physical=delete_physical)
+    return {"status": "ok", "removed": ok}
+
+
+@app.get("/api/projects/{project_id}/knowledge")
+def list_project_knowledge_endpoint(project_id: str) -> Dict[str, Any]:
+    """List knowledge collections associated with a project."""
+    service = AxenBackendService.get_instance()
+    proj = service.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+    colls = service.list_project_knowledge(project_id)
+    return {"status": "ok", "collections": colls}
+
+
+@app.post("/api/projects/{project_id}/knowledge")
+def associate_project_knowledge_endpoint(project_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Associate a knowledge collection with a project."""
+    collection_id = str(payload.get("collection_id") or "").strip()
+    if not collection_id:
+        raise HTTPException(status_code=400, detail="collection_id is required.")
+    service = AxenBackendService.get_instance()
+    proj = service.get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+    ok = service.associate_project_knowledge(project_id, collection_id)
+    return {"status": "ok", "associated": ok}
+
+
+# ---------------------------------------------------------------------------
+# Memory 2.0 Management APIs
+# ---------------------------------------------------------------------------
+
+@app.get("/api/memory")
+def get_memories_endpoint(
+    scope: Optional[str] = Query(None, description="Scope filter ('global' or 'project')"),
+    project_id: Optional[str] = Query(None, description="Project ID filter"),
+    q: Optional[str] = Query(None, description="Search keyword"),
+) -> Dict[str, Any]:
+    """List or search memories across global and project scopes."""
+    service = AxenBackendService.get_instance()
+    memories = service.list_memories(scope=scope, project_id=project_id, search=q)
+    return {"status": "ok", "memories": memories, "count": len(memories)}
+
+
+@app.post("/api/memory")
+def create_memory_endpoint(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Add a new memory in the specified scope."""
+    key = str(payload.get("key") or "").strip()
+    value = str(payload.get("value") or "").strip()
+    scope = str(payload.get("scope") or "global").strip()
+    project_id = payload.get("project_id")
+    memory_type = str(payload.get("memory_type") or "fact").strip()
+
+    if not key or not value:
+        raise HTTPException(status_code=400, detail="key and value are required.")
+
+    service = AxenBackendService.get_instance()
+    res = service.add_memory(key=key, value=value, scope=scope, project_id=project_id, memory_type=memory_type)
+    if not res.get("success"):
+        raise HTTPException(status_code=400, detail=res.get("error", "Memory creation rejected"))
+    return {"status": "ok", "memory": res.get("memory")}
+
+
+@app.delete("/api/memory")
+def delete_memory_endpoint(
+    key: str = Query(..., description="Key of memory to delete"),
+    scope: Optional[str] = Query(None, description="Scope of memory"),
+    project_id: Optional[str] = Query(None, description="Project ID if project-scoped"),
+) -> Dict[str, Any]:
+    """Delete a memory item by key and optional scope."""
+    service = AxenBackendService.get_instance()
+    ok = service.delete_memory(key, scope=scope, project_id=project_id)
+    return {"status": "ok", "deleted": ok}
+
+
+@app.post("/api/memory/clear")
+def clear_memories_endpoint(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Clear memories within a given scope or project."""
+    data = payload or {}
+    scope = data.get("scope")
+    project_id = data.get("project_id")
+    service = AxenBackendService.get_instance()
+    ok = service.clear_memories(scope=scope, project_id=project_id)
+    return {"status": "ok", "cleared": ok}
+
+
+
+

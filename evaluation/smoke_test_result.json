@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "steps": 25,
+  "initial_loss": 5.7656,
+  "final_loss": 3.7159,
+  "loss_decreased": true,
+  "gpu_memory_mb": 18.55,
+  "checkpoint_path": "checkpoints\\foundation\\brain_smoke.pt",
+  "inference_sample": "  ra\"gonnn"
+}

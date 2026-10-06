@@ -1,62 +1,48 @@
+"""
+app/tools/shell.py
+==================
+Safe command execution tool delegate for app.tools (Phase 5).
+Replaces raw shell=True with allowlisted execution (python, node, git).
+"""
+
 from __future__ import annotations
 
-import subprocess
-
 from app.agent.tools import ToolDefinition
-
-
-def _validate_command(command: str) -> None:
-    blocked = [
-        "rm -rf /",
-        "shutdown",
-        "reboot",
-        "powershell -enc",
-        "curl http",
-        "wget http",
-        "format c:",
-        "del /s /q",
-        "sc delete",
-        "net user",
-        "mklink",
-        "&&",
-        "||",
-    ]
-    lowered = command.lower()
-    for token in blocked:
-        if token in lowered:
-            raise PermissionError(f"Command blocked by policy: {command}")
+from axen.tools.base import ToolPermission
+from axen.tools.command_tool import execute_allowlisted_command
 
 
 def run_shell_command(args: dict) -> dict:
-    command = args.get("command", "")
-    if not command:
-        return {"success": False, "error": "Missing command"}
-    try:
-        _validate_command(command)
-        completed = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=20)
-        return {
-            "success": completed.returncode == 0,
-            "stdout": completed.stdout,
-            "stderr": completed.stderr,
-            "returncode": completed.returncode,
-        }
-    except PermissionError as exc:
-        return {"success": False, "error": str(exc)}
-    except Exception as exc:
-        return {"success": False, "error": str(exc)}
+    """Safely execute command using allowlisted command runner without shell=True."""
+    return execute_allowlisted_command(args)
 
 
 def build_shell_tool() -> ToolDefinition:
     return ToolDefinition(
         name="shell.execute",
-        description="Run a validated shell command when explicitly approved.",
+        description="Run an allowlisted command (python, node, git) with strict argument validation.",
         input_schema={
             "type": "object",
-            "properties": {"command": {"type": "string"}, "reason": {"type": "string"}, "risk": {"type": "string"}},
-            "required": ["command", "reason"],
+            "properties": {
+                "command": {"type": "string"},
+                "args": {"type": "array"},
+                "reason": {"type": "string"},
+                "risk": {"type": "string"},
+            },
+            "required": ["command"],
         },
-        output_schema={"type": "object", "properties": {"stdout": {"type": "string"}, "stderr": {"type": "string"}, "returncode": {"type": "integer"}}},
+        output_schema={
+            "type": "object",
+            "properties": {
+                "stdout": {"type": "string"},
+                "stderr": {"type": "string"},
+                "returncode": {"type": "integer"},
+            },
+        },
+        permission=ToolPermission.COMMAND_EXECUTION,
+        risk_level="high",
         risk="high",
         requires_approval=True,
+        requires_confirmation=True,
         handler=run_shell_command,
     )
