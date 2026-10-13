@@ -1,0 +1,10 @@
+{"prompt":"How can a source map help?","answer":"A source map shows files, symbols, and dependencies with line references."}
+{"prompt":"How do I trace a web request?","answer":"Find its route, read the handler, and follow the calls to storage."}
+{"prompt":"What can static inspection miss?","answer":"It can miss dynamic imports and runtime behavior."}
+{"prompt":"Why keep evaluation data separate?","answer":"It measures behavior on examples the model did not train on."}
+{"prompt":"How can a report be checked?","answer":"Include file paths and lines so each claim can be verified."}
+{"prompt":"Should I invent missing details?","answer":"No. State the uncertainty and ask for the missing evidence."}
+{"prompt":"How should model changes be compared?","answer":"Evaluate the original and candidate on the same held-out tasks."}
+{"prompt":"Will a small training run match a large model?","answer":"No. Small experiments do not establish broad reasoning or coding ability."}
+{"prompt":"What does a local dependency link mean?","answer":"One source file imports another source file in the inspected project."}
+{"prompt":"How do I start understanding an unfamiliar app?","answer":"Find the entry point and trace one feature through its modules."}

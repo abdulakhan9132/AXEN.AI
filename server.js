@@ -95,6 +95,9 @@ const server = http.createServer(async (req, res) => {
 
   // 2. Web UI root and Vision UI
   if (req.method === "GET") {
+    if (pathname === "/reverse-engineering") {
+      return serveStatic(res, path.join(TEMPLATE_DIR, "reverse-engineering.html"));
+    }
     if (pathname === "/" || pathname === "/index.html") {
       const indexPath = path.join(TEMPLATE_DIR, "index.html");
       return serveStatic(res, indexPath);

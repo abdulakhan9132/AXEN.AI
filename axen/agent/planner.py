@@ -310,3 +310,65 @@ class Planner:
         ))
 
         return steps
+
+    def replan(
+        self,
+        current_plan: list[dict[str, Any]],
+        failed_step_id: int,
+        error_message: str,
+        user_request: str,
+        intent_info: Optional[IntentInfo] = None,
+    ) -> list[dict[str, Any]]:
+        """
+        Produce a revised plan starting from the failed step.
+        Preserves completed steps and replaces the failed step with an alternative strategy.
+        """
+        revised: list[dict[str, Any]] = []
+        for step in current_plan:
+            sid = step.get("step_id", step.get("step", 0))
+            if sid < failed_step_id:
+                revised.append(step)
+            elif sid == failed_step_id:
+                # Construct alternative for failed step
+                tool = step.get("tool")
+                args = step.get("arguments", {})
+                req = user_request.strip()
+
+                if tool in ("calculator", "calculator.evaluate"):
+                    revised.append(_make_step(
+                        step_id=sid,
+                        action=f"Execute fallback computation in Python sandbox: {req}",
+                        tool="python",
+                        arguments={"code": f"print({req})", "raw_input": req},
+                        input_summary=f"Re-plan fallback: python for {req[:40]}",
+                    ))
+                elif tool == "math_solver":
+                    revised.append(_make_step(
+                        step_id=sid,
+                        action=f"Execute fallback symbolic computation in Python: {req}",
+                        tool="python",
+                        arguments={"code": f"import sympy as sp\nprint(sp.sympify('{req}'))", "raw_input": req},
+                        input_summary=f"Re-plan fallback: sympy for {req[:40]}",
+                    ))
+                elif tool in ("file", "file_read"):
+                    revised.append(_make_step(
+                        step_id=sid,
+                        action=f"Search for file matching request: {req}",
+                        tool="file_search",
+                        arguments={"query": args.get("path") or req, "raw_input": req},
+                        input_summary="Re-plan fallback: file search",
+                    ))
+                else:
+                    revised.append(_make_step(
+                        step_id=sid,
+                        action=f"Retry with relaxed parameters or alternate approach: {req}",
+                        tool=tool,
+                        arguments=args,
+                        input_summary=f"Re-plan retry: {error_message[:40]}",
+                    ))
+            else:
+                # Keep remaining steps
+                revised.append(step)
+
+        return revised
+

@@ -1,5 +1,5 @@
 // Memory adapter: delegates all persistent storage to the Python Runtime single source of truth.
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
 const path = require("path");
 
 const PY_SCRIPT = path.join(__dirname, "..", "..", "app", "agent", "memory.py");
@@ -13,7 +13,7 @@ function callPython(cmd, ...args) {
     if (require("fs").existsSync(path.join(__dirname, "..", "..", ".venv"))) {
       pythonCmd = path.join(__dirname, "..", "..", PY_BIN);
     }
-    const result = execSync(`"${pythonCmd}" "${procArgs.join('" "')}"`, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+    const result = execFileSync(pythonCmd, procArgs, { encoding: "utf8", timeout: 15000, windowsHide: true, maxBuffer: 1024 * 1024, stdio: ["ignore", "pipe", "ignore"] });
     if (!result.trim()) return null;
     return JSON.parse(result);
   } catch (err) {

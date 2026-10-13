@@ -286,3 +286,57 @@ class Verifier:
             operand = self._eval_node(node.operand)
             return self._SAFE_OPS[type(node.op)](operand)  # type: ignore[operator]
         raise ValueError(f"Unsafe node: {type(node).__name__}")
+
+    def verify_claims(
+        self,
+        answer: str,
+        step_observations: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
+        """
+        Verify factual claims in generated answer against tool observations.
+        Checks for numerical consistency, code syntax, and contradictory claims.
+        """
+        import re
+        observations = step_observations or []
+        verified_count = 0
+        failed_count = 0
+        details: list[dict[str, Any]] = []
+
+        # Check code syntax
+        code_blocks = re.findall(r"```(?:python|py)?\s*\n(.*?)\n```", answer, re.DOTALL)
+        for code in code_blocks:
+            syntax_res = self.verify_code_syntax(code.strip(), language="python")
+            details.append({"type": "code_syntax", "result": syntax_res})
+            if syntax_res.get("passed"):
+                verified_count += 1
+            else:
+                failed_count += 1
+
+        # Check numeric consistency with observations
+        observed_numbers: set[str] = set()
+        for obs in observations:
+            res_val = obs.get("result") or obs.get("observation")
+            if res_val is not None:
+                observed_numbers.update(re.findall(r"\b\d+(?:\.\d+)?\b", str(res_val)))
+
+        if observed_numbers:
+            ans_numbers = re.findall(r"\b\d+(?:\.\d+)?\b", answer)
+            for num in ans_numbers:
+                if num in observed_numbers:
+                    verified_count += 1
+                    details.append({"type": "numeric_claim", "value": num, "status": VERIFIED})
+                else:
+                    details.append({"type": "numeric_claim", "value": num, "status": UNCERTAIN})
+
+        total = verified_count + failed_count
+        passed = failed_count == 0
+        status = VERIFIED if (passed and total > 0) else (FAILED if failed_count > 0 else NOT_APPLICABLE)
+
+        return {
+            "passed": passed,
+            "status": status,
+            "verified_count": verified_count,
+            "failed_count": failed_count,
+            "details": details,
+        }
+

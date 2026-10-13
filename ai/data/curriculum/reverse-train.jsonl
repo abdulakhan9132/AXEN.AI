@@ -1,0 +1,36 @@
+{"prompt":"What is reverse engineering?","answer":"It is studying an existing system to explain how it works."}
+{"prompt":"How do I inspect a project?","answer":"Start at the entry point, then follow imports and calls."}
+{"prompt":"How can I inspect Axen?","answer":"Use /reverse ai to map the brain source files."}
+{"prompt":"What does an import tell us?","answer":"It shows a dependency on another module."}
+{"prompt":"What is a route?","answer":"A route connects an HTTP request path to a handler."}
+{"prompt":"How do I explain a function?","answer":"Describe its inputs, work, output, and side effects."}
+{"prompt":"Can source code prove behavior?","answer":"Source suggests behavior. Tests and execution can verify it."}
+{"prompt":"What is a side effect?","answer":"A side effect changes state outside the function."}
+{"prompt":"How should I report a finding?","answer":"Name the file, line, evidence, and any uncertainty."}
+{"prompt":"What is an entry point?","answer":"It is where a program starts running."}
+{"prompt":"How do I map data flow?","answer":"Follow input through validation, processing, storage, and output."}
+{"prompt":"What should I read first?","answer":"Read the manifest, entry point, and main request handler."}
+{"prompt":"Does a low loss prove good answers?","answer":"No. Use held-out examples and task checks too."}
+{"prompt":"How do I improve a model?","answer":"Train on useful examples, evaluate, and compare with a baseline."}
+{"prompt":"Should I replace my model immediately?","answer":"Keep a backup and evaluate the candidate before replacing it."}
+{"prompt":"What is a held-out example?","answer":"It is an evaluation example that is not used for training."}
+{"prompt":"What is overfitting?","answer":"It is learning training examples without generalizing well."}
+{"prompt":"Can you copy a private model's brain?","answer":"No. I can improve my own model using available data and evaluation."}
+{"prompt":"How do I handle missing evidence?","answer":"Say what is unknown and identify the next check."}
+{"prompt":"How do I explain a bug?","answer":"Show the trigger, actual result, expected result, and cause."}
+{"prompt":"What is a dependency graph?","answer":"It maps which modules depend on other modules."}
+{"prompt":"What should a code review include?","answer":"Check correctness, edge cases, errors, and evidence."}
+{"prompt":"How do I handle credentials?","answer":"Exclude secret files from reports and training."}
+{"prompt":"Can I execute unknown code to inspect it?","answer":"Start with source inspection. Running code needs a separate decision."}
+{"prompt":"What does return x * 2 do?","answer":"It returns twice the value of x."}
+{"prompt":"What does items.filter(Boolean) do?","answer":"It creates a new array containing only truthy items."}
+{"prompt":"What does await fetch(url) do?","answer":"It waits for an HTTP response from the given URL."}
+{"prompt":"What does JSON.parse(text) do?","answer":"It converts valid JSON text into a value and throws on invalid input."}
+{"prompt":"What does a try catch block do?","answer":"It handles errors thrown while the try block runs."}
+{"prompt":"What is a boundary check?","answer":"It checks whether input stays within the allowed limits."}
+{"prompt":"What is a unit test?","answer":"It checks a small behavior with controlled inputs and expected results."}
+{"prompt":"Can regex fully parse every language?","answer":"No. Pattern matches may be incomplete or match comments."}
+{"prompt":"What is the next step after a source map?","answer":"Trace one user action from input to output."}
+{"prompt":"How do I keep training honest?","answer":"Record data, steps, evaluation scores, and model limitations."}
+{"prompt":"What is regression?","answer":"It is a previously working behavior becoming worse after a change."}
+{"prompt":"How should an assistant answer?","answer":"Answer the request clearly, use evidence, and admit uncertainty."}

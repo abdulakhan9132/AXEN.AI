@@ -1,0 +1,106 @@
+{
+  "created_at": "2026-10-13T17:51:40.297Z",
+  "steps_run": 300,
+  "original_steps": 2350,
+  "candidate_steps": 2650,
+  "parameters": 62208,
+  "train_examples": 36,
+  "eval_examples": 10,
+  "seed": 42,
+  "learning_rate": 0.0002,
+  "before": {
+    "domain": 5.962445509398707,
+    "replay": 0.18458913093012974
+  },
+  "after": {
+    "step": 300,
+    "domain": 3.357878120770831,
+    "replay": 0.1650086775454121
+  },
+  "last": {
+    "step": 300,
+    "domain": 3.357878120770831,
+    "replay": 0.1650086775454121
+  },
+  "history": [
+    {
+      "step": 50,
+      "domain": 5.022827996833201,
+      "replay": 0.14984562296815057
+    },
+    {
+      "step": 100,
+      "domain": 4.273109882215729,
+      "replay": 0.1533288883218819
+    },
+    {
+      "step": 150,
+      "domain": 3.829055492541779,
+      "replay": 0.16296512772516294
+    },
+    {
+      "step": 200,
+      "domain": 3.650626967457962,
+      "replay": 0.16083263100269116
+    },
+    {
+      "step": 250,
+      "domain": 3.475011134010186,
+      "replay": 0.16038455801657397
+    },
+    {
+      "step": 300,
+      "domain": 3.357878120770831,
+      "replay": 0.1650086775454121
+    }
+  ],
+  "max_replay_loss": 0.20458913093012973,
+  "promoted": false,
+  "eligible": false,
+  "task_checks": {
+    "before": 0,
+    "after": 0,
+    "total": 3,
+    "required": 3
+  },
+  "backup": null,
+  "candidate": "candidate-best.json",
+  "reason": "Candidate failed the loss or basic answer checks. Existing brain retained.",
+  "before_samples": [
+    {
+      "prompt": "How can a source map help?",
+      "response": "g namorning new every day."
+    },
+    {
+      "prompt": "How do I trace a web request?",
+      "response": "wh, d reman s Axen. How can I help you today?"
+    },
+    {
+      "prompt": "What can static inspection miss?",
+      "response": "He I am Axen. How can I help you today?"
+    }
+  ],
+  "after_samples": [
+    {
+      "prompt": "How can a source map help?",
+      "response": "I doing well and learning something new every day."
+    },
+    {
+      "prompt": "How do I trace a web request?",
+      "response": "It is aches you like."
+    },
+    {
+      "prompt": "What can static inspection miss?",
+      "response": "Herere! What would you like to talk about?"
+    }
+  ],
+  "original_sha256": "d75553cce35feb349bc1256bcb4aa87fe4b1d992ee6144b506f349f4de9c2951",
+  "training_sha256": "5ccbe5fc7778dcbcf2fff2d6d4113cf2e801a4c6e328aaf5453a96e0b2c06733",
+  "evaluation_sha256": "3178c1287df2a23c15353a8c02a38dd4c8264a3a3f07c4ec14e81127003788c9",
+  "limitations": [
+    "Evaluation measures next-character prediction on a small original curriculum.",
+    "Three basic keyword checks reject obviously irrelevant samples; they are not a comprehensive task benchmark.",
+    "Lower loss does not prove task competence, instruction following or frontier-model parity.",
+    "Source inspection is a separate deterministic tool, not a learned model skill."
+  ]
+}

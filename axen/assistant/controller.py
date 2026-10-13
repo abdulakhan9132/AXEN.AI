@@ -323,6 +323,11 @@ class AssistantController:
     def model_ready(self) -> bool:
         return self._model_loaded and self.model.is_loaded
 
+    @property
+    def think_engine(self) -> Any:
+        """Access the Think Engine 2.0 instance."""
+        return getattr(self.agent_loop, "think_engine", None)
+
     # ------------------------------------------------------------------
     # Main response method
     # ------------------------------------------------------------------
@@ -339,6 +344,8 @@ class AssistantController:
         cancel_event: Optional[threading.Event] = None,
         request_id: Optional[str] = None,
         session_id: Optional[str] = None,
+        think_mode: Optional[str] = None,
+        think_mode_override: Optional[str] = None,
     ) -> str:
         """
         Generate a response to the user's input via the agentic reasoning loop.
@@ -356,7 +363,8 @@ class AssistantController:
         # 1. Store user message
         self.memory.add_user(user_input)
 
-        # 2. Run agentic reasoning loop
+        # 2. Run agentic reasoning loop with Think Engine 2.0
+        mode_override = think_mode or think_mode_override
         response, state = self.agent_loop.run(
             user_input,
             attachments=attachments,
@@ -367,6 +375,7 @@ class AssistantController:
             cancel_event=cancel_event,
             request_id=request_id,
             session_id=session_id,
+            think_mode_override=mode_override,
         )
         self.last_agent_state = state
 
@@ -398,11 +407,16 @@ class AssistantController:
             "roles": stats.get("roles", [m["role"] for m in messages]),
             "input_tokens": stats.get("input_tokens", 0),
             "generated_tokens": stats.get("generated_tokens", 0),
+            "think_mode": state.metadata.get("think_mode", "balanced"),
+            "think_metrics": state.metadata.get("think_metrics", {}),
+            "think_budget": state.metadata.get("think_budget", {}),
+            "claim_verification": state.metadata.get("claim_verification", {}),
         }
 
         # 4. Store and return
         self.memory.add_assistant(response)
         return response
+
 
     # ------------------------------------------------------------------
     # Identity Guardrails

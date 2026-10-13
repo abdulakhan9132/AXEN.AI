@@ -236,22 +236,40 @@ def search_file(args: Dict[str, Any], context: Optional[ToolExecutionContext] = 
         if context and context.workspace_path:
             ws_dir = Path(context.workspace_path)
             if ws_dir.exists() and ws_dir.is_dir():
+                ignored_dirs = {".git", ".venv", "venv", "node_modules", "__pycache__", ".gemini", ".idea", ".vscode", "dist", "build", ".planning", ".agents"}
                 all_matches = []
-                for file_entry in ws_dir.rglob("*"):
-                    if file_entry.is_file() and not file_entry.name.startswith("."):
+                for root, dirs, files in os.walk(ws_dir):
+                    dirs[:] = [d for d in dirs if d not in ignored_dirs and not d.startswith(".")]
+                    for fname in files:
+                        if fname.startswith("."):
+                            continue
+                        fpath = Path(root) / fname
                         try:
-                            file_text = file_entry.read_text(encoding="utf-8", errors="replace")
-                            for idx, line in enumerate(file_text.splitlines(), 1):
-                                if query in line.lower() or query in file_entry.name.lower():
-                                    all_matches.append({
-                                        "path": file_entry.name,
-                                        "line": idx,
-                                        "text": line.strip()[:200],
-                                    })
-                                    if len(all_matches) >= 30:
-                                        break
+                            # Quick filename match check
+                            if query in fname.lower():
+                                all_matches.append({
+                                    "path": str(fpath.relative_to(ws_dir)),
+                                    "line": 1,
+                                    "text": f"[Filename match: {fname}]",
+                                })
+                                if len(all_matches) >= 30:
+                                    break
+                            # Read file content if not too large
+                            if fpath.stat().st_size <= 2 * 1024 * 1024:
+                                file_text = fpath.read_text(encoding="utf-8", errors="replace")
+                                for idx, line in enumerate(file_text.splitlines(), 1):
+                                    if query in line.lower():
+                                        all_matches.append({
+                                            "path": str(fpath.relative_to(ws_dir)),
+                                            "line": idx,
+                                            "text": line.strip()[:200],
+                                        })
+                                        if len(all_matches) >= 30:
+                                            break
                         except Exception:
                             continue
+                    if len(all_matches) >= 30:
+                        break
                 if all_matches:
                     return {
                         "success": True,

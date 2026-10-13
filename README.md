@@ -3,6 +3,20 @@
 Axen's chat runs on its built-in local assistant. It does not connect to external AI providers or require their API keys. The small built-in model is experimental and cannot reliably plan and implement complex websites or generate original images. The local project workspace and browser preview are available as foundations for a future coding workflow.
 
 Generated projects are stored in `data/generated-sites/`. The built-in preview serves project files locally. Axen can store source files in multiple programming languages, but this does not mean it can execute every language or install project dependencies.
+
+## Reverse engineering
+
+Run `npm start`, open `http://127.0.0.1:8000/reverse-engineering`, and inspect `.` (Axen itself) or a source subfolder such as `ai` or `axen/coding`. For another codebase, copy its source into a subfolder of this project. Chat also accepts `/reverse ai`, `/inspect axen/coding`, or `reverse engineer this project`.
+
+The report lists source files, symbols, imports, route patterns, execution/network boundaries, and resolved local JavaScript/TypeScript/Python import connections with line numbers. Download it as Markdown from the inspector. No AI API key or running language model is required. Code is read, never executed by this tool. Pattern matching is approximate; it does not prove runtime behavior or decompile binaries. Scans skip hidden/secret files, dependency directories, weights and user data, and cap coverage at 600 files / 6 MB. Review any partial-coverage message.
+
+## Evaluated small-brain training
+
+`npm run train:reviewed -- 300` trains a separate candidate on an original 36-example curriculum plus replay of the existing starter corpus. Ten held-out examples evaluate next-character prediction. `npm run train:reviewed -- 300 --promote` activates only a candidate that improves this narrow validation score, keeps starter replay loss within tolerance, and passes three basic answer-relevance checks. The keyword checks are a minimal filter, not a comprehensive benchmark. It backs up the previous weights and refuses activation if the active checkpoint changed during training. Run this while Sleep and Learn is idle, then restart Axen to load an activated candidate.
+
+The latest report, original/candidate samples and weight backups live in `ai/data/training/`. The curriculum lives in `ai/data/curriculum/`. This is an experiment on the existing 62,208-parameter model; a loss reduction is not evidence of frontier-level coding or reasoning. Reverse engineering uses source analysis independently of those weights. This workflow does not train, copy or access proprietary model weights, and does not train the installed Qwen model.
+
+Run `npm run test:reverse` to check source extraction, directory boundaries, source exclusion and the HTTP/chat workflows.
 ---
 
 ## Architecture Overview

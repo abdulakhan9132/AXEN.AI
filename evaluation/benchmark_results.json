@@ -1,0 +1,248 @@
+{
+  "timestamp": "2026-10-13 18:44:33 UTC",
+  "tasks_count": 6,
+  "mode_stats": {
+    "fast": {
+      "avg_latency_ms": 326.3,
+      "total_tool_calls": 5,
+      "avg_tool_calls": 0.83,
+      "total_tokens": 0,
+      "success_rate_pct": 100.0,
+      "verification_rate_pct": 100.0
+    },
+    "balanced": {
+      "avg_latency_ms": 161.13,
+      "total_tool_calls": 6,
+      "avg_tool_calls": 1.0,
+      "total_tokens": 0,
+      "success_rate_pct": 100.0,
+      "verification_rate_pct": 100.0
+    },
+    "deep": {
+      "avg_latency_ms": 201.59,
+      "total_tool_calls": 6,
+      "avg_tool_calls": 1.0,
+      "total_tokens": 0,
+      "success_rate_pct": 100.0,
+      "verification_rate_pct": 100.0
+    }
+  },
+  "runs": [
+    {
+      "task_id": "T1_GREETING",
+      "category": "Conversational",
+      "mode": "fast",
+      "latency_ms": 107.98,
+      "status": "completed",
+      "tool_calls": 0,
+      "tokens": 0,
+      "replan_count": 0,
+      "verification_passed": true,
+      "success": true
+    },
+    {
+      "task_id": "T1_GREETING",
+      "category": "Conversational",
+      "mode": "balanced",
+      "latency_ms": 22.16,
+      "status": "completed",
+      "tool_calls": 0,
+      "tokens": 0,
+      "replan_count": 0,
+      "verification_passed": true,
+      "success": true
+    },
+    {
+      "task_id": "T1_GREETING",
+      "category": "Conversational",
+      "mode": "deep",
+      "latency_ms": 9.52,
+      "status": "completed",
+      "tool_calls": 0,
+      "tokens": 0,
+      "replan_count": 0,
+      "verification_passed": true,
+      "success": true
+    },
+    {
+      "task_id": "T2_ARITHMETIC",
+      "category": "Arithmetic",
+      "mode": "fast",
+      "latency_ms": 42.91,
+      "status": "completed",
+      "tool_calls": 1,
+      "tokens": 0,
+      "replan_count": 0,
+      "verification_passed": true,
+      "success": true
+    },
+    {
+      "task_id": "T2_ARITHMETIC",
+      "category": "Arithmetic",
+      "mode": "balanced",
+      "latency_ms": 19.4,
+      "status": "completed",
+      "tool_calls": 1,
+      "tokens": 0,
+      "replan_count": 0,
+      "verification_passed": true,
+      "success": true
+    },
+    {
+      "task_id": "T2_ARITHMETIC",
+      "category": "Arithmetic",
+      "mode": "deep",
+      "latency_ms": 8.45,
+      "status": "completed",
+      "tool_calls": 1,
+      "tokens": 0,
+      "replan_count": 0,
+      "verification_passed": true,
+      "success": true
+    },
+    {
+      "task_id": "T3_SYMBOLIC_MATH",
+      "category": "Symbolic Math",
+      "mode": "fast",
+      "latency_ms": 772.97,
+      "status": "completed",
+      "tool_calls": 1,
+      "tokens": 0,
+      "replan_count": 0,
+      "verification_passed": true,
+      "success": true
+    },
+    {
+      "task_id": "T3_SYMBOLIC_MATH",
+      "category": "Symbolic Math",
+      "mode": "balanced",
+      "latency_ms": 11.09,
+      "status": "completed",
+      "tool_calls": 1,
+      "tokens": 0,
+      "replan_count": 0,
+      "verification_passed": true,
+      "success": true
+    },
+    {
+      "task_id": "T3_SYMBOLIC_MATH",
+      "category": "Symbolic Math",
+      "mode": "deep",
+      "latency_ms": 11.13,
+      "status": "completed",
+      "tool_calls": 1,
+      "tokens": 0,
+      "replan_count": 0,
+      "verification_passed": true,
+      "success": true
+    },
+    {
+      "task_id": "T4_FILE_SEARCH",
+      "category": "File Search",
+      "mode": "fast",
+      "latency_ms": 751.63,
+      "status": "completed",
+      "tool_calls": 1,
+      "tokens": 0,
+      "replan_count": 0,
+      "verification_passed": true,
+      "success": true
+    },
+    {
+      "task_id": "T4_FILE_SEARCH",
+      "category": "File Search",
+      "mode": "balanced",
+      "latency_ms": 603.26,
+      "status": "completed",
+      "tool_calls": 1,
+      "tokens": 0,
+      "replan_count": 0,
+      "verification_passed": true,
+      "success": true
+    },
+    {
+      "task_id": "T4_FILE_SEARCH",
+      "category": "File Search",
+      "mode": "deep",
+      "latency_ms": 591.3,
+      "status": "completed",
+      "tool_calls": 1,
+      "tokens": 0,
+      "replan_count": 0,
+      "verification_passed": true,
+      "success": true
+    },
+    {
+      "task_id": "T5_MULTI_STEP",
+      "category": "Chained Multi-Step",
+      "mode": "fast",
+      "latency_ms": 7.89,
+      "status": "completed",
+      "tool_calls": 1,
+      "tokens": 0,
+      "replan_count": 0,
+      "verification_passed": true,
+      "success": true
+    },
+    {
+      "task_id": "T5_MULTI_STEP",
+      "category": "Chained Multi-Step",
+      "mode": "balanced",
+      "latency_ms": 109.43,
+      "status": "completed",
+      "tool_calls": 1,
+      "tokens": 0,
+      "replan_count": 0,
+      "verification_passed": true,
+      "success": true
+    },
+    {
+      "task_id": "T5_MULTI_STEP",
+      "category": "Chained Multi-Step",
+      "mode": "deep",
+      "latency_ms": 9.78,
+      "status": "completed",
+      "tool_calls": 1,
+      "tokens": 0,
+      "replan_count": 0,
+      "verification_passed": true,
+      "success": true
+    },
+    {
+      "task_id": "T6_ERROR_RECOVERY",
+      "category": "Bounded Error",
+      "mode": "fast",
+      "latency_ms": 274.41,
+      "status": "verification_failed",
+      "tool_calls": 1,
+      "tokens": 0,
+      "replan_count": 0,
+      "verification_passed": true,
+      "success": true
+    },
+    {
+      "task_id": "T6_ERROR_RECOVERY",
+      "category": "Bounded Error",
+      "mode": "balanced",
+      "latency_ms": 201.44,
+      "status": "verification_failed",
+      "tool_calls": 2,
+      "tokens": 0,
+      "replan_count": 1,
+      "verification_passed": true,
+      "success": true
+    },
+    {
+      "task_id": "T6_ERROR_RECOVERY",
+      "category": "Bounded Error",
+      "mode": "deep",
+      "latency_ms": 579.36,
+      "status": "verification_failed",
+      "tool_calls": 2,
+      "tokens": 0,
+      "replan_count": 1,
+      "verification_passed": true,
+      "success": true
+    }
+  ]
+}

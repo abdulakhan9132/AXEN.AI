@@ -1,0 +1,129 @@
+# Think Engine 2.0 Configuration
+# ================================
+# Configures the three thinking modes and their resource budgets.
+# All budgets are per-request. Set to 0 or null to disable a limit.
+#
+# Mode selection is automatic based on task complexity,
+# but can be overridden per-request via the API.
+
+think_engine:
+  version: "2.0"
+  enabled: true
+
+  # Default mode when auto-selection is disabled
+  default_mode: "balanced"
+
+  # Auto-select mode based on complexity analysis
+  auto_select: true
+
+  # Global safety limits (override per-mode if lower)
+  global_limits:
+    max_total_tokens: 16384
+    max_runtime_seconds: 120.0
+    max_iterations: 12
+    max_tool_calls: 10
+    max_retries: 3
+
+modes:
+  fast:
+    description: "Direct response with minimal overhead"
+    # Budget constraints
+    max_tokens: 1024
+    max_runtime_seconds: 10.0
+    max_iterations: 1
+    max_tool_calls: 1
+    max_retries: 0
+    # Behavior flags
+    skip_planning: true
+    skip_verification: false
+    skip_memory_retrieval: false
+    skip_context_assembly: false
+    allow_replan: false
+    allow_tool_use: true
+    # Applies to these complexity levels
+    complexity_match:
+      - "LOW"
+
+  balanced:
+    description: "Task analysis, limited planning, and basic verification"
+    max_tokens: 4096
+    max_runtime_seconds: 45.0
+    max_iterations: 4
+    max_tool_calls: 4
+    max_retries: 1
+    skip_planning: false
+    skip_verification: false
+    skip_memory_retrieval: false
+    skip_context_assembly: false
+    allow_replan: true
+    max_replan_attempts: 1
+    allow_tool_use: true
+    complexity_match:
+      - "MEDIUM"
+
+  deep:
+    description: "Multi-stage planning, retrieval, execution, verification, and bounded correction"
+    max_tokens: 16384
+    max_runtime_seconds: 120.0
+    max_iterations: 8
+    max_tool_calls: 8
+    max_retries: 3
+    skip_planning: false
+    skip_verification: false
+    skip_memory_retrieval: false
+    skip_context_assembly: false
+    allow_replan: true
+    max_replan_attempts: 3
+    allow_tool_use: true
+    # Deep mode enables subtask decomposition
+    enable_subtask_decomposition: true
+    # Deep mode enables factual claim verification
+    enable_claim_verification: true
+    complexity_match:
+      - "HIGH"
+
+# Intent-to-mode overrides (bypass complexity-based auto-selection)
+# These take priority over complexity_match rules.
+intent_overrides:
+  conversation: "fast"
+  greeting: "fast"
+  calculation: "fast"
+  computer_systems: "fast"
+  memory: "fast"
+  file_operation: "balanced"
+  code_execution: "balanced"
+  math: "balanced"
+  knowledge_retrieval: "balanced"
+  programming: "balanced"
+  writing: "balanced"
+  translation: "balanced"
+  web_search: "balanced"
+  code: "deep"
+  coding: "deep"
+  planning: "deep"
+  debugging: "deep"
+  multi_step: "deep"
+  reasoning: "deep"
+
+
+# Observability
+observability:
+  enabled: true
+  log_level: "INFO"
+  # Redact sensitive fields from structured logs
+  redact_fields:
+    - "api_key"
+    - "password"
+    - "token"
+    - "secret"
+  # Track these metrics per request
+  track_metrics:
+    - "latency_ms"
+    - "tokens_input"
+    - "tokens_output"
+    - "model_calls"
+    - "tool_calls"
+    - "retries"
+    - "verification_status"
+    - "think_mode"
+    - "replan_count"

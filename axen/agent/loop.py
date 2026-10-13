@@ -146,6 +146,7 @@ class AgentLoop:
         file_manager: Optional[Any] = None,
         project_manager: Optional[Any] = None,
         context_engine: Optional[Any] = None,
+        think_engine: Optional[Any] = None,
         max_steps: int = DEFAULT_MAX_STEPS,
         max_tool_calls: int = DEFAULT_MAX_TOOL_CALLS,
         max_retries_per_tool: int = DEFAULT_MAX_RETRIES_PER_TOOL,
@@ -214,6 +215,16 @@ class AgentLoop:
         else:
             self.context_engine = context_engine
 
+        if think_engine is None:
+            try:
+                from axen.agent.think_engine import ThinkEngine
+                self.think_engine = ThinkEngine()
+            except Exception:
+                self.think_engine = None
+        else:
+            self.think_engine = think_engine
+
+
     def cancel(self) -> None:
         """Signal cancellation for the agent loop."""
         import threading
@@ -238,7 +249,9 @@ class AgentLoop:
         cancel_event: Optional[threading.Event] = None,
         request_id: Optional[str] = None,
         session_id: Optional[str] = None,
+        think_mode_override: Optional[Any] = None,
     ) -> tuple[str, AgentState]:
+
         """
         Execute the adaptive agentic reasoning loop for a user request.
 
@@ -538,6 +551,46 @@ class AgentLoop:
             state.metadata["tool_required"] = True
             state.metadata["tools_needed"] = ["file"]
 
+        # Phase Think: Think Engine 2.0 Mode Selection & Metrics Initialization
+        think_metrics = None
+        think_mode_cfg = None
+        if hasattr(self, "think_engine") and self.think_engine:
+            try:
+                think_metrics, think_mode_cfg = self.think_engine.start_request(
+                    user_request=effective_request,
+                    intent_info=intent_info,
+                    override=think_mode_override,
+                    request_id=request_id or profiler.request_id,
+                )
+                state.metadata["think_mode"] = think_metrics.think_mode.value
+                state.metadata["think_budget"] = think_mode_cfg.budget.to_dict()
+                state.metadata["think_mode_config"] = think_mode_cfg.to_dict()
+                state.metadata["think_metrics_obj"] = think_metrics
+
+                if think_mode_cfg.enable_subtask_decomposition and (
+                    intent_info.complexity == "HIGH" or intent_info.intent in ("mixed", "multi_step")
+                ):
+                    decomposed = self.think_engine.decompose(effective_request, intent_info=intent_info)
+                    state.metadata["decomposed_objective"] = decomposed.to_dict()
+            except Exception as te_err:
+                logger.debug("ThinkEngine start_request error: %s", te_err)
+
+        def _finalize_think_engine(ans: str) -> None:
+            if hasattr(self, "think_engine") and self.think_engine and think_metrics and think_mode_cfg:
+                try:
+                    if think_mode_cfg.enable_claim_verification:
+                        obs_list = step_observations if "step_observations" in locals() else []
+                        tools_used_list = [s.get("tool") for s in plan if s.get("tool")] if "plan" in locals() else []
+                        claim_report = self.think_engine.verify_claims(ans, obs_list, tools_used_list)
+                        state.metadata["claim_verification"] = claim_report.to_dict()
+                        state.metadata["claim_consistency"] = claim_report.consistency_score
+                    self.think_engine.finish_request(think_metrics, status=state.status)
+                    state.metadata["think_metrics"] = think_metrics.to_dict()
+                    state.metadata["think_user_summary"] = think_metrics.to_user_summary()
+                except Exception as fe_err:
+                    logger.debug("ThinkEngine finalize error: %s", fe_err)
+
+
 
 
         # Relevance-based memory & context retrieval via ContextEngine
@@ -696,6 +749,7 @@ class AgentLoop:
                 answer = self._get_fast_greeting(user_request, history=history)
                 state.final_answer = answer
                 state.status = "completed"
+                _finalize_think_engine(answer)
                 _emit("COMPLETED", "Completed", {})
                 profiler.record_duration("postprocess", 0.001)
                 perf_dict = profiler.finish()
@@ -717,6 +771,7 @@ class AgentLoop:
             answer = self._run_conversation(user_request, state, retrieved_memories=retrieved_memories, debug=debug)
             state.final_answer = answer
             state.status = "completed"
+            _finalize_think_engine(answer)
             _emit("COMPLETED", "Completed", {})
             profiler.record_duration("postprocess", 0.001)
             perf_dict = profiler.finish()
@@ -726,6 +781,7 @@ class AgentLoop:
             if debug:
                 return f"{answer}\n\n{self.format_debug_block(state)}", state
             return answer, state
+
 
         # 4. TOOL EXECUTION & VERIFICATION LOOP
         step_count = 0
@@ -753,6 +809,15 @@ class AgentLoop:
                 if state.run_record:
                     state.run_record.create_checkpoint()
                 break
+
+            # Think Engine 2.0 Budget Enforcement Gate
+            if hasattr(self, "think_engine") and self.think_engine and think_metrics and think_mode_cfg:
+                budget_exceeded, budget_msg = self.think_engine.check_budget(think_metrics, think_mode_cfg)
+                if budget_exceeded:
+                    logger.warning("Think Engine budget limit reached: %s", budget_msg)
+                    if state.run_record:
+                        state.run_record.create_checkpoint()
+                    break
 
             step_count += 1
             state.current_step = step_count
@@ -797,6 +862,10 @@ class AgentLoop:
 
             # Execute tool with bounded retry & data propagation
             t_tool_start = time.perf_counter()
+            t_call_metric = None
+            if think_metrics:
+                t_call_metric = think_metrics.start_tool_call(step_tool)
+
             step_req = (
                 step_args.get("expression")
                 or step_args.get("raw_input")
@@ -814,11 +883,21 @@ class AgentLoop:
             t_tool_dur = time.perf_counter() - t_tool_start
             profiler.record_duration("tools", t_tool_dur)
             profiler.record_duration("tool_execution", t_tool_dur)
+
+            if think_metrics and t_call_metric:
+                think_metrics.end_tool_call(
+                    t_call_metric,
+                    success=success,
+                    error=err,
+                    verification=str(verif.get("status")) if verif else ("VERIFIED" if success else "FAILED"),
+                )
+
             state.verification = verif
             latest_observation = obs
             step["status"] = "completed" if success else "failed"
             step["result_summary"] = str(obs)[:80] if obs else None
             step["verification_status"] = str(verif.get("status")) if verif else ("VERIFIED" if success else "FAILED")
+
 
             # Untrusted data wrapping for observations
             untrusted_obs = obs
@@ -900,13 +979,44 @@ class AgentLoop:
                     if state.run_record:
                         state.run_record.transition_to(AgentRunState.EXECUTING)
                         state.run_record.create_checkpoint()
-                else:
+                if not rec_ok and hasattr(self, "think_engine") and self.think_engine and think_metrics and think_mode_cfg and think_mode_cfg.allow_replan:
+                    alt_step = self.think_engine.attempt_replan(step, err or "verification_failed", think_metrics, think_mode_cfg)
+                    if alt_step:
+                        step_tool = alt_step.get("tool")
+                        step_args = alt_step.get("arguments", {})
+                        step_req = alt_step.get("action", "")
+                        rec_obs, rec_ok, rec_err, rec_verif = self._execute_with_retry(
+                            step_tool,
+                            step_args,
+                            step_req,
+                            state,
+                            prior_observations=step_observations,
+                        )
+                        if rec_ok:
+                            latest_observation = rec_obs
+                            state.verification = rec_verif
+                            step["status"] = "completed"
+                            step["tool"] = step_tool
+                            step["result_summary"] = str(rec_obs)[:80] if rec_obs else None
+                            step["verification_status"] = str(rec_verif.get("status")) if rec_verif else "VERIFIED"
+                            step_observations.append({
+                                "step": step_count,
+                                "tool": step_tool,
+                                "observation": rec_obs,
+                                "success": True,
+                            })
+                            if state.run_record:
+                                state.run_record.transition_to(AgentRunState.EXECUTING)
+                                state.run_record.create_checkpoint()
+
+                if not rec_ok:
                     state.status = "verification_failed"
                     step["status"] = "failed"
                     step["verification_status"] = "FAILED"
                     err_msg = rec_err or err or (verif.get("detail") if verif else "Execution failed.")
                     answer = f"Error: I couldn't solve that reliably with the available tools ({err_msg})."
                     state.final_answer = answer
+                    _finalize_think_engine(answer)
                     if state.run_record:
                         state.run_record.final_response = answer
                         state.run_record.transition_to(AgentRunState.FAILED)
@@ -918,6 +1028,7 @@ class AgentLoop:
                     if debug:
                         return f"{answer}\n\n{self.format_debug_block(state)}", state
                     return answer, state
+
 
         # Checkpoint prior to synthesis
         if state.run_record:
@@ -998,8 +1109,10 @@ class AgentLoop:
         except Exception as exc_learn:
             logger.debug("Could not record learning event: %s", exc_learn)
 
+        _finalize_think_engine(final_answer)
         _emit("COMPLETED", "Completed", {})
         profiler.record_duration("postprocess", 0.001)
+
         perf_dict = profiler.finish()
         state.metadata["perf_timings"] = perf_dict
 
@@ -1280,20 +1393,27 @@ class AgentLoop:
         code = self._extract_python_code(req)
         if not code and prior_observations:
             for obs_dict in prior_observations:
-                obs_code = self._extract_python_code(obs_dict.get("observation", ""))
-                if obs_code:
-                    code = obs_code
-                    break
+                obs_val = obs_dict.get("observation")
+                if obs_val and isinstance(obs_val, str):
+                    obs_code = self._extract_python_code(obs_val)
+                    if obs_code:
+                        code = obs_code
+                        break
 
         if not code and ("average" in req.lower() or "mean" in req.lower()) and prior_observations:
             # Dynamically synthesize statistical calculation on observed table/data
             for obs_dict in prior_observations:
-                obs_text = obs_dict.get("observation", "")
-                nums = re.findall(r"-?\d+(?:\.\d+)?", obs_text)
+                obs_text = obs_dict.get("observation") or ""
+                nums = re.findall(r"-?\d+(?:\.\d+)?", str(obs_text))
                 if nums:
                     num_list_str = "[" + ", ".join(nums) + "]"
                     code = f"data = {num_list_str}\navg = sum(data) / len(data)\nprint('Average:', round(avg, 2))"
                     break
+
+        if not code:
+            calc_expr = self._extract_math_expression(req)
+            if calc_expr:
+                code = f"print({calc_expr})"
 
         if not code:
             return None, False, "No valid Python code found in request.", None
@@ -1983,6 +2103,15 @@ class AgentLoop:
                     raw_response = self.model.chat(messages)
                 if profiler:
                     profiler.record_duration("generation", time.perf_counter() - t_gen_start)
+
+            t_obj = state.metadata.get("think_metrics_obj")
+            if t_obj:
+                in_tok = token_count
+                out_tok = max(1, len(raw_response) // 4)
+                if "model_stats" in state.metadata and isinstance(state.metadata["model_stats"], dict):
+                    in_tok = state.metadata["model_stats"].get("input_tokens", in_tok)
+                    out_tok = state.metadata["model_stats"].get("generated_tokens", out_tok)
+                t_obj.record_model_call(input_tokens=in_tok, output_tokens=out_tok)
         except Exception as exc:
             logger.exception("Inference error: %s", exc)
             return "I ran into an internal processing error. Please try again."
@@ -1991,6 +2120,7 @@ class AgentLoop:
                 profiler.record_duration("generation", time.perf_counter() - t_gen_start)
 
         return self._apply_identity_guardrails(req, raw_response)
+
 
     def _synthesize_mixed_response(
         self,
@@ -2103,7 +2233,11 @@ class AgentLoop:
         if state.metadata.get("web_debug_block"):
             base_debug = f"{base_debug}\n\n{state.metadata['web_debug_block']}"
 
+        if state.metadata.get("think_mode"):
+            base_debug = f"{base_debug}\n\n[ThinkEngine] Mode: {state.metadata.get('think_mode')}"
+
         return base_debug
+
 
     def _get_fast_greeting(self, user_request: str, history: Optional[list[Any]] = None) -> str:
         """
@@ -2216,8 +2350,10 @@ class AgentLoop:
             return " ".join(sentences[:2])
         return sentences[0]
 
-    def _extract_math_expression(self, text: str) -> Optional[str]:
+    def _extract_math_expression(self, text: Optional[str]) -> Optional[str]:
         """Extract clean arithmetic expression."""
+        if not text or not isinstance(text, str):
+            return None
         t = text
         calc_match = re.search(r"\b(?:calculate|compute|what\s+is)\s+(.+)", t, re.I)
         if calc_match:
@@ -2239,8 +2375,10 @@ class AgentLoop:
                 return c.replace("^", "**")
         return None
 
-    def _extract_python_code(self, text: str) -> Optional[str]:
+    def _extract_python_code(self, text: Optional[str]) -> Optional[str]:
         """Extract Python code from markdown or keywords."""
+        if not text or not isinstance(text, str):
+            return None
         m = re.search(r"```(?:python)?\s*(.*?)```", text, re.DOTALL | re.I)
         if m:
             return m.group(1).strip()

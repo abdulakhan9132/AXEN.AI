@@ -23450,5 +23450,598 @@
         }
       }
     ]
+  },
+  "sess_1791289558647_r1513": {
+    "id": "sess_1791289558647_r1513",
+    "title": "hi",
+    "created_at": "2026-10-06T12:25:58.648Z",
+    "updated_at": "2026-10-06T12:26:49.587Z",
+    "messages": [
+      {
+        "role": "user",
+        "content": "hi"
+      },
+      {
+        "role": "assistant",
+        "content": "Hello! How can I help you today?"
+      },
+      {
+        "role": "user",
+        "content": "What is artificial intelligence?"
+      },
+      {
+        "role": "assistant",
+        "content": "Artificial intelligence (AI) is a branch of computer science that focuses on developing machines capable of performing tasks requiring human intelligence, such as visual perception, speech recognition, decision-making, and language translation. AI uses algorithms and statistical models to enable machines to learn from data, recognize patterns, and make decisions without explicit programming. This technology is being used in various fields like healthcare, finance, and manufacturing to automate processes, improve efficiency, and provide better solutions."
+      }
+    ]
+  },
+  "7c9689c4-9b8c-4539-84cc-ccf774f2e429": {
+    "id": "7c9689c4-9b8c-4539-84cc-ccf774f2e429",
+    "project_id": null,
+    "title": "Write Python code for a calculator w",
+    "created_at": "2026-10-14T00:01:44.922583",
+    "updated_at": "2026-10-14T00:01:44.959018",
+    "messages": [
+      {
+        "id": "6cb8158a-40ee-49e5-8d5d-4ac45b4f5040",
+        "role": "user",
+        "content": "Write Python code for a calculator with memory and square root",
+        "attachments": [],
+        "timestamp": "2026-10-14T00:01:44.932869"
+      },
+      {
+        "id": "3558f9d6-0453-4d65-afb3-4d47115294b6",
+        "role": "assistant",
+        "content": "I am here to help you.",
+        "timestamp": "2026-10-14T00:01:44.959008",
+        "metadata": {
+          "task_type": "programming",
+          "tool_used": false,
+          "selected_tool": null,
+          "tool_status": "Thinking...",
+          "verification": null,
+          "elapsed_sec": 0.03,
+          "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "device": "cuda"
+        }
+      }
+    ]
+  },
+  "9980e0d1-b9e7-40e8-a5b6-d57a2b74239e": {
+    "id": "9980e0d1-b9e7-40e8-a5b6-d57a2b74239e",
+    "project_id": null,
+    "title": "hi",
+    "created_at": "2026-10-14T00:01:44.969545",
+    "updated_at": "2026-10-14T00:01:44.986606",
+    "messages": [
+      {
+        "id": "b07b8555-a9da-4888-bc56-9401d32c393b",
+        "role": "user",
+        "content": "hi",
+        "attachments": [],
+        "timestamp": "2026-10-14T00:01:44.979379"
+      },
+      {
+        "id": "c997e5c2-cd44-4476-a9b0-75893439775a",
+        "role": "assistant",
+        "content": "Hey! How can I help you today?",
+        "timestamp": "2026-10-14T00:01:44.986595",
+        "metadata": {
+          "task_type": "conversation",
+          "tool_used": false,
+          "selected_tool": null,
+          "tool_status": "Thinking...",
+          "verification": null,
+          "elapsed_sec": 0.01,
+          "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "device": "cuda"
+        }
+      }
+    ]
+  },
+  "e25c1bb4-1e79-444b-ad1b-d10fc178536f": {
+    "id": "e25c1bb4-1e79-444b-ad1b-d10fc178536f",
+    "project_id": null,
+    "title": "Remember that I prefer dark UI with",
+    "created_at": "2026-10-14T00:01:45.013421",
+    "updated_at": "2026-10-14T00:01:45.047517",
+    "messages": [
+      {
+        "id": "c18210df-b6cd-48ff-a00e-f3a576886531",
+        "role": "user",
+        "content": "Remember that I prefer dark UI with sleek typography",
+        "attachments": [],
+        "timestamp": "2026-10-14T00:01:45.022786"
+      },
+      {
+        "id": "a6dce01f-e214-45f5-b4d2-ed33523248ae",
+        "role": "assistant",
+        "content": "Got it — I've saved that: \"I prefer dark UI with sleek typography\"",
+        "timestamp": "2026-10-14T00:01:45.047506",
+        "metadata": {
+          "task_type": "memory",
+          "tool_used": false,
+          "selected_tool": null,
+          "tool_status": "Thinking...",
+          "verification": null,
+          "elapsed_sec": 0.02,
+          "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "device": "cuda"
+        }
+      }
+    ]
+  },
+  "f19008eb-095b-4b21-9d38-7c46697fd1bd": {
+    "id": "f19008eb-095b-4b21-9d38-7c46697fd1bd",
+    "project_id": null,
+    "title": "What UI style do I prefer?",
+    "created_at": "2026-10-14T00:01:45.057173",
+    "updated_at": "2026-10-14T00:01:45.095406",
+    "messages": [
+      {
+        "id": "5e138448-7052-48c2-9895-c5ac98d63b7a",
+        "role": "user",
+        "content": "What UI style do I prefer?",
+        "attachments": [],
+        "timestamp": "2026-10-14T00:01:45.066523"
+      },
+      {
+        "id": "8173d6df-315a-4237-a793-bf89a26c99fb",
+        "role": "assistant",
+        "content": "You prefer a dark UI with sleek typography.",
+        "timestamp": "2026-10-14T00:01:45.095399",
+        "metadata": {
+          "task_type": "conversation",
+          "tool_used": false,
+          "selected_tool": null,
+          "tool_status": "Thinking...",
+          "verification": null,
+          "elapsed_sec": 0.03,
+          "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "device": "cuda"
+        }
+      }
+    ]
+  },
+  "3ae0122c-f54b-4063-a91d-46f9f3de097c": {
+    "id": "3ae0122c-f54b-4063-a91d-46f9f3de097c",
+    "project_id": null,
+    "title": "Write Python code for a calculator w",
+    "created_at": "2026-10-14T00:03:25.596708",
+    "updated_at": "2026-10-14T00:03:25.639448",
+    "messages": [
+      {
+        "id": "b14c7fa2-9eff-4a3c-b5ec-47e3afe8f2dc",
+        "role": "user",
+        "content": "Write Python code for a calculator with memory and square root",
+        "attachments": [],
+        "timestamp": "2026-10-14T00:03:25.608179"
+      },
+      {
+        "id": "b1870b3d-9526-457a-b465-b81a7e225323",
+        "role": "assistant",
+        "content": "I am here to help you.",
+        "timestamp": "2026-10-14T00:03:25.639440",
+        "metadata": {
+          "task_type": "programming",
+          "tool_used": false,
+          "selected_tool": null,
+          "tool_status": "Thinking...",
+          "verification": null,
+          "elapsed_sec": 0.03,
+          "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "device": "cuda"
+        }
+      }
+    ]
+  },
+  "beee8169-ae87-4438-aa90-2339eaf7c8de": {
+    "id": "beee8169-ae87-4438-aa90-2339eaf7c8de",
+    "project_id": null,
+    "title": "hi",
+    "created_at": "2026-10-14T00:03:25.649994",
+    "updated_at": "2026-10-14T00:03:25.670643",
+    "messages": [
+      {
+        "id": "4f2a9fe2-d0f0-4fdc-91cc-eccfda254e1c",
+        "role": "user",
+        "content": "hi",
+        "attachments": [],
+        "timestamp": "2026-10-14T00:03:25.660877"
+      },
+      {
+        "id": "206a61fb-f981-42db-b743-94e9f957373d",
+        "role": "assistant",
+        "content": "Hello! How can I assist you today?",
+        "timestamp": "2026-10-14T00:03:25.670628",
+        "metadata": {
+          "task_type": "conversation",
+          "tool_used": false,
+          "selected_tool": null,
+          "tool_status": "Thinking...",
+          "verification": null,
+          "elapsed_sec": 0.01,
+          "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "device": "cuda"
+        }
+      }
+    ]
+  },
+  "3f0f3f5e-b190-4514-a95c-3599e3263106": {
+    "id": "3f0f3f5e-b190-4514-a95c-3599e3263106",
+    "project_id": null,
+    "title": "Remember that I prefer dark UI with",
+    "created_at": "2026-10-14T00:03:25.708917",
+    "updated_at": "2026-10-14T00:03:25.765163",
+    "messages": [
+      {
+        "id": "ef030b2a-c96b-4e85-9c31-61670bc2928e",
+        "role": "user",
+        "content": "Remember that I prefer dark UI with sleek typography",
+        "attachments": [],
+        "timestamp": "2026-10-14T00:03:25.719279"
+      },
+      {
+        "id": "dd318e27-cff3-43ba-9712-1d95a836b1ba",
+        "role": "assistant",
+        "content": "Got it — I've saved that: \"I prefer dark UI with sleek typography\"",
+        "timestamp": "2026-10-14T00:03:25.765151",
+        "metadata": {
+          "task_type": "memory",
+          "tool_used": false,
+          "selected_tool": null,
+          "tool_status": "Thinking...",
+          "verification": null,
+          "elapsed_sec": 0.05,
+          "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "device": "cuda"
+        }
+      }
+    ]
+  },
+  "1e399109-5e25-446d-8f85-f77826f78d2f": {
+    "id": "1e399109-5e25-446d-8f85-f77826f78d2f",
+    "project_id": null,
+    "title": "What UI style do I prefer?",
+    "created_at": "2026-10-14T00:03:25.778618",
+    "updated_at": "2026-10-14T00:15:13.196446",
+    "messages": [
+      {
+        "id": "5a44b625-6508-4f46-bd55-f56818bdfd3e",
+        "role": "user",
+        "content": "What UI style do I prefer?",
+        "attachments": [],
+        "timestamp": "2026-10-14T00:03:25.792476"
+      },
+      {
+        "id": "872f124e-9058-4997-88f8-c5356e9f2e3b",
+        "role": "assistant",
+        "content": "You prefer a dark UI with sleek typography.",
+        "timestamp": "2026-10-14T00:03:25.828657",
+        "metadata": {
+          "task_type": "conversation",
+          "tool_used": false,
+          "selected_tool": null,
+          "tool_status": "Thinking...",
+          "verification": null,
+          "elapsed_sec": 0.04,
+          "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "device": "cuda"
+        }
+      },
+      {
+        "id": "70ad553d-d9a5-4662-ad02-5bdff0317bf2",
+        "role": "user",
+        "content": "Hello",
+        "attachments": [],
+        "timestamp": "2026-10-14T00:15:11.800894"
+      },
+      {
+        "id": "622357b2-9d83-47e5-a9b4-52e403f245cb",
+        "role": "assistant",
+        "content": "Hi there! What can I help you with?",
+        "timestamp": "2026-10-14T00:15:11.811800",
+        "metadata": {
+          "task_type": "conversation",
+          "tool_used": false,
+          "selected_tool": null,
+          "tool_status": "Thinking...",
+          "verification": null,
+          "elapsed_sec": 0.01,
+          "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "device": "cpu"
+        }
+      },
+      {
+        "id": "2982228d-08e5-4835-9ac5-bdbaab5941c5",
+        "role": "user",
+        "content": "25 * 48",
+        "attachments": [],
+        "timestamp": "2026-10-14T00:15:11.829612"
+      },
+      {
+        "id": "3c8f8aa2-28d5-444d-bd50-cf95ac6f1c06",
+        "role": "assistant",
+        "content": "The answer is 1200.",
+        "timestamp": "2026-10-14T00:15:11.843158",
+        "metadata": {
+          "task_type": "calculation",
+          "tool_used": true,
+          "selected_tool": "calculator",
+          "tool_status": "Calculating...",
+          "verification": {
+            "passed": true,
+            "status": "VERIFIED",
+            "detail": "Verified arithmetic: 25 * 48 = 1200",
+            "domain": "arithmetic"
+          },
+          "elapsed_sec": 0.01,
+          "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "device": "cpu"
+        }
+      },
+      {
+        "id": "432deba2-22aa-417d-9a36-d684f3988e58",
+        "role": "user",
+        "content": "Differentiate f(x)=(2x^3-5x+4)(x^2+3x-1)",
+        "attachments": [],
+        "timestamp": "2026-10-14T00:15:11.856354"
+      },
+      {
+        "id": "82697514-3b07-45b3-af3b-0a999cde87ea",
+        "role": "assistant",
+        "content": "10*x**4 + 24*x**3 - 21*x**2 - 22*x + 17",
+        "timestamp": "2026-10-14T00:15:12.850887",
+        "metadata": {
+          "task_type": "math",
+          "tool_used": true,
+          "selected_tool": "math_solver",
+          "tool_status": "Analyzing math problem...",
+          "verification": {
+            "passed": true,
+            "status": "passed",
+            "detail": "verified: derivative checked symbolically for x"
+          },
+          "elapsed_sec": 0.99,
+          "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "device": "cpu"
+        }
+      },
+      {
+        "id": "9c3dcbb7-0636-493a-8a1a-a9193e343194",
+        "role": "user",
+        "content": "Explain how a CPU executes instructions",
+        "attachments": [],
+        "timestamp": "2026-10-14T00:15:12.863148"
+      },
+      {
+        "id": "f2fead95-6a2f-494e-8425-d7c8d93ad9bf",
+        "role": "assistant",
+        "content": "My local language model isn't loaded yet. For deterministic tasks (math, code), I can still help. For open conversation, start me with controller.load_model() first.",
+        "timestamp": "2026-10-14T00:15:12.899101",
+        "metadata": {
+          "task_type": "conversation",
+          "tool_used": false,
+          "selected_tool": null,
+          "tool_status": "Thinking...",
+          "verification": null,
+          "elapsed_sec": 0.04,
+          "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "device": "cpu"
+        }
+      },
+      {
+        "id": "2c97b0f2-8825-4fdf-b72a-5abe63b6b9c6",
+        "role": "user",
+        "content": "Run this Python code: print([x**2 for x in range(5)])",
+        "attachments": [],
+        "timestamp": "2026-10-14T00:15:12.912248"
+      },
+      {
+        "id": "638ad111-bc02-4008-abd3-2fdb9d4493c3",
+        "role": "assistant",
+        "content": "```\n[0, 1, 4, 9, 16]\n```",
+        "timestamp": "2026-10-14T00:15:13.008538",
+        "metadata": {
+          "task_type": "code_execution",
+          "tool_used": true,
+          "selected_tool": "python",
+          "tool_status": "Running Python...",
+          "verification": {
+            "passed": true,
+            "status": "VERIFIED",
+            "detail": "Python execution verified (exit 0, stdout 16 chars).",
+            "domain": "code_execution"
+          },
+          "elapsed_sec": 0.1,
+          "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "device": "cpu"
+        }
+      },
+      {
+        "id": "2b06dbc7-a6c6-457b-aa73-e9c1ef307cf3",
+        "role": "user",
+        "content": "What is 10 + 10?",
+        "attachments": [],
+        "timestamp": "2026-10-14T00:15:13.159902"
+      },
+      {
+        "id": "013b43bc-5116-4d98-a75f-2b4c5160e1b4",
+        "role": "assistant",
+        "content": "The answer is 20.",
+        "timestamp": "2026-10-14T00:15:13.171601",
+        "metadata": {
+          "task_type": "calculation",
+          "tool_used": true,
+          "selected_tool": "calculator",
+          "tool_status": "Calculating...",
+          "verification": {
+            "passed": true,
+            "status": "VERIFIED",
+            "detail": "Verified arithmetic: 10 + 10 = 20",
+            "domain": "arithmetic"
+          },
+          "elapsed_sec": 0.01,
+          "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "device": "cpu"
+        }
+      },
+      {
+        "id": "4242844c-cbb5-448d-ae84-00612967d6bc",
+        "role": "user",
+        "content": "What is 20 + 20?",
+        "attachments": [],
+        "timestamp": "2026-10-14T00:15:13.185714"
+      },
+      {
+        "id": "2fb8fc47-8386-42c5-a13a-e87fe7b4b8ea",
+        "role": "assistant",
+        "content": "The answer is 40.",
+        "timestamp": "2026-10-14T00:15:13.196439",
+        "metadata": {
+          "task_type": "calculation",
+          "tool_used": true,
+          "selected_tool": "calculator",
+          "tool_status": "Calculating...",
+          "verification": {
+            "passed": true,
+            "status": "VERIFIED",
+            "detail": "Verified arithmetic: 20 + 20 = 40",
+            "domain": "arithmetic"
+          },
+          "elapsed_sec": 0.01,
+          "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "device": "cpu"
+        }
+      }
+    ]
+  },
+  "9d9aa9fb-098a-4e44-a8de-fcc71af2578b": {
+    "id": "9d9aa9fb-098a-4e44-a8de-fcc71af2578b",
+    "project_id": null,
+    "title": "Write Python code for a calculator w",
+    "created_at": "2026-10-14T00:15:43.353855",
+    "updated_at": "2026-10-14T00:15:43.483291",
+    "messages": [
+      {
+        "id": "c13fb73b-5ab0-417a-a218-ffff24e3a390",
+        "role": "user",
+        "content": "Write Python code for a calculator with memory and square root",
+        "attachments": [],
+        "timestamp": "2026-10-14T00:15:43.363953"
+      },
+      {
+        "id": "afa8cad7-3592-4548-bbc8-3ee1bc71db5c",
+        "role": "assistant",
+        "content": "I am here to help you.",
+        "timestamp": "2026-10-14T00:15:43.483283",
+        "metadata": {
+          "task_type": "programming",
+          "tool_used": false,
+          "selected_tool": null,
+          "tool_status": "Thinking...",
+          "verification": null,
+          "elapsed_sec": 0.12,
+          "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "device": "cuda"
+        }
+      }
+    ]
+  },
+  "4b3b3126-7167-4b2f-8213-f671e2ff712b": {
+    "id": "4b3b3126-7167-4b2f-8213-f671e2ff712b",
+    "project_id": null,
+    "title": "hi",
+    "created_at": "2026-10-14T00:15:43.490805",
+    "updated_at": "2026-10-14T00:15:43.517824",
+    "messages": [
+      {
+        "id": "e9be54d5-1a33-42e3-bb1c-a84fc0356fba",
+        "role": "user",
+        "content": "hi",
+        "attachments": [],
+        "timestamp": "2026-10-14T00:15:43.500187"
+      },
+      {
+        "id": "eed443d7-ef04-45b8-a648-9185709160c7",
+        "role": "assistant",
+        "content": "Hi there! What can I help you with?",
+        "timestamp": "2026-10-14T00:15:43.517809",
+        "metadata": {
+          "task_type": "conversation",
+          "tool_used": false,
+          "selected_tool": null,
+          "tool_status": "Thinking...",
+          "verification": null,
+          "elapsed_sec": 0.02,
+          "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "device": "cuda"
+        }
+      }
+    ]
+  },
+  "96c341e3-6db4-4f2f-bd70-fbe09fec5452": {
+    "id": "96c341e3-6db4-4f2f-bd70-fbe09fec5452",
+    "project_id": null,
+    "title": "Remember that I prefer dark UI with",
+    "created_at": "2026-10-14T00:15:43.655486",
+    "updated_at": "2026-10-14T00:15:43.800995",
+    "messages": [
+      {
+        "id": "b92644be-01db-472a-a48e-91e55512f280",
+        "role": "user",
+        "content": "Remember that I prefer dark UI with sleek typography",
+        "attachments": [],
+        "timestamp": "2026-10-14T00:15:43.664286"
+      },
+      {
+        "id": "76292ea3-05e7-4704-8db4-f7b93a2f9b8a",
+        "role": "assistant",
+        "content": "Got it — I've saved that: \"I prefer dark UI with sleek typography\"",
+        "timestamp": "2026-10-14T00:15:43.800986",
+        "metadata": {
+          "task_type": "memory",
+          "tool_used": false,
+          "selected_tool": null,
+          "tool_status": "Thinking...",
+          "verification": null,
+          "elapsed_sec": 0.14,
+          "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "device": "cuda"
+        }
+      }
+    ]
+  },
+  "dba57f44-e955-4db9-9dff-689a9e085501": {
+    "id": "dba57f44-e955-4db9-9dff-689a9e085501",
+    "project_id": null,
+    "title": "What UI style do I prefer?",
+    "created_at": "2026-10-14T00:15:43.810430",
+    "updated_at": "2026-10-14T00:15:43.846882",
+    "messages": [
+      {
+        "id": "069d5adb-f47e-480b-a0ac-afe2b0132000",
+        "role": "user",
+        "content": "What UI style do I prefer?",
+        "attachments": [],
+        "timestamp": "2026-10-14T00:15:43.817790"
+      },
+      {
+        "id": "80a1993f-3d92-4cf9-9c5f-5cedb2dafe3a",
+        "role": "assistant",
+        "content": "You prefer a dark UI with sleek typography.",
+        "timestamp": "2026-10-14T00:15:43.846874",
+        "metadata": {
+          "task_type": "conversation",
+          "tool_used": false,
+          "selected_tool": null,
+          "tool_status": "Thinking...",
+          "verification": null,
+          "elapsed_sec": 0.03,
+          "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "device": "cuda"
+        }
+      }
+    ]
   }
 }

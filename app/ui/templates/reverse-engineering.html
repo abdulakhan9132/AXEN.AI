@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reverse engineering · AXEN</title>
+<link rel="stylesheet" href="/static/css/reverse-engineering.css">
+<script defer src="/static/js/reverse-engineering.js"></script>
+</head>
+<body>
+<header><a class="brand" href="/" aria-label="Axen home"><span class="mark" aria-hidden="true"><i></i><b></b><em></em></span>AXEN<sup>®</sup></a><a href="/">Back to chat</a></header>
+<main>
+<p class="eyebrow">AXEN / CODE EXPLORER</p>
+<h1>Understand what’s<br>under the surface.</h1>
+<p class="intro">Map a project’s files, functions, imports and routes. Follow the evidence, one file at a time.</p>
+<section class="workspace" aria-labelledby="inspect-heading">
+<h2 id="inspect-heading">Inspect a codebase</h2>
+<form id="inspect-form">
+<label for="target">Folder inside your Axen project</label>
+<div class="input-row"><input id="target" name="target" value="." placeholder="e.g. ai or axen/coding" required maxlength="500" aria-describedby="folder-hint"><button type="submit" id="inspect-button">Inspect project <span aria-hidden="true">↗</span></button></div>
+<p id="folder-hint" class="muted">Use . for Axen itself, or a subfolder containing your source. Files stay on this computer.</p>
+</form>
+<div class="examples" aria-label="Example folders"><button type="button" data-target=".">Axen project</button><button type="button" data-target="ai">Brain & server</button><button type="button" data-target="axen/coding">Coding tools</button></div>
+<p id="status" role="status" aria-live="polite">Ready to inspect. Target code is read without running it.</p>
+<p id="error" role="alert" hidden></p>
+</section>
+<section id="results" hidden aria-labelledby="results-heading">
+<div class="section-head"><h2 id="results-heading" tabindex="-1">Project map</h2><button id="download" type="button">Download report</button></div>
+<div id="stats" class="stats"></div>
+<p id="coverage" class="muted"></p>
+<div class="map-layout"><section class="file-list"><h3>Source files</h3><label class="muted" for="filter">Filter by name or language</label><input id="filter" type="search" placeholder="Search files"><p id="empty" hidden>No files match this filter.</p><div id="files"></div></section>
+<section id="detail" class="detail" aria-live="polite"><h3>Select a source file</h3><p>See its symbols, import connections and route patterns.</p></section></div>
+</section>
+<details class="scope"><summary>What this inspection can tell you</summary><p>Axen recognizes source patterns and resolves local JavaScript, TypeScript and Python imports. It records basic symbols for Java, Go, Rust, C/C++, C#, PHP, Ruby, Swift and Kotlin. It does not decompile binaries or prove runtime behavior. Comments and strings may produce false matches.</p><p>Hidden folders, credentials, dependencies, generated assets and user data are skipped. Large projects are capped; inspect a smaller folder when coverage is partial.</p></details>
+<section class="training"><h2>Brain training</h2><p id="training-status">Loading the most recent training report…</p></section>
+</main><footer>AXEN · Source evidence, with the limits made visible.</footer>
+</body></html>

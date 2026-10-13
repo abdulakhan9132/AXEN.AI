@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "train": "node ai/brain/train.js 600"
+    "train": "node ai/brain/train.js 600",
+    "train:reviewed": "node ai/brain/train-reviewed.js",
+    "test:reverse": "node --test tests/reverse-engineering.test.js"
   },
   "engines": {
     "node": ">=18.0.0"
