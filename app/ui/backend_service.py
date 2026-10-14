@@ -153,6 +153,7 @@ class AxenBackendService:
         status_callback: Optional[Callable[[str], None]] = None,
         state_callback: Optional[Callable[[str, str, Optional[Dict[str, Any]]], None]] = None,
         cancel_event: Optional[threading.Event] = None,
+        think_mode: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Process a user message through AssistantController.
@@ -230,6 +231,7 @@ class AxenBackendService:
                     cancel_event=cancel_event,
                     request_id=request_id,
                     session_id=sid,
+                    think_mode=think_mode,
                 )
                 elapsed_sec = time.perf_counter() - start_time
             finally:
@@ -248,6 +250,10 @@ class AxenBackendService:
         )
         tool_status = _format_tool_status(task_type, selected_tool)
         verification = state.verification if state else debug_info.get("verification")
+        meta_dict = state.metadata if state else {}
+        think_mode_used = meta_dict.get("think_mode", think_mode or "auto")
+        think_metrics = meta_dict.get("think_metrics", {})
+        claim_verification = meta_dict.get("claim_verification", {})
 
         assistant_msg = {
             "id": str(uuid.uuid4()),
@@ -263,6 +269,9 @@ class AxenBackendService:
                 "elapsed_sec": round(elapsed_sec, 2),
                 "model": getattr(self.controller.model, "model_name", "TinyLlama"),
                 "device": getattr(self.controller.model, "_device", "cpu"),
+                "think_mode": think_mode_used,
+                "think_metrics": think_metrics,
+                "claim_verification": claim_verification,
             },
         }
         conv["messages"].append(assistant_msg)
@@ -282,6 +291,9 @@ class AxenBackendService:
             "elapsed": round(elapsed_sec, 2),
             "device": getattr(self.controller.model, "_device", "cpu"),
             "model_ready": self.controller.model_ready,
+            "think_mode": think_mode_used,
+            "think_metrics": think_metrics,
+            "claim_verification": claim_verification,
         }
 
     # -----------------------------------------------------------------------

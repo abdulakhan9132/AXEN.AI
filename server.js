@@ -287,6 +287,75 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, { stats: memBrain.stats() });
   }
 
+  // 5b. Unified Model Management
+  if (req.method === "GET" && pathname === "/api/models") {
+    return sendJson(res, 200, {
+      models: [
+        {
+          id: "router",
+          name: "Auto Router (Intelligent)",
+          provider: "hybrid",
+          type: "local",
+          context_length: 4096,
+          status: "active",
+          available: true,
+          description: "Routes requests automatically between local neural brain, coding models, and solvers."
+        },
+        {
+          id: "own_brain",
+          name: "AXEN Local Brain (Neural)",
+          provider: "node_transformer",
+          type: "local",
+          context_length: 1024,
+          status: "ready",
+          available: true,
+          description: "Ultra-lightweight zero-GPU local neural network running on Node.js."
+        },
+        {
+          id: "qwen2.5:1.5b",
+          name: "Qwen 2.5 Coder (1.5B Q4)",
+          provider: "ollama",
+          type: "local",
+          context_length: 8192,
+          status: "ready",
+          available: false,
+          description: "Specialized code generation & technical reasoning model optimized for 4GB VRAM."
+        },
+        {
+          id: "tinyllama",
+          name: "TinyLlama (1.1B PyTorch CUDA)",
+          provider: "pytorch_hf",
+          type: "local",
+          context_length: 2048,
+          status: "ready",
+          available: true,
+          description: "Direct local PyTorch/Transformers inference with CUDA acceleration."
+        },
+        {
+          id: "cloud_openrouter",
+          name: "OpenRouter Cloud API (Optional)",
+          provider: "openrouter",
+          type: "cloud",
+          context_length: 128000,
+          status: "ready",
+          available: !!(process.env.OPENROUTER_API_KEY || process.env.CLOUD_API_KEY),
+          description: "Optional cloud provider for frontier models (Claude 3.5 Sonnet, GPT-4o, DeepSeek)."
+        }
+      ],
+      active_model: "router"
+    });
+  }
+
+  if (req.method === "POST" && pathname === "/api/models/select") {
+    const body = await readJson(req);
+    const modelId = body.model_id || "router";
+    return sendJson(res, 200, {
+      success: true,
+      active_model: modelId,
+      message: `Switched active model to ${modelId}`
+    });
+  }
+
   // Not found fallback
   res.writeHead(404, { "Content-Type": "application/json" });
   res.end(JSON.stringify({ error: "Not found", path: pathname }));

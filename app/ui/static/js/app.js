@@ -707,11 +707,17 @@
   }
 
   async function ask(messages, { onStage, onToken, onDone, onError }, signal) {
+    const thinkModeSelect = document.getElementById('select-think-mode');
+    const thinkMode = thinkModeSelect ? thinkModeSelect.value : 'auto';
+    const modelSelect = document.getElementById('select-active-model');
+    const model = modelSelect ? modelSelect.value : 'router';
+    const payload = { messages, think_mode: thinkMode, mode: thinkMode, model: model };
+
     let endpoint = '/api/v2/chat';
     let response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify(payload),
       signal,
     });
     
@@ -721,7 +727,7 @@
       response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages }),
+        body: JSON.stringify(payload),
         signal,
       });
     }
@@ -1358,6 +1364,34 @@
       fileInputKnowledge.onchange = (e) => {
         handleFilesSelected(e.target.files, true);
       };
+    }
+
+    // Model selector change handler
+    const selectActiveModel = document.getElementById('select-active-model');
+    if (selectActiveModel) {
+      selectActiveModel.addEventListener('change', async (e) => {
+        const modelId = e.target.value;
+        try {
+          const res = await fetch('/api/models/select', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model_id: modelId }),
+          });
+          if (res.ok) {
+            showToast(`Active model: ${e.target.options[e.target.selectedIndex].text}`);
+          }
+        } catch (err) {
+          console.warn('Model switch error:', err);
+        }
+      });
+    }
+
+    // Thinking mode selector change handler
+    const selectThinkMode = document.getElementById('select-think-mode');
+    if (selectThinkMode) {
+      selectThinkMode.addEventListener('change', (e) => {
+        showToast(`Reasoning mode: ${e.target.options[e.target.selectedIndex].text}`);
+      });
     }
 
     // Sidebar Navigation Tabs & Views

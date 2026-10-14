@@ -100,6 +100,38 @@ async def generate_image_endpoint(req: ImageApiRequest) -> Dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
+# Unified Model Management Endpoints
+# ---------------------------------------------------------------------------
+
+@app.get("/api/models")
+def get_models() -> Dict[str, Any]:
+    """Return catalog of local open-weight and configured cloud models."""
+    from app.ai.model_manager import ModelManager
+    manager = ModelManager()
+    return {
+        "active_model": manager.active_model_name,
+        "models": manager.list_models(),
+    }
+
+
+class SelectModelRequest(BaseModel):
+    model_id: str = Field(..., min_length=1)
+
+
+@app.post("/api/models/select")
+def select_model(req: SelectModelRequest) -> Dict[str, Any]:
+    """Select the active model runtime."""
+    from app.ai.model_manager import ModelManager
+    manager = ModelManager()
+    success = manager.switch_model(req.model_id)
+    return {
+        "success": success,
+        "active_model": manager.active_model_name,
+        "message": f"Active model switched to {req.model_id}",
+    }
+
+
+# ---------------------------------------------------------------------------
 # UI Root Route
 # ---------------------------------------------------------------------------
 
@@ -110,6 +142,25 @@ def serve_index() -> str:
     if not index_file.exists():
         raise HTTPException(status_code=404, detail="Index template not found")
     return index_file.read_text(encoding="utf-8")
+
+
+@app.get("/vision", response_class=HTMLResponse)
+@app.get("/vision.html", response_class=HTMLResponse)
+def serve_vision() -> str:
+    """Serve the dedicated Axen Vision Image Generation Studio."""
+    vision_file = TEMPLATES_DIR / "vision.html"
+    if not vision_file.exists():
+        raise HTTPException(status_code=404, detail="Vision template not found")
+    return vision_file.read_text(encoding="utf-8")
+
+
+@app.get("/reverse-engineering", response_class=HTMLResponse)
+def serve_reverse_engineering() -> str:
+    """Serve the reverse engineering dashboard."""
+    rev_file = TEMPLATES_DIR / "reverse-engineering.html"
+    if not rev_file.exists():
+        raise HTTPException(status_code=404, detail="Reverse engineering template not found")
+    return rev_file.read_text(encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -135,6 +186,7 @@ async def chat_endpoint(payload: Dict[str, Any]) -> Dict[str, Any]:
     if not message:
         return {"status": "error", "summary": "A message is required."}
 
+    think_mode = payload.get("think_mode") or payload.get("mode")
     service = AxenBackendService.get_instance()
     result = service.chat(
         message=message,
@@ -142,6 +194,7 @@ async def chat_endpoint(payload: Dict[str, Any]) -> Dict[str, Any]:
         project_id=project_id,
         request_id=request_id,
         attachments=attachments,
+        think_mode=think_mode,
     )
     return result
 
@@ -166,6 +219,25 @@ async def chat_v2_endpoint(request: Request):
     
     async def event_generator() -> AsyncGenerator[str, None]:
         try:
+            think_mode = body.get("think_mode") or body.get("mode")
+            if think_mode in ("fast", "balanced", "deep") or body.get("use_think_engine"):
+                service = AxenBackendService.get_instance()
+                yield f"data: {json.dumps({'type': 'stage', 'data': f'Think Engine: {str(think_mode).upper()} mode...' })}\n\n"
+                
+                res = service.chat(
+                    message=last_msg,
+                    think_mode=think_mode,
+                )
+                final_answer = res.get("response", "")
+                words = final_answer.split(" ")
+                for idx, word in enumerate(words):
+                    chunk = word + (" " if idx < len(words) - 1 else "")
+                    yield f"data: {json.dumps({'type': 'token', 'data': chunk})}\n\n"
+                    await asyncio.sleep(0.01)
+                    
+                yield f"data: {json.dumps({'type': 'done', 'data': final_answer})}\n\n"
+                return
+
             from app.ai.router import ModelRouter
             from app.context.engine import ContextEngine
             from app.context.models import ContextRequest, ContextComponent, ContextPriority, ModelCapability, ModelRequest
@@ -247,6 +319,7 @@ async def chat_stream(
     without exposing internal chain-of-thought.
     """
     attachments = []
+    think_mode = request.query_params.get("think_mode") or request.query_params.get("mode")
     if request.method == "POST":
         try:
             body = await request.json()
@@ -255,6 +328,7 @@ async def chat_stream(
             project_id = body.get("project_id") or project_id
             request_id = body.get("request_id") or request_id
             attachments = body.get("attachments") or []
+            think_mode = body.get("think_mode") or body.get("mode") or think_mode
         except Exception:
             pass
 
@@ -287,6 +361,7 @@ async def chat_stream(
                 attachments=attachments,
                 state_callback=_state_callback,
                 cancel_event=cancel_event,
+                think_mode=think_mode,
             )
             loop.call_soon_threadsafe(event_queue.put_nowait, {"type": "result", "result": res, "request_id": req_id})
         except Exception as exc:

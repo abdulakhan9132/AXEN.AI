@@ -258,7 +258,7 @@
     <!-- MAIN CONTENT AREA -->
     <main class="main-content" id="main-content">
       
-      <!-- Top floating toggle when sidebar is collapsed -->
+      <!-- Top floating toggle and control bar -->
       <div class="main-top-bar">
         <button class="btn-floating-toggle" id="btn-floating-toggle" title="Open Sidebar" aria-label="Open sidebar">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -266,6 +266,31 @@
             <line x1="9" y1="3" x2="9" y2="21"></line>
           </svg>
         </button>
+
+        <div class="top-bar-controls" style="display: flex; align-items: center; gap: 10px; margin-left: auto; padding-right: 16px;">
+          <!-- Model Selector Pill -->
+          <div class="model-selector-pill" id="model-selector-pill" style="display: flex; align-items: center; background: #18181b; border: 1px solid #27272a; border-radius: 99px; padding: 2px 8px; font-size: 13px;">
+            <span style="color: #a1a1aa; padding: 0 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Model:</span>
+            <select id="select-active-model" style="background: transparent; border: none; color: #fafafa; font-size: 12px; font-weight: 500; outline: none; cursor: pointer; padding: 4px 6px;">
+              <option value="router" selected style="background: #18181b; color: #fafafa;">🌐 Auto Router</option>
+              <option value="qwen2.5:1.5b" style="background: #18181b; color: #fafafa;">💻 Qwen 2.5 Coder (Ollama)</option>
+              <option value="tinyllama" style="background: #18181b; color: #fafafa;">🔥 TinyLlama (CUDA)</option>
+              <option value="own_brain" style="background: #18181b; color: #fafafa;">🧠 AXEN Local Brain</option>
+              <option value="cloud_openrouter" style="background: #18181b; color: #fafafa;">☁️ Cloud API (Optional)</option>
+            </select>
+          </div>
+
+          <!-- Thinking Mode Selector Pill -->
+          <div class="think-mode-selector" id="think-mode-selector" style="display: flex; align-items: center; background: #18181b; border: 1px solid #27272a; border-radius: 99px; padding: 2px 8px; font-size: 13px;">
+            <span style="color: #a1a1aa; padding: 0 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Mode:</span>
+            <select id="select-think-mode" style="background: transparent; border: none; color: #fafafa; font-size: 12px; font-weight: 500; outline: none; cursor: pointer; padding: 4px 6px;">
+              <option value="auto" selected style="background: #18181b; color: #fafafa;">⚡ Auto (Classify)</option>
+              <option value="fast" style="background: #18181b; color: #fafafa;">🚀 Fast (Direct)</option>
+              <option value="balanced" style="background: #18181b; color: #fafafa;">⚖️ Balanced (Standard)</option>
+              <option value="deep" style="background: #18181b; color: #fafafa;">🧠 Deep (Multi-step)</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <!-- PROJECT WORKSPACE HEADER BANNER -->
