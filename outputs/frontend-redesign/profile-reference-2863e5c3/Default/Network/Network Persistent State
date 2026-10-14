@@ -1,0 +1,1 @@
+{"net":{"http_server_properties":{"broken_alternative_services":[{"anonymization":["GAAAABIAAABodHRwczovL2dvb2dsZS5jb20AAA==",false,0],"broken_count":1,"broken_until":"1791997689","host":"www.google.com","port":443,"protocol_str":"quic"}],"servers":[],"version":5},"network_qualities":{"CAISABiAgICA+P////8B":"4G"}}}

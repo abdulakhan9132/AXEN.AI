@@ -1,0 +1,128 @@
+{
+  "train": [
+    {
+      "instruction": "Sum integers from zero through 0 inclusive.",
+      "output": "The sum is 0.",
+      "verified": true,
+      "source": "fixed_benchmark_verified",
+      "metadata": {
+        "goal_id": "learn_803eda4bbbfc",
+        "provenance": {
+          "suite": "inclusive-sum-v1",
+          "split": "practice",
+          "code_sha256": "9f3171c0446af3115bfaef259f32d371b0d1e9187f5815b0be72cee4f450f45b",
+          "sources": [
+            "https://docs.python.org/3/tutorial/controlflow.html#the-range-function"
+          ]
+        }
+      }
+    },
+    {
+      "instruction": "Sum integers from zero through 1 inclusive.",
+      "output": "The sum is 1.",
+      "verified": true,
+      "source": "fixed_benchmark_verified",
+      "metadata": {
+        "goal_id": "learn_803eda4bbbfc",
+        "provenance": {
+          "suite": "inclusive-sum-v1",
+          "split": "practice",
+          "code_sha256": "9f3171c0446af3115bfaef259f32d371b0d1e9187f5815b0be72cee4f450f45b",
+          "sources": [
+            "https://docs.python.org/3/tutorial/controlflow.html#the-range-function"
+          ]
+        }
+      }
+    },
+    {
+      "instruction": "Sum integers from zero through 4 inclusive.",
+      "output": "The sum is 10.",
+      "verified": true,
+      "source": "fixed_benchmark_verified",
+      "metadata": {
+        "goal_id": "learn_803eda4bbbfc",
+        "provenance": {
+          "suite": "inclusive-sum-v1",
+          "split": "practice",
+          "code_sha256": "9f3171c0446af3115bfaef259f32d371b0d1e9187f5815b0be72cee4f450f45b",
+          "sources": [
+            "https://docs.python.org/3/tutorial/controlflow.html#the-range-function"
+          ]
+        }
+      }
+    },
+    {
+      "instruction": "Sum integers from zero through 6 inclusive.",
+      "output": "The sum is 21.",
+      "verified": true,
+      "source": "fixed_benchmark_verified",
+      "metadata": {
+        "goal_id": "learn_803eda4bbbfc",
+        "provenance": {
+          "suite": "inclusive-sum-v1",
+          "split": "practice",
+          "code_sha256": "9f3171c0446af3115bfaef259f32d371b0d1e9187f5815b0be72cee4f450f45b",
+          "sources": [
+            "https://docs.python.org/3/tutorial/controlflow.html#the-range-function"
+          ]
+        }
+      }
+    }
+  ],
+  "validation": [
+    {
+      "instruction": "Sum integers from zero through 2 inclusive.",
+      "output": "The sum is 3.",
+      "verified": true,
+      "source": "fixed_benchmark_verified",
+      "metadata": {
+        "goal_id": "learn_803eda4bbbfc",
+        "provenance": {
+          "suite": "inclusive-sum-v1",
+          "split": "unseen",
+          "code_sha256": "9f3171c0446af3115bfaef259f32d371b0d1e9187f5815b0be72cee4f450f45b",
+          "sources": [
+            "https://docs.python.org/3/tutorial/controlflow.html#the-range-function"
+          ]
+        }
+      }
+    }
+  ],
+  "held_out": [
+    {
+      "instruction": "Sum integers from zero through 9 inclusive.",
+      "output": "The sum is 45.",
+      "verified": true,
+      "source": "fixed_benchmark_verified",
+      "metadata": {
+        "goal_id": "learn_803eda4bbbfc",
+        "provenance": {
+          "suite": "inclusive-sum-v1",
+          "split": "unseen",
+          "code_sha256": "9f3171c0446af3115bfaef259f32d371b0d1e9187f5815b0be72cee4f450f45b",
+          "sources": [
+            "https://docs.python.org/3/tutorial/controlflow.html#the-range-function"
+          ]
+        }
+      }
+    },
+    {
+      "instruction": "Sum integers from zero through 13 inclusive.",
+      "output": "The sum is 91.",
+      "verified": true,
+      "source": "fixed_benchmark_verified",
+      "metadata": {
+        "goal_id": "learn_803eda4bbbfc",
+        "provenance": {
+          "suite": "inclusive-sum-v1",
+          "split": "unseen",
+          "code_sha256": "9f3171c0446af3115bfaef259f32d371b0d1e9187f5815b0be72cee4f450f45b",
+          "sources": [
+            "https://docs.python.org/3/tutorial/controlflow.html#the-range-function"
+          ]
+        }
+      }
+    }
+  ],
+  "replay": []
+}

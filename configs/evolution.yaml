@@ -1,0 +1,48 @@
+# ==============================================================================
+# AXEN Self-Evolution Engine Configuration
+# ==============================================================================
+
+evolution:
+  enabled: true
+  version: "1.0.0"
+
+  # Search Loop (AlphaEvolve)
+  search:
+    num_candidates_per_weakness: 3
+    max_generations: 5
+    default_seed: 42
+    anti_overfitting:
+      train_split_ratio: 0.7
+      held_out_min_improvement_ratio: 0.5
+      flag_on_degradation: true
+
+  # Sandbox Execution Limits (RTX 3050 & 8 GB RAM optimized)
+  sandbox:
+    max_memory_mb: 512
+    timeout_seconds: 10.0
+    block_network: true
+    max_concurrent_sandboxes: 3
+    backup_dir: ".backups/evolution"
+
+  # Neural Weight Fine-Tuning
+  neural_training:
+    staging_dir: "checkpoints/evolution_staging"
+    min_val_loss_improvement: 0.001
+    curation:
+      min_instruction_length: 5
+      max_instruction_length: 2000
+      min_output_length: 2
+      max_output_length: 4000
+      strict_verified_only: true
+
+  # Security & Human Governance
+  security:
+    require_human_approval_for_merge: true
+    allow_recursive_self_modification: false
+    deny_list:
+      - "axen/evolution/permissions.py"
+      - "axen/evolution/approval.py"
+      - "axen/evolution/sandbox_policy.py"
+      - "app/security/permissions.py"
+      - "axen/agent/loop.py"
+      - "checkpoints/foundation/"

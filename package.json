@@ -6,6 +6,9 @@
   "scripts": {
     "start": "node server.js --unified",
     "start:node": "node server.js",
+    "learning:status": "node server.js --autonomy-status",
+    "learning:test": "node server.js --autonomy-test",
+    "learning:demo": "node server.js --learning-demo-offline",
     "train": "node ai/brain/train.js 600",
     "train:reviewed": "node ai/brain/train-reviewed.js",
     "test:reverse": "node --test tests/reverse-engineering.test.js"

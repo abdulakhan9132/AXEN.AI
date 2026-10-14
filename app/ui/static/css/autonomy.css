@@ -1,0 +1,16 @@
+.autonomy-panel { padding: 12px; border: 1px solid #445269; border-radius: 10px; margin-bottom: 16px; }
+.autonomy-panel h3, .autonomy-panel h4 { margin: 12px 0 6px; }
+.autonomy-panel p, .autonomy-panel label { font-size: 12px; line-height: 1.5; }
+.autonomy-controls { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+.autonomy-controls button, .autonomy-controls select { padding: 6px; border-radius: 5px; background: #243247; color: #eef2ff; border: 1px solid #64748b; cursor: pointer; }
+.autonomy-controls button:disabled { opacity: .4; cursor: default; }
+.autonomy-controls .autonomy-emergency { background: #8b1d2c; }
+.autonomy-evidence { max-height: 250px; overflow: auto; font-size: 11px; line-height: 1.5; }
+.autonomy-evidence pre, pre.autonomy-evidence { white-space: pre-wrap; overflow-wrap: anywhere; }
+.autonomy-evidence a { display: block; color: #93c5fd; overflow-wrap: anywhere; }
+.autonomy-evidence > div { margin-bottom: 12px; border-bottom: 1px solid #445269; }
+.autonomy-panel [role=alert] { color: #fda4af; }
+.autonomy-panel > button { padding: 7px 10px; margin: 10px 5px 0 0; border: 1px solid var(--line); border-radius: 8px; background: var(--glass-strong); color: var(--ink); font-size: 12px; cursor: pointer; }
+.autonomy-panel > button.autonomy-emergency { background: #8b1d2c; color: white; border-color: #8b1d2c; }
+.autonomy-panel > button:disabled { opacity: .4; cursor: default; }
+.autonomy-panel details summary { padding-block: 8px; cursor: pointer; font-size: 12px; color: var(--muted); }

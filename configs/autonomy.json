@@ -1,0 +1,28 @@
+{
+  "authorized_skills": ["Python debugging"],
+  "session_seconds": 1800,
+  "max_goals": 1,
+  "max_sources": 5,
+  "max_videos": 2,
+  "max_experiments": 3,
+  "max_training_jobs": 1,
+  "request_interval_seconds": 2,
+  "max_requests": 15,
+  "memory_busy_percent": 85,
+  "minimum_available_mb": 128,
+  "cpu_busy_percent": 85,
+  "autostart": false,
+  "background_agent": {
+    "enabled": true,
+    "auto_apply_tested_changes": true,
+    "cycle_interval_seconds": 3600
+  },
+  "offline_demo": false,
+  "code_targets": [],
+  "video_learning": {"enabled": false, "licensed_transcripts": {}},
+  "neural_training": {"enabled": false, "checkpoint": null, "dataset": null, "activation_target": null, "max_steps": 15},
+  "domains": ["docs.python.org"],
+  "sources": [
+    {"topic": "Python debugging range boundaries", "url": "https://docs.python.org/3/tutorial/controlflow.html#the-range-function"}
+  ]
+}

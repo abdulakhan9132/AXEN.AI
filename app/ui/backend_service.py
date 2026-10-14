@@ -78,6 +78,7 @@ class AxenBackendService:
         self.model_loading: bool = False
         self.model_load_error: Optional[str] = None
         self._chat_lock = threading.Lock()
+        self._foreground_requests = 0
         from axen.projects.project_manager import ProjectManager
         self.project_manager = ProjectManager.get_instance()
         self.controller.project_manager = self.project_manager
@@ -143,6 +144,15 @@ class AxenBackendService:
     # Chat Dispatch with Status Events
     # -----------------------------------------------------------------------
 
+    def run_foreground(self, function, *args, **kwargs):
+        with self._lock:
+            self._foreground_requests += 1
+        try:
+            return function(*args, **kwargs)
+        finally:
+            with self._lock:
+                self._foreground_requests -= 1
+
     def unified_response(self, message, manager, *, current_file=None, attachments=None,
                          session_id=None, project_id=None, persist_messages=True, state_callback=None):
         """One AEXN request dispatcher, reusing local models, Think Engine and tools."""
@@ -172,6 +182,7 @@ class AxenBackendService:
                     conv['updated_at'] = datetime.now().isoformat()
                     self._save_conversations_to_disk()
                 result['session_id'] = sid
+            self._queue_answer_review(message, result)
             return result
         if kind == "document" and not attachments:
             return finish({"response": "Attach the document you want me to analyze, then send your question.", "capability": "document"})
@@ -332,6 +343,20 @@ class AxenBackendService:
         tool_status = _format_tool_status(task_type, selected_tool)
         verification = state.verification if state else debug_info.get("verification")
         meta_dict = state.metadata if state else {}
+        # Measured task telemetry can select authorized learning curricula.
+        # A low-confidence signal alone is never an improvement measurement.
+        if state and "python" in message.lower():
+            try:
+                from axen.evolution.learning_worker import get_worker
+                from axen.evolution.learning_store import record_task_observation
+                import hashlib
+                record_task_observation(get_worker().store, skill="Python debugging",
+                    task_failed=state.status == "failed",
+                    low_confidence=isinstance(meta_dict.get("confidence"), (int, float)) and meta_dict["confidence"] < 0.5,
+                    execution_failed=any(not r.get("success", True) for r in state.tool_results),
+                    request_hash=hashlib.sha256(message.encode()).hexdigest())
+            except (OSError, ValueError, TypeError) as exc:
+                logger.warning("Learning telemetry unavailable: %s", type(exc).__name__)
         think_mode_used = meta_dict.get("think_mode", think_mode or "auto")
         think_metrics = meta_dict.get("think_metrics", {})
         claim_verification = meta_dict.get("claim_verification", {})
@@ -360,7 +385,7 @@ class AxenBackendService:
         conv["updated_at"] = datetime.now().isoformat()
         self._save_conversations_to_disk()
 
-        return {
+        result = {
             "session_id": sid,
             "project_id": eff_project_id,
             "response": response_text,
@@ -377,6 +402,20 @@ class AxenBackendService:
             "think_metrics": think_metrics,
             "claim_verification": claim_verification,
         }
+        self._queue_answer_review(message, result)
+        return result
+
+    def _queue_answer_review(self, message, result):
+        """Persist a bounded review job; inference stays on the answer agent."""
+        try:
+            from axen.evolution.background_agent import get_background_agent
+            get_background_agent().observe(message, result.get('response', ''), {
+                'verification': result.get('verification'),
+                'capability': result.get('capability') or result.get('task_type'),
+                'selected_tool': result.get('tool_name'),
+            })
+        except Exception as exc:
+            logger.warning('Background answer review unavailable: %s', type(exc).__name__)
 
     # -----------------------------------------------------------------------
     # Session Management

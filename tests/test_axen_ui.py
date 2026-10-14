@@ -40,10 +40,11 @@ class TestAxenUI:
         assert res.status_code == 200
         text = res.text
         # Visual structure verification
-        assert "AXEN®" in text
+        assert 'AEXN AI' in text
         assert "NEW CHAT" in text
-        assert "How Can I Help You Today?" in text
-        assert "Ask Anything, Get Ideas, Write, Analyze, Design, Or Solve Problems With AI." in text
+        assert 'id="welcome-screen"' in text
+        assert 'class="welcome-heading"' in text
+        assert 'class="welcome-subtitle"' in text
         assert "Message AI..." in text
         assert "btn-composer-send" in text
         assert "btn-composer-voice" in text

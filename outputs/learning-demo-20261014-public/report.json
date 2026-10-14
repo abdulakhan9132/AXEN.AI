@@ -1,0 +1,736 @@
+{
+  "title": "AXEN Learns Python Debugging",
+  "offline": false,
+  "resource_policy": {
+    "memory_busy_percent": 99,
+    "minimum_available_mb": 64
+  },
+  "snapshot": {
+    "mode": "OFF",
+    "status": "session_complete",
+    "emergency_latched": false,
+    "current_goal": null,
+    "session_started_at": "2026-10-14T15:51:09.986326+00:00",
+    "remaining_seconds": 0,
+    "goals": [
+      {
+        "id": "learn_ade1115421ef",
+        "fingerprint": "3467a15bfd79e64bbb6e904f988b53328acc710ec804d946c498653b2d13719b",
+        "objective": "Improve Python debugging",
+        "skill": "Python debugging",
+        "reason": "Fixed inclusive-sum debugging fixture fails boundary tests",
+        "priority": 75,
+        "expected_measurable_improvement": "Higher pass count on fixed held-out tests",
+        "allowed_resources": [
+          {
+            "topic": "Python debugging range boundaries",
+            "url": "https://docs.python.org/3/tutorial/controlflow.html#the-range-function"
+          }
+        ],
+        "time_budget_seconds": 1800,
+        "status": "completed",
+        "evaluation_criteria": "Improve fixed train and held-out scores with no regression",
+        "observation": {
+          "passed": 1,
+          "total": 4,
+          "cases": [
+            {
+              "input": 0,
+              "expected": 0,
+              "actual": 0,
+              "passed": true
+            },
+            {
+              "input": 1,
+              "expected": 1,
+              "actual": 0,
+              "passed": false
+            },
+            {
+              "input": 4,
+              "expected": 10,
+              "actual": 6,
+              "passed": false
+            },
+            {
+              "input": 6,
+              "expected": 21,
+              "actual": 15,
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.00045229999523144215,
+          "containment": "interpreted arithmetic Python subset; no host capabilities",
+          "skill": "Python debugging",
+          "reason": "Fixed inclusive-sum debugging fixture fails boundary tests",
+          "source": "def inclusive_sum(n):\n    total = 0\n    for i in range(n):\n        total += i\n    return total\n",
+          "benchmark": "inclusive-sum-v1"
+        },
+        "created_at": "2026-10-14T15:51:10.051675+00:00",
+        "step": 8,
+        "original_source": "def inclusive_sum(n):\n    total = 0\n    for i in range(n):\n        total += i\n    return total\n",
+        "baseline": {
+          "train": {
+            "passed": 1,
+            "total": 4,
+            "cases": [
+              {
+                "input": 0,
+                "expected": 0,
+                "actual": 0,
+                "passed": true
+              },
+              {
+                "input": 1,
+                "expected": 1,
+                "actual": 0,
+                "passed": false
+              },
+              {
+                "input": 4,
+                "expected": 10,
+                "actual": 6,
+                "passed": false
+              },
+              {
+                "input": 6,
+                "expected": 21,
+                "actual": 15,
+                "passed": false
+              }
+            ],
+            "elapsed_seconds": 0.0004146000064793043,
+            "containment": "interpreted arithmetic Python subset; no host capabilities"
+          },
+          "held_out": {
+            "passed": 0,
+            "total": 3,
+            "cases": [
+              {
+                "input": 2,
+                "expected": 3,
+                "actual": 1,
+                "passed": false
+              },
+              {
+                "input": 9,
+                "expected": 45,
+                "actual": 36,
+                "passed": false
+              },
+              {
+                "input": 13,
+                "expected": 91,
+                "actual": 78,
+                "passed": false
+              }
+            ],
+            "elapsed_seconds": 0.00023409999994328246,
+            "containment": "interpreted arithmetic Python subset; no host capabilities"
+          }
+        },
+        "documents": [
+          {
+            "url": "https://docs.python.org/3/tutorial/controlflow.html#the-range-function",
+            "retrieved_at": "2026-10-14T15:51:12.553560+00:00",
+            "text": " 4.3. The range() Function \u00b6 If you do need to iterate over a sequence of numbers, the built-in function range() comes in handy. It generates arithmetic progressions: >>> for i in range ( 5 ): ... print ( i ) ... 0 1 2 3 4 The given end point is never part of the generated sequence; range(10) generates 10 values, the legal indices for items of a sequence of length 10. It is possible to let the range start at another number, or to specify a different increment (even negative; sometimes this is called the \u2018step\u2019): >>> list ( range ( 5 , 10 )) [5, 6, 7, 8, 9] >>> list ( range ( 0 , 10 , 3 )) [0, 3, 6, 9] >>> list ( range ( - 10 , - 100 , - 30 )) [-10, -40, -70] To iterate over the indices of a sequence, you can combine range() and len() as follows: >>> a = [ 'Mary' , 'had' , 'a' , 'little' , 'lamb' ] >>> for i in range ( len ( a )): ... print ( i , a [ i ]) ... 0 Mary 1 had 2 a 3 little 4 lamb In most such cases, however, it is convenient to use the enumerate() function, see Looping Techniques . A strange thing happens if you just print a range: >>> range ( 10 ) range(0, 10) In many ways the object returned by range() behaves as if it is a list, but in fact it isn\u2019t. It is an object which returns the successive items of the desired sequence when you iterate over it, but it doesn\u2019t really make the list, thus saving space. We say such an object is iterable , that is, suitable as a target for functions and constructs that expect something from which they can obtain successive items until the supply is exhausted . We have seen that the for statement is such a construct, while an example of a function that takes an iterable is sum() : >>> sum ( range ( 4 )) # 0 + 1 + 2 + 3 6 Later we will see more functions that return iterables and take iterables as arguments. In chapter Data Structures , we will discuss list() in more detail. 4.4. break and continue Statements \u00b6 The break statement breaks out of the innermost enclosing for or while loop: >>> for n in range ( 2 , 10 ): ... for x in range ( 2 , n ): ... if n % x == 0 : ... print ( f \" { n } equals { x } * { n // x } \" ) ... break ... 4 equals 2 * 2 6 equals 2 * 3 8 equals 2 * 4 9 equals 3 * 3 The continue statement continues with the next iteration of the loop: >>> for num in range ( 2 , 10 ): ... if num % 2 == 0 : ... print ( f \"Found an even number { num } \" ) ... continue ... print ( f \"Found an odd number { num } \" ) ... Found an even number 2 Found an odd number 3 Found an even number 4 Found an odd number 5 Found an even number 6 Found an odd number 7 Found an even number 8 Found an odd number 9 4.5. else Clause",
+            "content_hash": "d84643f325d5b687ee45f66517c4eab457e3ea6cc75794f5f9b52d6456af1863",
+            "access": "approved_public_document",
+            "verification_status": "untrusted_observation"
+          }
+        ],
+        "concept": {
+          "concept": "range_stop_exclusive",
+          "summary": "Python range excludes its stop boundary. Inclusive nonnegative bounds require stop=n+1.",
+          "observations": [
+            {
+              "concept": "range_stop_exclusive",
+              "source": "https://docs.python.org/3/tutorial/controlflow.html#the-range-function",
+              "status": "observation"
+            }
+          ],
+          "cross_check": "Four independent language-semantic checks passed",
+          "contradictions": [],
+          "verification_scope": "range boundary arithmetic only"
+        },
+        "practice_plan": {
+          "exercise": "Repair inclusive_sum boundary",
+          "suite": "inclusive-sum-v1",
+          "generator": "bounded AST rule derived from studied range concept",
+          "held_out_visible_to_generator": false
+        },
+        "candidate_source": "def inclusive_sum(n):\n    total = 0\n    for i in range(n + 1):\n        total += i\n    return total\n",
+        "practice": {
+          "passed": 4,
+          "total": 4,
+          "cases": [
+            {
+              "input": 0,
+              "expected": 0,
+              "actual": 0,
+              "passed": true
+            },
+            {
+              "input": 1,
+              "expected": 1,
+              "actual": 1,
+              "passed": true
+            },
+            {
+              "input": 4,
+              "expected": 10,
+              "actual": 10,
+              "passed": true
+            },
+            {
+              "input": 6,
+              "expected": 21,
+              "actual": 21,
+              "passed": true
+            }
+          ],
+          "elapsed_seconds": 0.000334399999701418,
+          "containment": "interpreted arithmetic Python subset; no host capabilities"
+        },
+        "evaluation": {
+          "train": {
+            "passed": 4,
+            "total": 4,
+            "cases": [
+              {
+                "input": 0,
+                "expected": 0,
+                "actual": 0,
+                "passed": true
+              },
+              {
+                "input": 1,
+                "expected": 1,
+                "actual": 1,
+                "passed": true
+              },
+              {
+                "input": 4,
+                "expected": 10,
+                "actual": 10,
+                "passed": true
+              },
+              {
+                "input": 6,
+                "expected": 21,
+                "actual": 21,
+                "passed": true
+              }
+            ],
+            "elapsed_seconds": 0.000334399999701418,
+            "containment": "interpreted arithmetic Python subset; no host capabilities"
+          },
+          "held_out": {
+            "passed": 3,
+            "total": 3,
+            "cases": [
+              {
+                "input": 2,
+                "expected": 3,
+                "actual": 3,
+                "passed": true
+              },
+              {
+                "input": 9,
+                "expected": 45,
+                "actual": 45,
+                "passed": true
+              },
+              {
+                "input": 13,
+                "expected": 91,
+                "actual": 91,
+                "passed": true
+              }
+            ],
+            "elapsed_seconds": 0.00042219999886583537,
+            "containment": "interpreted arithmetic Python subset; no host capabilities"
+          }
+        },
+        "improvement_demonstrated": true
+      }
+    ],
+    "lessons": [
+      {
+        "topic": "Python debugging: inclusive range boundary",
+        "summary": "Python range excludes its stop boundary. Inclusive nonnegative bounds require stop=n+1.",
+        "source_references": [
+          {
+            "url": "https://docs.python.org/3/tutorial/controlflow.html#the-range-function",
+            "retrieved_at": "2026-10-14T15:51:12.553560+00:00",
+            "content_hash": "d84643f325d5b687ee45f66517c4eab457e3ea6cc75794f5f9b52d6456af1863",
+            "access": "approved_public_document"
+          }
+        ],
+        "retrieval_date": "2026-10-14T15:51:12.553560+00:00",
+        "verification_status": "verified_by_practice",
+        "skill": "Python debugging",
+        "confidence_metadata": {
+          "scope": "range boundary arithmetic only",
+          "held_out": {
+            "passed": 3,
+            "total": 3,
+            "cases": [
+              {
+                "input": 2,
+                "expected": 3,
+                "actual": 3,
+                "passed": true
+              },
+              {
+                "input": 9,
+                "expected": 45,
+                "actual": 45,
+                "passed": true
+              },
+              {
+                "input": 13,
+                "expected": 91,
+                "actual": 91,
+                "passed": true
+              }
+            ],
+            "elapsed_seconds": 0.00042219999886583537,
+            "containment": "interpreted arithmetic Python subset; no host capabilities"
+          }
+        },
+        "goal_id": "learn_ade1115421ef",
+        "practical_example": "def inclusive_sum(n):\n    total = 0\n    for i in range(n + 1):\n        total += i\n    return total\n",
+        "last_validation_date": "2026-10-14T15:51:12.792020+00:00",
+        "improvement_type": "memory_and_bounded_repair_rule",
+        "concept": "range_stop_exclusive"
+      }
+    ],
+    "resources": {
+      "available": true,
+      "cpu_percent": 29.3,
+      "memory_percent": 95.5,
+      "available_memory_mb": 356
+    },
+    "limits": {
+      "session_seconds": 1800,
+      "max_goals": 1,
+      "max_sources": 5,
+      "max_videos": 2,
+      "max_experiments": 3,
+      "max_training_jobs": 1
+    }
+  },
+  "events": [
+    {
+      "id": 1,
+      "at": "2026-10-14T15:51:09.988516+00:00",
+      "goal_id": null,
+      "kind": "control",
+      "data": {
+        "action": "start",
+        "mode": "LEARNING",
+        "status": "running"
+      }
+    },
+    {
+      "id": 2,
+      "at": "2026-10-14T15:51:10.068851+00:00",
+      "goal_id": "learn_ade1115421ef",
+      "kind": "activity",
+      "data": {
+        "step": "DISCOVER",
+        "objective": "Improve Python debugging"
+      }
+    },
+    {
+      "id": 3,
+      "at": "2026-10-14T15:51:10.083710+00:00",
+      "goal_id": "learn_ade1115421ef",
+      "kind": "baseline",
+      "data": {
+        "train": {
+          "passed": 1,
+          "total": 4,
+          "cases": [
+            {
+              "input": 0,
+              "expected": 0,
+              "actual": 0,
+              "passed": true
+            },
+            {
+              "input": 1,
+              "expected": 1,
+              "actual": 0,
+              "passed": false
+            },
+            {
+              "input": 4,
+              "expected": 10,
+              "actual": 6,
+              "passed": false
+            },
+            {
+              "input": 6,
+              "expected": 21,
+              "actual": 15,
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.0004146000064793043,
+          "containment": "interpreted arithmetic Python subset; no host capabilities"
+        },
+        "held_out": {
+          "passed": 0,
+          "total": 3,
+          "cases": [
+            {
+              "input": 2,
+              "expected": 3,
+              "actual": 1,
+              "passed": false
+            },
+            {
+              "input": 9,
+              "expected": 45,
+              "actual": 36,
+              "passed": false
+            },
+            {
+              "input": 13,
+              "expected": 91,
+              "actual": 78,
+              "passed": false
+            }
+          ],
+          "elapsed_seconds": 0.00023409999994328246,
+          "containment": "interpreted arithmetic Python subset; no host capabilities"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "at": "2026-10-14T15:51:10.104859+00:00",
+      "goal_id": "learn_ade1115421ef",
+      "kind": "activity",
+      "data": {
+        "step": "RETRIEVE",
+        "objective": "Improve Python debugging"
+      }
+    },
+    {
+      "id": 5,
+      "at": "2026-10-14T15:51:12.556626+00:00",
+      "goal_id": "learn_ade1115421ef",
+      "kind": "source",
+      "data": {
+        "url": "https://docs.python.org/3/tutorial/controlflow.html#the-range-function",
+        "retrieved_at": "2026-10-14T15:51:12.553560+00:00",
+        "access": "approved_public_document"
+      }
+    },
+    {
+      "id": 6,
+      "at": "2026-10-14T15:51:12.584569+00:00",
+      "goal_id": "learn_ade1115421ef",
+      "kind": "activity",
+      "data": {
+        "step": "ANALYZE",
+        "objective": "Improve Python debugging"
+      }
+    },
+    {
+      "id": 7,
+      "at": "2026-10-14T15:51:12.599407+00:00",
+      "goal_id": "learn_ade1115421ef",
+      "kind": "findings",
+      "data": {
+        "concept": "range_stop_exclusive",
+        "summary": "Python range excludes its stop boundary. Inclusive nonnegative bounds require stop=n+1.",
+        "observations": [
+          {
+            "concept": "range_stop_exclusive",
+            "source": "https://docs.python.org/3/tutorial/controlflow.html#the-range-function",
+            "status": "observation"
+          }
+        ],
+        "cross_check": "Four independent language-semantic checks passed",
+        "contradictions": [],
+        "verification_scope": "range boundary arithmetic only"
+      }
+    },
+    {
+      "id": 8,
+      "at": "2026-10-14T15:51:12.627927+00:00",
+      "goal_id": "learn_ade1115421ef",
+      "kind": "activity",
+      "data": {
+        "step": "CROSS-CHECK",
+        "objective": "Improve Python debugging"
+      }
+    },
+    {
+      "id": 9,
+      "at": "2026-10-14T15:51:12.642198+00:00",
+      "goal_id": "learn_ade1115421ef",
+      "kind": "cross_check",
+      "data": {
+        "result": "Four independent language-semantic checks passed",
+        "scope": "range boundary arithmetic only"
+      }
+    },
+    {
+      "id": 10,
+      "at": "2026-10-14T15:51:12.670928+00:00",
+      "goal_id": "learn_ade1115421ef",
+      "kind": "activity",
+      "data": {
+        "step": "ORGANIZE",
+        "objective": "Improve Python debugging"
+      }
+    },
+    {
+      "id": 11,
+      "at": "2026-10-14T15:51:12.704796+00:00",
+      "goal_id": "learn_ade1115421ef",
+      "kind": "activity",
+      "data": {
+        "step": "PRACTICE",
+        "objective": "Improve Python debugging"
+      }
+    },
+    {
+      "id": 12,
+      "at": "2026-10-14T15:51:12.720386+00:00",
+      "goal_id": "learn_ade1115421ef",
+      "kind": "practice",
+      "data": {
+        "passed": 4,
+        "total": 4,
+        "cases": [
+          {
+            "input": 0,
+            "expected": 0,
+            "actual": 0,
+            "passed": true
+          },
+          {
+            "input": 1,
+            "expected": 1,
+            "actual": 1,
+            "passed": true
+          },
+          {
+            "input": 4,
+            "expected": 10,
+            "actual": 10,
+            "passed": true
+          },
+          {
+            "input": 6,
+            "expected": 21,
+            "actual": 21,
+            "passed": true
+          }
+        ],
+        "elapsed_seconds": 0.000334399999701418,
+        "containment": "interpreted arithmetic Python subset; no host capabilities"
+      }
+    },
+    {
+      "id": 13,
+      "at": "2026-10-14T15:51:12.742035+00:00",
+      "goal_id": "learn_ade1115421ef",
+      "kind": "activity",
+      "data": {
+        "step": "VERIFY",
+        "objective": "Improve Python debugging"
+      }
+    },
+    {
+      "id": 14,
+      "at": "2026-10-14T15:51:12.756479+00:00",
+      "goal_id": "learn_ade1115421ef",
+      "kind": "evaluation",
+      "data": {
+        "baseline": {
+          "train": {
+            "passed": 1,
+            "total": 4,
+            "cases": [
+              {
+                "input": 0,
+                "expected": 0,
+                "actual": 0,
+                "passed": true
+              },
+              {
+                "input": 1,
+                "expected": 1,
+                "actual": 0,
+                "passed": false
+              },
+              {
+                "input": 4,
+                "expected": 10,
+                "actual": 6,
+                "passed": false
+              },
+              {
+                "input": 6,
+                "expected": 21,
+                "actual": 15,
+                "passed": false
+              }
+            ],
+            "elapsed_seconds": 0.0004146000064793043,
+            "containment": "interpreted arithmetic Python subset; no host capabilities"
+          },
+          "held_out": {
+            "passed": 0,
+            "total": 3,
+            "cases": [
+              {
+                "input": 2,
+                "expected": 3,
+                "actual": 1,
+                "passed": false
+              },
+              {
+                "input": 9,
+                "expected": 45,
+                "actual": 36,
+                "passed": false
+              },
+              {
+                "input": 13,
+                "expected": 91,
+                "actual": 78,
+                "passed": false
+              }
+            ],
+            "elapsed_seconds": 0.00023409999994328246,
+            "containment": "interpreted arithmetic Python subset; no host capabilities"
+          }
+        },
+        "candidate": {
+          "train": {
+            "passed": 4,
+            "total": 4,
+            "cases": [
+              {
+                "input": 0,
+                "expected": 0,
+                "actual": 0,
+                "passed": true
+              },
+              {
+                "input": 1,
+                "expected": 1,
+                "actual": 1,
+                "passed": true
+              },
+              {
+                "input": 4,
+                "expected": 10,
+                "actual": 10,
+                "passed": true
+              },
+              {
+                "input": 6,
+                "expected": 21,
+                "actual": 21,
+                "passed": true
+              }
+            ],
+            "elapsed_seconds": 0.000334399999701418,
+            "containment": "interpreted arithmetic Python subset; no host capabilities"
+          },
+          "held_out": {
+            "passed": 3,
+            "total": 3,
+            "cases": [
+              {
+                "input": 2,
+                "expected": 3,
+                "actual": 3,
+                "passed": true
+              },
+              {
+                "input": 9,
+                "expected": 45,
+                "actual": 45,
+                "passed": true
+              },
+              {
+                "input": 13,
+                "expected": 91,
+                "actual": 91,
+                "passed": true
+              }
+            ],
+            "elapsed_seconds": 0.00042219999886583537,
+            "containment": "interpreted arithmetic Python subset; no host capabilities"
+          }
+        },
+        "improvement_demonstrated": true,
+        "scope": "Fixed arithmetic repair fixture, not general assistant performance"
+      }
+    },
+    {
+      "id": 15,
+      "at": "2026-10-14T15:51:12.779930+00:00",
+      "goal_id": "learn_ade1115421ef",
+      "kind": "activity",
+      "data": {
+        "step": "STORE",
+        "objective": "Improve Python debugging"
+      }
+    },
+    {
+      "id": 16,
+      "at": "2026-10-14T15:51:12.845066+00:00",
+      "goal_id": "learn_ade1115421ef",
+      "kind": "knowledge_stored",
+      "data": {
+        "topic": "Python debugging: inclusive range boundary",
+        "retrieval": [
+          {
+            "topic": "Python debugging: inclusive range boundary",
+            "summary": "Python range excludes its stop boundary. Inclusive nonnegative bounds require stop=n+1.",
+            "sources": [
+              {
+                "url": "https://docs.python.org/3/tutorial/controlflow.html#the-range-function",
+                "retrieved_at": "2026-10-14T15:51:12.553560+00:00",
+                "content_hash": "d84643f325d5b687ee45f66517c4eab457e3ea6cc75794f5f9b52d6456af1863",
+                "access": "approved_public_document"
+              }
+            ],
+            "scope": "range boundary arithmetic only"
+          }
+        ]
+      }
+    },
+    {
+      "id": 17,
+      "at": "2026-10-14T15:51:12.881315+00:00",
+      "goal_id": "learn_ade1115421ef",
+      "kind": "completed",
+      "data": {
+        "improvement_demonstrated": true,
+        "title": "AXEN Learns Python Debugging",
+        "offline": false
+      }
+    },
+    {
+      "id": 18,
+      "at": "2026-10-14T15:51:12.896174+00:00",
+      "goal_id": null,
+      "kind": "worker_exit",
+      "data": {
+        "status": "session_complete"
+      }
+    }
+  ]
+}

@@ -138,3 +138,51 @@ AXEN AI includes local text-to-image generation support via pretrained diffusion
 - **SD-Turbo (`stabilityai/sd-turbo`)**: Released under the Stability AI Non-Commercial Research Community License. It is intended for research and non-commercial personal use unless an appropriate Stability AI commercial membership/license is held.
 - **Stable Diffusion 1.5 (`stable-diffusion-v1-5/stable-diffusion-v1-5`)**: Released under the CreativeML Open RAIL-M license, which is more permissive and permits commercial usage subject to RAIL-M use-based restrictions.
 
+## Bounded self-improvement experiments
+
+`EvolutionController.run_observation_loop()` reuses the existing generator,
+selector, SQLite experiment store, and approval workflow. Supply three callbacks:
+`observe()` returns evidence-backed `Weakness` objects; `code_reader(path)` reads
+workspace source; `evaluate_fn(candidate)` runs a fixed trusted benchmark suite
+and returns a `BenchmarkResult`. The loop measures original and proposed code
+with that evaluator, persists both results, and requests review only for measured
+correctness improvements that satisfy held-out checks. No evaluator means no
+improvement claim and no approval request.
+
+Defaults are three observation cycles, five experiments, three candidates per
+experiment, and a 300-second scheduling budget. `should_stop()` supports
+cancellation between experiments. The scheduling budget cannot interrupt a
+callback: production integrations must enforce subprocess timeouts and resource
+limits inside their evaluator. Identical source and weakness evidence are not
+retried within a run. Exceptions from observation or source reading propagate to
+the caller; candidate evaluation failures are recorded in the experiment store.
+
+This method is an explicit Python integration point, not a background service.
+It does not auto-start, merge production changes, browse, or train weights. It
+stops when its process exits and cannot run while the laptop is shut down.
+The existing `CandidateEvaluator` executes snippets in-process and is suitable
+for trusted benchmarks only; it is not a security sandbox for generated code.
+Automatic research, sandboxed evaluation, hardware preflight, and training must
+be connected separately before enabling unattended experiments. A fixed suite
+must keep its cases, partition, and assertions unchanged during comparison;
+matching suite names and counts alone cannot establish that integrity.
+
+Run the focused regression checks on Windows:
+
+```powershell
+python -m pytest tests/test_evolution_observation_loop.py tests/test_evolution_controller.py tests/test_evolution_models.py tests/test_evolution_store.py -q
+```
+
+# Autonomous learning
+
+See [the operating guide](docs/AUTONOMY.md) for the default-OFF learning worker,
+approved public research, real-time Evolution dashboard, Windows commands,
+bounded Python debugging demonstration, governance and known limitations.
+
+Root entry points: `python main.py serve` or `npm start` launch the full app.
+Use `python main.py autonomy status`, `python main.py autonomy start --mode LEARNING`,
+and `python main.py autonomy emergency-stop` to control its running worker.
+`python main.py autonomy-demo --offline` runs an explicitly offline bounded demo;
+public research requires `--allow-network`. Run the learning checks with
+`python main.py autonomy-test` or `npm run learning:test`. Default autonomy stays OFF.
+

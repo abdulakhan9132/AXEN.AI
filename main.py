@@ -218,12 +218,53 @@ def run_tests() -> int:
     return result.returncode
 
 
+def run_autonomy_command(action: str, mode: str = "LEARNING", offline: bool = False) -> int:
+    """Control the running application's worker, never create a second worker."""
+    import requests
+    actions = {"status", "events", "start", "pause", "resume", "stop", "emergency-stop", "reset-emergency"}
+    if action not in actions:
+        raise SystemExit("Unknown autonomy action. Choose: " + ", ".join(sorted(actions)))
+    with requests.Session() as session:
+        session.trust_env = False
+        try:
+            base = "http://127.0.0.1:8000/api/autonomy/"
+            if action in ("status", "events"):
+                response = session.get(base + action, timeout=5)
+            else:
+                response = session.post(base + "control", timeout=5,
+                    headers={"X-AXEN-Control": "operator"}, json={"action": action,
+                    "mode": mode if action == "start" else None, "offline_demo": offline})
+            response.raise_for_status()
+            print(json.dumps(response.json(), indent=2))
+            return 0
+        except requests.RequestException as exc:
+            print("Autonomy control failed. Start AXEN with 'python main.py serve' and inspect the dashboard.", file=sys.stderr)
+            if getattr(exc, "response", None) is not None:
+                print(exc.response.text, file=sys.stderr)
+            return 1
+
+
+def run_autonomy_demo(offline: bool, allow_network: bool) -> int:
+    if not (offline or allow_network):
+        raise SystemExit("Select --offline or explicitly authorize public research with --allow-network.")
+    command = [sys.executable, str(ROOT / "scripts/learning_demo.py"),
+               "--offline" if offline else "--allow-network"]
+    return subprocess.run(command, cwd=ROOT).returncode
+
+
+def run_autonomy_tests() -> int:
+    return subprocess.run([sys.executable, "-m", "pytest", "-q",
+        "tests/test_autonomous_learning.py", "tests/test_autonomy_governance.py",
+        "tests/test_neural_trainer_evolution.py", "tests/test_sandbox.py"], cwd=ROOT).returncode
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Local AI agent CLI")
     parser.add_argument(
         "command",
         choices=[
             "chat", "task", "status", "tools", "memory", "test", "serve", "doctor",
+            "autonomy", "autonomy-demo", "autonomy-test",
             "math", "math-ai", "math-benchmark", "math-ai-benchmark", "math-strategies",
             "code", "code-detect", "code-review", "code-test", "code-translate", "code-languages",
         ],
@@ -236,11 +277,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--from", dest="from_lang", type=str, help="Source language for translation")
     parser.add_argument("--to", dest="to_lang", type=str, help="Target language for translation")
     parser.add_argument("--run", action="store_true", help="Execute generated code safely if runtime is available")
+    parser.add_argument("--mode", choices=["OFF", "LEARNING", "DEVELOPMENT", "SUPERVISED EVOLUTION"],
+                        default="LEARNING", help="Autonomy mode for an explicit start")
+    source = parser.add_mutually_exclusive_group()
+    source.add_argument("--offline", action="store_true", help="Explicit local learning demonstration")
+    source.add_argument("--allow-network", action="store_true", help="Authorize public-document demonstration research")
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
+    if args.command == "autonomy":
+        return run_autonomy_command(args.query or "status", args.mode, args.offline)
+    if args.command == "autonomy-demo":
+        return run_autonomy_demo(args.offline, args.allow_network)
+    if args.command == "autonomy-test":
+        return run_autonomy_tests()
     if args.command == "chat":
         goal = args.goal or input("Enter a goal: ").strip()
         result = TaskRouter().route(goal)

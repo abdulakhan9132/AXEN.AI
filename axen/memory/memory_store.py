@@ -34,15 +34,22 @@ class SQLiteMemoryStore:
         if str(self.db_path) != ":memory:":
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
+        self._memory_connection: Optional[sqlite3.Connection] = None
         self._init_db()
 
     def _get_connection(self) -> sqlite3.Connection:
+        # A :memory: database belongs to its connection. All public operations
+        # already hold _lock, so reuse one connection for this store only.
+        if self._memory_connection is not None:
+            return self._memory_connection
         conn = sqlite3.connect(
             str(self.db_path),
             timeout=15.0,
             check_same_thread=False,
         )
         conn.row_factory = sqlite3.Row
+        if str(self.db_path) == ":memory:":
+            self._memory_connection = conn
         # Enable Write-Ahead Logging for concurrency & crash safety
         if str(self.db_path) != ":memory:":
             try:

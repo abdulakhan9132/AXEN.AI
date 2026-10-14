@@ -1,0 +1,60 @@
+{
+  "title": "AXEN Learns Python Debugging",
+  "offline": true,
+  "snapshot": {
+    "mode": "LEARNING",
+    "status": "resource_paused",
+    "emergency_latched": false,
+    "current_goal": null,
+    "session_started_at": "2026-10-14T15:33:07.921469+00:00",
+    "remaining_seconds": 1710,
+    "goals": [],
+    "lessons": [],
+    "resources": {
+      "available": true,
+      "cpu_percent": 26.7,
+      "memory_percent": 96.6
+    },
+    "limits": {
+      "session_seconds": 1800,
+      "max_goals": 1,
+      "max_sources": 5,
+      "max_videos": 2,
+      "max_experiments": 3,
+      "max_training_jobs": 1
+    }
+  },
+  "events": [
+    {
+      "id": 1,
+      "at": "2026-10-14T15:33:07.924435+00:00",
+      "goal_id": null,
+      "kind": "control",
+      "data": {
+        "action": "start",
+        "mode": "LEARNING",
+        "status": "running"
+      }
+    },
+    {
+      "id": 2,
+      "at": "2026-10-14T15:33:07.993176+00:00",
+      "goal_id": null,
+      "kind": "resources",
+      "data": {
+        "available": true,
+        "cpu_percent": 0.0,
+        "memory_percent": 97.2
+      }
+    },
+    {
+      "id": 3,
+      "at": "2026-10-14T15:34:38.123353+00:00",
+      "goal_id": null,
+      "kind": "worker_exit",
+      "data": {
+        "status": "stopped"
+      }
+    }
+  ]
+}

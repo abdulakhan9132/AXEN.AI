@@ -193,7 +193,17 @@ class CodingController:
 
         try:
             model = self.model_manager.get_model()
-            raw_response = model.generate(usr_p, system=sys_p)
+            from app.ai.base_model import AIModel
+            if isinstance(model, AIModel):
+                from app.context.models import AssembledContext, ModelRequest
+                raw_response = model.generate(ModelRequest(
+                    context=AssembledContext(system_instruction=sys_p, messages_for_model=[
+                        {"role": "system", "content": sys_p}, {"role": "user", "content": usr_p}]),
+                    generation_settings={"temperature": 0.2},
+                    session_metadata={"purpose": "coding", "task_type": task_type}))
+            else:
+                # Preserve legacy injected models used by existing integrations.
+                raw_response = model.generate(usr_p, system=sys_p)
         except Exception as exc:
             timings["total"] = round(time.perf_counter() - t0, 4)
             return CodingResult(

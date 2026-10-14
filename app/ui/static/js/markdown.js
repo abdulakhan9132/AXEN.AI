@@ -57,6 +57,8 @@
       inlineCodes.push(escapeHtml(code));
       return id;
     });
+    const math = global.AxenMath ? global.AxenMath.protect(src) : null;
+    if (math) src = math.text;
 
     // Treat model/file output as text before introducing our own HTML markup.
     src = escapeHtml(src);
@@ -172,7 +174,7 @@
         block.startsWith('<blockquote') ||
         block.startsWith('<div class="table-container"') ||
         block.startsWith('<div class="generated-image-card"') ||
-        block.startsWith('%%CODEBLOCK')
+        block.startsWith('%%CODEBLOCK') || block.startsWith('%%AXENMATH')
       ) {
         return block;
       }
@@ -207,7 +209,7 @@
       src = src.replaceAll(`%%CODEBLOCK${index}%%`, blockHtml);
     });
 
-    return src;
+    return math ? math.restore(src) : src;
   }
 
   global.AxenMarkdown = {

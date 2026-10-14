@@ -862,3 +862,63 @@ class UserRead(BaseModel):
 
 class User
 
+User: Stage 3: Add to this JavaScript: arrow key controls and touch swipe controls. Show only the new code.
+Axen: ```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Controls</title>
+    <style>
+        /* Add your CSS styles here */
+    </style>
+</head>
+<body>
+    <script>
+        // Add your JavaScript code here
+    </script>
+</body>
+</html>
+```
+
+User: Stage 3: Add to this JavaScript: arrow key controls and touch swipe controls. Show only the new code.
+Axen: ```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Controls</title>
+    <style>
+        /* Add your CSS styles here */
+    </style>
+</head>
+<body>
+    <script>
+        // Add your JavaScript code here
+    </script>
+</body>
+</html>
+```
+
+User: Stage 3: Add to this JavaScript: arrow key controls and touch swipe controls. Show only the new code.
+Axen: ```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Controls</title>
+    <style>
+        /* Add your CSS styles here */
+    </style>
+</head>
+<body>
+    <script>
+        // Add your JavaScript code here
+    </script>
+</body>
+</html>
+```
+

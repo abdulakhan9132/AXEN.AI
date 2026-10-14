@@ -6,10 +6,38 @@
   <title>AEXN AI — Your assistant</title>
   <meta name="description" content="AXEN personal AI assistant with a from-scratch language brain, memory, and exact reasoning tools." />
   <link rel="stylesheet" href="/static/css/styles.css?v=8" />
+  <link rel="stylesheet" href="/static/css/evolution.css?v=1" />
+  <link rel="stylesheet" href="/static/css/autonomy.css?v=3" />
+  <link rel="stylesheet" href="/static/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="/static/css/redesign.css?v=4" />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 28'><rect x='0' y='14' width='14' height='14' rx='3' fill='%23F05A28'/><rect x='12' y='0' width='20' height='20' rx='4' fill='%23000000'/><rect x='12' y='20' width='8' height='8' rx='2' fill='%23000000'/></svg>" />
-<script>document.documentElement.dataset.theme = localStorage.getItem('aexn_theme') || 'dark';</script>
+<script>document.documentElement.dataset.theme = localStorage.getItem('aexn_theme') || 'light';</script>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="aexn-icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="aexn-icon-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6M18 3l3 3-9 9H9v-3z"/></symbol>
+<symbol id="aexn-icon-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+<symbol id="aexn-icon-img" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-9 9"/></symbol>
+<symbol id="aexn-icon-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></symbol>
+<symbol id="aexn-icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></symbol>
+<symbol id="aexn-icon-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6zM14 3v4h4"/></symbol>
+<symbol id="aexn-icon-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M5 4h13v16H7a2 2 0 0 1-2-2zM9 8h6"/></symbol>
+<symbol id="aexn-icon-mem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></symbol>
+<symbol id="aexn-icon-brain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 3 5 3 3 0 0 0 5 1V5a2 2 0 0 0-3-1zM15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-3 5 3 3 0 0 1-5 1"/></symbol>
+<symbol id="aexn-icon-evo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></symbol>
+<symbol id="aexn-icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+<symbol id="aexn-icon-tool" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6a4 4 0 0 0 5 5l-9 9a2.1 2.1 0 0 1-3-3z"/></symbol>
+<symbol id="aexn-icon-clip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m20 11-8 8a5 5 0 0 1-7-7l8-8a3.5 3.5 0 0 1 5 5l-8 8a2 2 0 0 1-3-3l7-7"/></symbol>
+<symbol id="aexn-icon-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+<symbol id="aexn-icon-send" viewBox="0 0 24 24" fill="currentColor"><path d="M3 11.5 21 3l-5 18-4-7z"/></symbol>
+<symbol id="aexn-icon-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m3 8 9 6 9-6"/></symbol>
+<symbol id="aexn-icon-bars" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 20V10M12 20V4M18 20v-7"/></symbol>
+<symbol id="aexn-icon-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17v.01"/></symbol>
+<symbol id="aexn-icon-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4v-9zM7 11l4-8c2 0 3 1 2.5 3L13 9h6a2 2 0 0 1 2 2.3l-1 6A2 2 0 0 1 18 19H7"/></symbol>
+<symbol id="aexn-icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></symbol>
+<symbol id="aexn-icon-panel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M15 4v16"/></symbol>
+</defs></svg>
   <div class="app-container">
     
     <!-- LEFT SIDEBAR -->
@@ -38,12 +66,8 @@
       <!-- NEW CHAT, NEW PROJECT & VISION BUTTONS -->
       <div class="sidebar-action-buttons">
         <button class="btn-new-chat" id="btn-new-chat" aria-label="Start a new chat">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="8" x2="12" y2="16"></line>
-            <line x1="8" y1="12" x2="16" y2="12"></line>
-          </svg>
-          <span>NEW CHAT</span>
+          <svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-edit"/></svg>
+          <span>New chat</span>
         </button>
         <button class="btn-new-project" id="btn-new-project" aria-label="Create a new project workspace" title="New Project">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -51,6 +75,7 @@
             <line x1="12" y1="11" x2="12" y2="17"></line>
             <line x1="9" y1="14" x2="15" y2="14"></line>
           </svg>
+          <span>New project</span>
         </button>
         <a href="#" id="btn-image-workspace" class="btn-new-project" style="text-decoration: none; color: inherit; width: auto;" title="Create an image with AEXN AI">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -58,6 +83,7 @@
             <circle cx="8.5" cy="8.5" r="1.5"></circle>
             <polyline points="21 15 16 10 5 21"></polyline>
           </svg>
+          <span>Image</span>
         </a>
       </div>
 
@@ -72,14 +98,8 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
           <span>Projects</span>
         </button>
-        <button class="nav-tab" id="tab-files" role="tab" aria-selected="false" title="Uploaded Files">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-          <span>Files</span>
-        </button>
-        <button class="nav-tab" id="tab-knowledge" role="tab" aria-selected="false" title="Knowledge Base">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-          <span>Knowledge</span>
-        </button>
+        
+        
         <button class="nav-tab" id="tab-memory" role="tab" aria-selected="false" title="Memory Settings">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
           <span>Memory</span>
@@ -87,6 +107,10 @@
         <button class="nav-tab" id="tab-brain" role="tab" aria-selected="false" title="Brain Status & Learning">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 0-4 4c0 .88.29 1.7.78 2.37A6.5 6.5 0 0 0 4 14.5a6.5 6.5 0 0 0 5 6.32V22h6v-1.18a6.5 6.5 0 0 0 5-6.32 6.5 6.5 0 0 0-4.78-6.13A4 4 0 0 0 16 6a4 4 0 0 0-4-4z"></path></svg>
           <span>Brain</span>
+        </button>
+        <button class="nav-tab" id="tab-evolution" role="tab" aria-selected="false" title="Self-Evolution Engine">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg>
+          <span>Evolution</span>
         </button>
       </nav>
 
@@ -139,36 +163,10 @@
       </div>
 
       <!-- FILES VIEW CONTAINER -->
-      <div class="sidebar-view hidden" id="view-files">
-        <div class="chats-section-header">
-          <span class="chats-title">Files</span>
-          <div class="chats-header-actions">
-            <button class="btn-header-action" id="btn-upload-direct" title="Upload files" aria-label="Upload files">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-            </button>
-          </div>
-        </div>
-        <div class="sidebar-search-box visible" style="display:flex;">
-          <input type="text" class="sidebar-search-input" id="files-search-input" placeholder="Search files..." aria-label="Filter files" />
-        </div>
-        <div class="files-list" id="files-list" role="list"></div>
-      </div>
+      
 
       <!-- KNOWLEDGE VIEW CONTAINER -->
-      <div class="sidebar-view hidden" id="view-knowledge">
-        <div class="chats-section-header">
-          <span class="chats-title">Knowledge</span>
-          <div class="chats-header-actions">
-            <button class="btn-header-action" id="btn-knowledge-upload-direct" title="Add document to knowledge" aria-label="Add document">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-            </button>
-          </div>
-        </div>
-        <div class="sidebar-search-box visible" style="display:flex;">
-          <input type="text" class="sidebar-search-input" id="knowledge-search-input" placeholder="Search indexed docs..." aria-label="Search knowledge" />
-        </div>
-        <div class="knowledge-docs-list" id="knowledge-docs-list" role="list"></div>
-      </div>
+      
 
       <!-- MEMORY VIEW CONTAINER -->
       <div class="sidebar-view hidden" id="view-memory">
@@ -244,6 +242,56 @@
         </div>
       </div>
 
+      <!-- EVOLUTION VIEW CONTAINER -->
+      <div class="sidebar-view hidden" id="view-evolution">
+        <div class="chats-section-header">
+          <span class="chats-title">Self-Evolution</span>
+          <div class="chats-header-actions">
+            <button class="btn-header-action" id="btn-evolution-refresh" title="Refresh evolution" aria-label="Refresh evolution dashboard">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="evolution-panel-container">
+          <div class="evolution-summary-card">
+            <div class="evolution-stat-grid">
+              <div class="evolution-stat-box">
+                <div class="evolution-stat-val" id="evo-total-exp">0</div>
+                <div class="evolution-stat-label">Experiments</div>
+              </div>
+              <div class="evolution-stat-box">
+                <div class="evolution-stat-val" id="evo-pending-app" style="color:#fbbf24;">0</div>
+                <div class="evolution-stat-label">Pending Approval</div>
+              </div>
+              <div class="evolution-stat-box">
+                <div class="evolution-stat-val" id="evo-success-imp" style="color:#34d399;">0</div>
+                <div class="evolution-stat-label">Merged</div>
+              </div>
+              <div class="evolution-stat-box">
+                <div class="evolution-stat-val" id="evo-failed-exp" style="color:#f87171;">0</div>
+                <div class="evolution-stat-label">Rejected</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="evolution-section-title">
+            <span>Pending Approvals</span>
+            <span style="font-size:9px; color:#9ca3af;">Human-in-the-loop</span>
+          </div>
+          <div class="pending-approvals-list" id="pending-approvals-list">
+            <div style="font-size:11px; color:#9ca3af; text-align:center; padding:8px;">Loading approvals...</div>
+          </div>
+
+          <div class="evolution-section-title">
+            <span>Recent Experiments</span>
+          </div>
+          <div class="experiments-list" id="experiments-list">
+            <div style="font-size:11px; color:#9ca3af; text-align:center; padding:8px;">Loading experiments...</div>
+          </div>
+        </div>
+      </div>
+
       <!-- SIDEBAR FOOTER -->
       <div class="sidebar-footer">
         <div class="status-pill" id="status-pill" title="Local AI Runtime Status">
@@ -261,6 +309,7 @@
       
       <!-- Top floating toggle and control bar -->
       <div class="main-top-bar">
+        <div class="chat-heading"><strong id="chat-panel-title">New chat</strong></div>
         <button class="btn-floating-toggle" id="btn-floating-toggle" title="Open Sidebar" aria-label="Open sidebar">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -270,6 +319,7 @@
 
         <div class="top-bar-controls" style="display: flex; align-items: center; gap: 10px; margin-left: auto; padding-right: 16px;">
           <span class="runtime-label">Local-first AI</span>
+          <button id="btn-details" class="btn-tool" aria-label="Toggle details panel" aria-expanded="true"><svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-panel"/></svg>Details</button>
           <button id="btn-theme" class="btn-tool" aria-label="Switch color theme" title="Switch theme">Theme</button>
         </div>
       </div>
@@ -283,14 +333,14 @@
               <h2 class="project-title-text" id="project-header-title">Project Workspace</h2>
               <span class="project-badge">Active Workspace</span>
             </div>
-            <p class="project-desc-text" id="project-header-desc">Manage project chats, instructions, files, and knowledge</p>
+            <p class="project-desc-text" id="project-header-desc">Manage project chats, instructions, and memory</p>
           </div>
         </div>
         <div class="project-header-center">
           <nav class="project-tabs" role="tablist">
             <button class="project-tab-btn active" id="tab-proj-chats" data-subpanel="chat">Chats</button>
-            <button class="project-tab-btn" id="tab-proj-files" data-subpanel="files">Files</button>
-            <button class="project-tab-btn" id="tab-proj-knowledge" data-subpanel="knowledge">Knowledge</button>
+            
+            
             <button class="project-tab-btn" id="tab-proj-memory" data-subpanel="memory">Memory</button>
             <button class="project-tab-btn" id="tab-proj-settings" data-subpanel="settings">Settings</button>
           </nav>
@@ -304,34 +354,10 @@
       </div>
 
       <!-- PROJECT SUBPANEL: FILES -->
-      <div class="project-subpanel-view hidden" id="subpanel-project-files">
-        <div class="subpanel-header">
-          <div class="subpanel-header-title">
-            <h3>Project Files</h3>
-            <span class="subpanel-subtitle">Files attached to this project workspace</span>
-          </div>
-          <button class="btn-action-primary" id="btn-proj-upload-file">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            <span>Upload File</span>
-          </button>
-        </div>
-        <div class="subpanel-content" id="proj-files-container"></div>
-      </div>
+      
 
       <!-- PROJECT SUBPANEL: KNOWLEDGE -->
-      <div class="project-subpanel-view hidden" id="subpanel-project-knowledge">
-        <div class="subpanel-header">
-          <div class="subpanel-header-title">
-            <h3>Project Knowledge Collections</h3>
-            <span class="subpanel-subtitle">Indexed knowledge documents isolated to this project</span>
-          </div>
-          <button class="btn-action-primary" id="btn-proj-add-knowledge">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            <span>Add Document</span>
-          </button>
-        </div>
-        <div class="subpanel-content" id="proj-knowledge-container"></div>
-      </div>
+      
 
       <!-- PROJECT SUBPANEL: MEMORY -->
       <div class="project-subpanel-view hidden" id="subpanel-project-memory">
@@ -391,8 +417,22 @@
             <div class="sq-black-sm"></div>
           </div>
           
-          <h1 class="welcome-heading">What will we build today?</h1>
-          <p class="welcome-subtitle">One conversation. From an idea to a working project.</p>
+          <div class="welcome-kicker">LOCAL INTELLIGENCE. LIMITLESS IDEAS.</div>
+          <h1 class="welcome-heading">What would you like to work on today?</h1>
+          <p class="welcome-subtitle">A space to think, create, and make things happen.</p>
+          <div id="welcome-composer-slot"></div>
+          <div class="suggestion-chips" aria-label="Quick prompts">
+            <button data-prompt="Generate an image of "><svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-img"/></svg>Create image</button>
+            <button data-prompt="Solve this math problem step by step: "><svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-bars"/></svg>Solve math</button>
+            <button data-prompt="Summarize this text: "><svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-file"/></svg>Summarize text</button>
+            <button data-link="/reverse-engineering"><svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-code"/></svg>Reverse engineer</button>
+          </div>
+          <div class="task-cards" aria-label="Start a task">
+            <button class="task-card" data-prompt="Help me write a professional email."><strong>Write an email</strong><span>Professional tone</span><span class="task-icon"><svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-mail"/></svg></span></button>
+            <button class="task-card" data-prompt="Help me analyze a CSV, Excel or JSON document."><strong>Analyze data</strong><span>CSV, Excel, JSON</span><span class="task-icon"><svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-bars"/></svg></span></button>
+            <button class="task-card" data-prompt="Explain a difficult concept in simple terms."><strong>Explain anything</strong><span>In simple terms</span><span class="task-icon"><svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-help"/></svg></span></button>
+            <button class="task-card" data-prompt="Help me write code in Python, JavaScript or HTML."><strong>Code something</strong><span>Python, JS, HTML</span><span class="task-icon"><svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-code"/></svg></span></button>
+          </div>
         </div>
 
         <!-- CONVERSATION CONTAINER (Shown when messages exist) -->
@@ -416,16 +456,13 @@
       <div class="composer-attachments-tray hidden" id="composer-attachments-tray"></div>
 
       <!-- FLOATING MESSAGE COMPOSER -->
+      <div id="conversation-composer-slot" class="hidden"><div class="composer-hint">Enter to send · Shift+Enter for a new line</div></div>
       <div class="composer-floating-container" id="composer-floating-container">
         
         <!-- Left: Rounded square plus button with menu -->
         <div class="composer-plus-wrapper">
-          <button class="btn-composer-plus" id="btn-plus" title="Add files or knowledge" aria-label="Add files or knowledge">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="16"></line>
-              <line x1="8" y1="12" x2="16" y2="12"></line>
-            </svg>
+          <button class="btn-composer-plus" id="btn-plus" title="Attach files" aria-label="Attach files">
+            <svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-clip"/></svg>
           </button>
 
           <!-- Plus Dropdown Menu -->
@@ -438,13 +475,7 @@
               </svg>
               <span>Upload files</span>
             </button>
-            <button class="plus-menu-item" id="menu-add-knowledge" role="menuitem">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-              </svg>
-              <span>Add document to Knowledge</span>
-            </button>
+            
             <button class="plus-menu-item" id="menu-cancel" role="menuitem">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -472,6 +503,9 @@
 
         <!-- Right: Microphone button + Orange Send button -->
         <div class="composer-actions-right">
+          <button type="button" id="btn-tools" class="composer-tools-button" aria-haspopup="menu" aria-expanded="false" aria-controls="composer-tools-menu"><svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-tool"/></svg>Tools</button>
+          <label class="composer-mode-label"><span class="sr-only">Response mode</span><select id="composer-mode" aria-label="Response mode"><option value="auto">Auto</option><option value="fast">Fast</option><option value="balanced">Balanced</option><option value="deep">Deep</option></select></label>
+          <div id="composer-tools-menu" class="composer-tools-menu hidden" role="menu"><button type="button" role="menuitem" data-prompt="Calculate ">Calculator</button><button type="button" role="menuitem" data-prompt="Solve this math problem step by step: ">Math Solver</button><button type="button" role="menuitem" id="tools-upload">Attach a document</button><button type="button" role="menuitem" data-prompt="Generate an image of ">Create an image</button></div>
           <button class="btn-composer-voice" id="btn-voice" title="Voice dictation" aria-label="Start voice input">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
@@ -491,6 +525,12 @@
       </div>
       
     </main>
+
+    <aside class="info-panel" aria-label="Workspace information">
+      <section class="info-card"><h3>Local model</h3><p id="info-model-name">Local runtime</p><p id="info-runtime-status">Checking local runtime…</p></section>
+      <section class="info-card"><h3>Capabilities</h3><div class="capability-row">Math Solver <span data-capability="math">Checking…</span></div><div class="capability-row">Calculator <span data-capability="calculator">Checking…</span></div><div class="capability-row">Code runner <span data-capability="code">Checking…</span></div><div class="capability-row">Memory <span data-capability="memory">Checking…</span></div><div class="capability-row">Image generation <span data-capability="image">Checking…</span></div></section>
+      <section class="info-card"><h3>Your activity</h3><div class="info-stat">Conversations <b id="info-chat-count">—</b></div><div class="info-stat">Messages <b id="info-message-count">—</b></div><div class="info-stat">Verified answers <b id="info-verified-count">—</b></div></section>
+    </aside>
 
   </div>
 
@@ -560,7 +600,12 @@
   <input type="file" id="file-input-project" multiple class="hidden-file-input" style="display:none;" />
 
   <!-- Scripts: 100% offline Markdown parser + App Logic -->
-  <script src="/static/js/markdown.js?v=8"></script>
-  <script src="/static/js/app.js?v=10"></script>
+  <script src="/static/vendor/katex/katex.min.js"></script>
+  <script src="/static/js/math-renderer.js?v=2"></script>
+  <script src="/static/js/markdown.js?v=9"></script>
+  <script src="/static/js/evolution.js?v=1"></script>
+  <script src="/static/js/autonomy.js?v=4"></script>
+  <script src="/static/js/app.js?v=12"></script>
+  <script src="/static/js/redesign.js?v=3"></script>
 </body>
 </html>

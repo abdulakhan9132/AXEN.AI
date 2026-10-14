@@ -53,11 +53,13 @@
   const tabFiles = document.getElementById('tab-files');
   const tabKnowledge = document.getElementById('tab-knowledge');
   const tabBrain = document.getElementById('tab-brain');
+  const tabEvolution = document.getElementById('tab-evolution');
   const viewChats = document.getElementById('view-chats');
   const viewProjects = document.getElementById('view-projects');
   const viewFiles = document.getElementById('view-files');
   const viewKnowledge = document.getElementById('view-knowledge');
   const viewBrain = document.getElementById('view-brain');
+  const viewEvolution = document.getElementById('view-evolution');
   const filesList = document.getElementById('files-list');
   const filesSearchInput = document.getElementById('files-search-input');
   const knowledgeDocsList = document.getElementById('knowledge-docs-list');
@@ -363,9 +365,23 @@
       return;
     }
 
+    let previousGroup = null;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+    const sessionDate = value => new Date(typeof value === 'number' ? value * 1000 : value || 0);
+    conversations.sort((a, b) => sessionDate(b.updated_at || b.created_at) - sessionDate(a.updated_at || a.created_at));
     conversations.forEach(conv => {
+      const timestamp = conv.updated_at || conv.created_at;
+      const date = new Date(typeof timestamp === 'number' ? timestamp * 1000 : timestamp || 0);
+      const group = date >= today ? 'Today' : date >= yesterday ? 'Yesterday' : 'Earlier';
+      if (group !== previousGroup) {
+        const label = document.createElement('div'); label.className = 'conversation-date-label';
+        label.textContent = group; conversationList.appendChild(label); previousGroup = group;
+      }
       const item = document.createElement('div');
       item.className = `conversation-item ${conv.id === activeSessionId ? 'active' : ''}`;
+      item.tabIndex = 0; item.setAttribute('role', 'button');
+      item.addEventListener('keydown', event => { if (event.target === item && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); item.click(); } });
       item.onclick = () => {
         if (!isGenerating && conv.id !== activeSessionId) {
           loadSessionMessages(conv.id);
@@ -374,8 +390,10 @@
 
       const titleSpan = document.createElement('span');
       titleSpan.className = 'conv-title';
-      titleSpan.textContent = conv.title || 'Conversation';
-      titleSpan.title = conv.title || 'Conversation';
+      const firstMessage = (conv.messages || []).find(message => message.role === 'user');
+      const autoTitle = firstMessage ? firstMessage.content.replace(/\s+/g, ' ').trim().slice(0, 46) : 'New chat';
+      titleSpan.textContent = !conv.title || /^(New Chat|Conversation)$/i.test(conv.title) ? autoTitle : conv.title;
+      titleSpan.title = titleSpan.textContent;
 
       const actionsDiv = document.createElement('div');
       actionsDiv.className = 'conv-actions';
@@ -410,8 +428,8 @@
         if (headingEl) headingEl.textContent = activeProjectData.name;
         if (subtitleEl) subtitleEl.textContent = activeProjectData.description || 'Workspace is ready. Ask anything, manage files, or configure instructions.';
       } else {
-        if (headingEl) headingEl.textContent = 'How Can I Help You Today?';
-        if (subtitleEl) subtitleEl.textContent = 'Ask Anything, Get Ideas, Write, Analyze, Design, Or Solve Problems With AI.';
+        if (headingEl) headingEl.textContent = 'What would you like to work on today?';
+        if (subtitleEl) subtitleEl.textContent = '';
       }
       return;
     }
@@ -428,6 +446,7 @@
   function appendMessageToDOM(role, content, metadata = null) {
     const row = document.createElement('div');
     row.className = `message-row ${role}`;
+    row.dataset.rawContent = content;
 
     if (role === 'user') {
       const bubble = document.createElement('div');
@@ -465,7 +484,7 @@
       wrapper.className = 'assistant-content-wrapper';
 
       // Tool status badge if tool was used
-      if (metadata && metadata.tool_used && metadata.selected_tool) {
+      if (hasVerifiedTool(metadata)) {
         const badge = document.createElement('div');
         badge.className = 'tool-status-badge';
         const toolLabel = formatToolLabel(metadata.selected_tool);
@@ -473,14 +492,17 @@
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
-          <span>${toolLabel}</span>
+          <span>${escapeHtml(toolLabel)}</span>
         `;
         wrapper.appendChild(badge);
       }
 
       const body = document.createElement('div');
       body.className = 'assistant-body';
-      body.innerHTML = window.AxenMarkdown ? window.AxenMarkdown.parse(content) : content;
+      const displayContent = hasVerifiedTool(metadata) && /^[-+]?\d[\d,.\s]*$/.test(content.trim()) ? '\\[' + content + '\\]' : content;
+      body.innerHTML = window.AxenMarkdown ? window.AxenMarkdown.parse(displayContent) : escapeHtml(content);
+      if (window.AxenMath) window.AxenMath.render(body);
+      if (hasVerifiedTool(metadata)) prependMathQuestion(body, messagesWrapper.querySelector('.message-row.user:last-child')?.dataset.rawContent);
 
       // Feedback buttons (thumbs up / down)
       const actions = document.createElement('div');
@@ -498,6 +520,7 @@
         </button>
       `;
       const upBtn = actions.querySelector('.btn-thumb-up');
+      addCopyAction(actions, () => content);
       const downBtn = actions.querySelector('.btn-thumb-down');
       if (upBtn) {
         upBtn.onclick = () => {
@@ -535,6 +558,36 @@
     if (toolName === 'file_extended') return 'File Ingested / Analyzed';
     if (toolName === 'memory') return 'Memory Recalled';
     return toolName;
+  }
+
+  function hasVerifiedTool(metadata) {
+    if (!metadata || !metadata.selected_tool) return false;
+    const verification = metadata.verification;
+    return metadata.verified === true || verification === 'passed' || verification === 'verified'
+      || !!(verification && (verification.passed === true || verification.status === 'passed' || verification.status === 'verified'));
+  }
+
+  function prependMathQuestion(body, question) {
+    if (!question || !body.querySelector('.katex')) return;
+    const label = document.createElement('div'); label.className = 'answer-question';
+    const prefix = /^(Differentiate|Calculate|Solve)\s+/i.exec(question);
+    const expression = prefix ? question.slice(prefix[0].length) : question;
+    const isExpression = !/[A-Za-z]{3,}/.test(expression) && /^[A-Za-z\d\s'()+\-*/^=.,{}]+$/.test(expression);
+    const formatted = isExpression ? (prefix ? prefix[0] : '') + '\\(' + expression.replace(/\*\*/g, '^').replace(/\*/g, '\\times ') + '\\)' : question;
+    label.innerHTML = window.AxenMarkdown ? window.AxenMarkdown.parse(formatted) : escapeHtml(question);
+    if (window.AxenMath) window.AxenMath.render(label);
+    body.prepend(label);
+  }
+
+  function addCopyAction(actions, content) {
+    const button = document.createElement('button'); button.className = 'btn-msg-feedback';
+    button.title = 'Copy answer'; button.setAttribute('aria-label', 'Copy answer');
+    button.innerHTML = '<svg width="15" height="15" aria-hidden="true"><use href="#aexn-icon-copy"/></svg>';
+    button.onclick = () => {
+      if (!navigator.clipboard) { showToast('Copy unavailable in this browser'); return; }
+      navigator.clipboard.writeText(content()).then(() => showToast('Copied answer')).catch(() => showToast('Copy unavailable in this browser'));
+    };
+    actions.prepend(button);
   }
 
   function scrollToBottom() {
@@ -719,7 +772,8 @@
   }
 
   async function ask(messages, { onStage, onToken, onDone, onError }, signal) {
-    const payload = { messages, model: 'router', think_mode: 'auto',
+    const modeControl = document.getElementById('composer-mode');
+    const payload = { messages, model: 'router', think_mode: modeControl ? modeControl.value : 'auto',
       attachments: activeAttachments.map(a => a.file_id).filter(Boolean),
       session_id: activeSessionId, project_id: activeProjectId, session_messages_managed: true };
 
@@ -774,9 +828,9 @@
         onToken(payload.data);
 
       } else if (payload.type === 'done') {
-        finalAnswer = payload.data || '';
+        finalAnswer = payload.data && typeof payload.data === 'object' ? (payload.data.response || payload.data.answer || '') : payload.data || '';
         if (!finalAnswer) onError('Axen completed the request without a response.');
-        else onDone(finalAnswer);
+        else onDone(finalAnswer, payload.metadata || (payload.data && typeof payload.data === 'object' ? payload.data.metadata : null));
       } else if (payload.type === 'error') {
         streamError = true;
         onError(payload.data || 'Axen could not process this request.');
@@ -824,7 +878,7 @@
     const priorMessages = Array.from(messagesWrapper.querySelectorAll('.message-row')).map((messageRow) => {
       const role = messageRow.classList.contains('user') ? 'user' : 'assistant';
       const contentNode = messageRow.querySelector(role === 'user' ? '.user-bubble' : '.assistant-body');
-      return contentNode ? { role, content: contentNode.innerText.trim() } : null;
+      return contentNode ? { role, content: messageRow.dataset.rawContent || contentNode.innerText.trim() } : null;
     }).filter((message) => message && message.content).slice(-10);
     isGenerating = true;
     setComposerLoadingState(true);
@@ -950,10 +1004,12 @@
         },
         onToken: (tok) => {
           accumulatedAnswer += tok;
+          row.dataset.rawContent = accumulatedAnswer;
           body.innerHTML = window.AxenMarkdown ? window.AxenMarkdown.parse(accumulatedAnswer) : escapeHtml(accumulatedAnswer);
+          if (window.AxenMath) window.AxenMath.render(body);
           scrollToBottom();
         },
-        onDone: (finalText) => {
+        onDone: (finalText, metadata) => {
           clearInterval(timerId);
           const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
           timerEl.textContent = elapsed + 's';
@@ -961,10 +1017,19 @@
           thinking.open = false; // Collapse thinking panel when generation finishes
 
           const resText = finalText != null && finalText !== '' ? finalText : accumulatedAnswer;
-          body.innerHTML = window.AxenMarkdown ? window.AxenMarkdown.parse(resText) : escapeHtml(resText);
+          row.dataset.rawContent = resText;
+          const displayText = hasVerifiedTool(metadata) && /^[-+]?\d[\d,.\s]*$/.test(resText.trim()) ? '\\[' + resText + '\\]' : resText;
+          body.innerHTML = window.AxenMarkdown ? window.AxenMarkdown.parse(displayText) : escapeHtml(resText);
+          if (window.AxenMath) window.AxenMath.render(body);
+          if (hasVerifiedTool(metadata)) {
+            prependMathQuestion(body, messageText);
+            const badge = document.createElement('div'); badge.className = 'tool-status-badge';
+            badge.textContent = '✓ ' + formatToolLabel(metadata.selected_tool); wrapper.insertBefore(badge, body);
+          }
 
           // Reveal thumbs up / thumbs down
           actions.style.display = 'flex';
+          addCopyAction(actions, () => resText);
           const upBtn = actions.querySelector('.btn-thumb-up');
           const downBtn = actions.querySelector('.btn-thumb-down');
           if (upBtn) {
@@ -989,6 +1054,12 @@
         }
       }, activeAbortController.signal);
       await persistSessionMessage('assistant', responseText);
+      const current = conversations.find(session => session.id === activeSessionId);
+      if (!current || /^(New Chat|Conversation)$/i.test(current.title || 'New Chat')) {
+        const title = messageText.replace(/\s+/g, ' ').trim().slice(0, 46);
+        await fetch(`/api/sessions/${encodeURIComponent(activeSessionId)}`, {method: 'PATCH',
+          headers: {'Content-Type': 'application/json'}, body: JSON.stringify({title})}).catch(() => {});
+      }
 
     } catch (err) {
       clearInterval(timerId);
@@ -1385,8 +1456,16 @@
     const btnMemoryRefresh = document.getElementById('btn-memory-refresh');
 
     function switchSidebarTab(tabName) {
-      [tabChats, tabProjects, tabFiles, tabKnowledge, tabMemory, tabBrain].forEach(t => t && t.classList.remove('active'));
-      [viewChats, viewProjects, viewFiles, viewKnowledge, viewMemory, viewBrain].forEach(v => v && v.classList.add('hidden'));
+      if (window.AxenPanels) {
+        window.AxenPanels.open(tabName);
+        if (tabName === 'projects') loadProjectsList();
+        if (tabName === 'memory') loadMemoryView();
+        if (tabName === 'brain') pollBrainStatus();
+        if (tabName === 'evolution' && window.EvolutionDashboard) window.EvolutionDashboard.loadDashboard();
+        return;
+      }
+      [tabChats, tabProjects, tabFiles, tabKnowledge, tabMemory, tabBrain, tabEvolution].forEach(t => t && t.classList.remove('active'));
+      [viewChats, viewProjects, viewFiles, viewKnowledge, viewMemory, viewBrain, viewEvolution].forEach(v => v && v.classList.add('hidden'));
 
       if (tabName === 'projects') {
         if (tabProjects) tabProjects.classList.add('active');
@@ -1408,6 +1487,12 @@
         if (tabBrain) tabBrain.classList.add('active');
         if (viewBrain) viewBrain.classList.remove('hidden');
         pollBrainStatus();
+      } else if (tabName === 'evolution') {
+        if (tabEvolution) tabEvolution.classList.add('active');
+        if (viewEvolution) viewEvolution.classList.remove('hidden');
+        if (window.EvolutionDashboard) {
+          window.EvolutionDashboard.loadDashboard();
+        }
       } else {
         if (tabChats) tabChats.classList.add('active');
         if (viewChats) viewChats.classList.remove('hidden');
@@ -1420,6 +1505,7 @@
     if (tabKnowledge) tabKnowledge.onclick = () => switchSidebarTab('knowledge');
     if (tabMemory) tabMemory.onclick = () => switchSidebarTab('memory');
     if (tabBrain) tabBrain.onclick = () => switchSidebarTab('brain');
+    if (tabEvolution) tabEvolution.onclick = () => switchSidebarTab('evolution');
     if (statusPill) statusPill.onclick = () => switchSidebarTab('brain');
 
     const btnSleep = document.getElementById('btn-sleep-learn');
@@ -1673,12 +1759,13 @@
   function toggleSidebar() {
     sidebar.classList.toggle('collapsed');
     const isCollapsed = sidebar.classList.contains('collapsed');
+    if (btnFloatingToggle) btnFloatingToggle.setAttribute('aria-expanded', String(!isCollapsed));
     localStorage.setItem('axen_sidebar_collapsed', isCollapsed ? '1' : '0');
   }
 
   function restoreSidebarState() {
     const saved = localStorage.getItem('axen_sidebar_collapsed');
-    if (window.innerWidth <= 768 || saved === '1') {
+    if (window.innerWidth < 760 || saved === '1') {
       sidebar.classList.add('collapsed');
     }
   }

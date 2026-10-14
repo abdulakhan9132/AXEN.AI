@@ -11,7 +11,9 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-BROWSER = Path('C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe')
+BROWSER = Path('C:/Program Files/Google/Chrome/Application/chrome.exe')
+if not BROWSER.exists():
+    BROWSER = Path('C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe')
 
 BOOTSTRAP = r'''
 <script>
@@ -19,12 +21,14 @@ window.frontendErrors = [];
 window.addEventListener('error', e => frontendErrors.push(e.message));
 window.addEventListener('unhandledrejection', e => frontendErrors.push(String(e.reason)));
 window.testRequests = [];
+window.EventSource = class { constructor() {} close() {} };
 window.confirm = () => true;
 window.fetch = async (url, options = {}) => {
   let body = options.body ? JSON.parse(options.body) : {};
   testRequests.push({ url: String(url), body });
   let data = {};
-  if (url === '/api/brain') data = {trained:false,steps:0};
+  if (url === '/api/autonomy/status') data = {mode:'OFF',status:'stopped',goals:[],resources:{available:true},remaining_seconds:0};
+  else if (url === '/api/brain') data = {trained:false,steps:0};
   else if (url === '/api/sessions') data = {sessions:[]};
   else if (url === '/api/sessions/new') data = {session_id:'frontend-test'};
   else if (String(url).includes('/messages')) data = {status:'ok'};
@@ -89,12 +93,13 @@ def test_actual_frontend_in_headless_browser(tmp_path, width, height):
     fixture = tmp_path / 'frontend.html'
     fixture.write_text(html, encoding='utf-8')
     result = subprocess.run([str(BROWSER), '--headless', '--disable-gpu', '--no-first-run',
+        '--force-device-scale-factor=1',
         '--no-default-browser-check', '--disable-background-networking',
         '--disable-crash-reporter', '--disable-breakpad',
         '--user-data-dir=' + str(tmp_path / 'browser-profile'),
         '--window-size=' + str(width) + ',' + str(height), '--virtual-time-budget=2500',
         '--screenshot=' + str(tmp_path / 'frontend.png'), '--dump-dom', fixture.as_uri()],
-        capture_output=True, text=True, timeout=45)
+        capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=45)
     match = re.search(r'<pre id="frontend-test-results"[^>]*>(.*?)</pre>', result.stdout, re.S)
     assert match and match.group(1) != 'pending', result.stderr[-2000:]
     data = json.loads(match.group(1))

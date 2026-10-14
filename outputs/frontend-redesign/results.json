@@ -1,0 +1,603 @@
+[
+  {
+    "name": "empty-desktop",
+    "checks": [
+      {
+        "name": "font loaded",
+        "pass": true
+      },
+      {
+        "name": "no JS errors",
+        "pass": true
+      },
+      {
+        "name": "five navigation sections",
+        "pass": true
+      },
+      {
+        "name": "files and knowledge sections removed",
+        "pass": true
+      },
+      {
+        "name": "only history remains in lower sidebar",
+        "pass": true
+      },
+      {
+        "name": "no horizontal overflow",
+        "pass": true
+      },
+      {
+        "name": "right breakpoint",
+        "pass": true
+      },
+      {
+        "name": "sidebar breakpoint",
+        "pass": true
+      },
+      {
+        "name": "one composer in empty state",
+        "pass": true
+      },
+      {
+        "name": "four task cards",
+        "pass": true
+      }
+    ],
+    "errors": [],
+    "theme": "light",
+    "grid": "268px 806px 300px",
+    "font": "\"Plus Jakarta Sans\", system-ui, sans-serif"
+  },
+  {
+    "name": "conversation-desktop",
+    "checks": [
+      {
+        "name": "font loaded",
+        "pass": true
+      },
+      {
+        "name": "no JS errors",
+        "pass": true
+      },
+      {
+        "name": "five navigation sections",
+        "pass": true
+      },
+      {
+        "name": "files and knowledge sections removed",
+        "pass": true
+      },
+      {
+        "name": "only history remains in lower sidebar",
+        "pass": true
+      },
+      {
+        "name": "no horizontal overflow",
+        "pass": true
+      },
+      {
+        "name": "right breakpoint",
+        "pass": true
+      },
+      {
+        "name": "sidebar breakpoint",
+        "pass": true
+      },
+      {
+        "name": "verified backend badges",
+        "pass": true
+      },
+      {
+        "name": "actual KaTeX math output",
+        "pass": true
+      },
+      {
+        "name": "composer docks below conversation",
+        "pass": true
+      },
+      {
+        "name": "raw math preserved for context",
+        "pass": true
+      }
+    ],
+    "errors": [],
+    "theme": "light",
+    "grid": "268px 806px 300px",
+    "font": "\"Plus Jakarta Sans\", system-ui, sans-serif"
+  },
+  {
+    "name": "conversation-dark",
+    "checks": [
+      {
+        "name": "font loaded",
+        "pass": true
+      },
+      {
+        "name": "no JS errors",
+        "pass": true
+      },
+      {
+        "name": "five navigation sections",
+        "pass": true
+      },
+      {
+        "name": "files and knowledge sections removed",
+        "pass": true
+      },
+      {
+        "name": "only history remains in lower sidebar",
+        "pass": true
+      },
+      {
+        "name": "no horizontal overflow",
+        "pass": true
+      },
+      {
+        "name": "right breakpoint",
+        "pass": true
+      },
+      {
+        "name": "sidebar breakpoint",
+        "pass": true
+      },
+      {
+        "name": "verified backend badges",
+        "pass": true
+      },
+      {
+        "name": "actual KaTeX math output",
+        "pass": true
+      },
+      {
+        "name": "composer docks below conversation",
+        "pass": true
+      },
+      {
+        "name": "raw math preserved for context",
+        "pass": true
+      }
+    ],
+    "errors": [],
+    "theme": "dark",
+    "grid": "268px 806px 300px",
+    "font": "\"Plus Jakarta Sans\", system-ui, sans-serif"
+  },
+  {
+    "name": "empty-tablet",
+    "checks": [
+      {
+        "name": "font loaded",
+        "pass": true
+      },
+      {
+        "name": "no JS errors",
+        "pass": true
+      },
+      {
+        "name": "five navigation sections",
+        "pass": true
+      },
+      {
+        "name": "files and knowledge sections removed",
+        "pass": true
+      },
+      {
+        "name": "only history remains in lower sidebar",
+        "pass": true
+      },
+      {
+        "name": "no horizontal overflow",
+        "pass": true
+      },
+      {
+        "name": "right breakpoint",
+        "pass": true
+      },
+      {
+        "name": "sidebar breakpoint",
+        "pass": true
+      },
+      {
+        "name": "one composer in empty state",
+        "pass": true
+      },
+      {
+        "name": "four task cards",
+        "pass": true
+      }
+    ],
+    "errors": [],
+    "theme": "light",
+    "grid": "268px 678px",
+    "font": "\"Plus Jakarta Sans\", system-ui, sans-serif"
+  },
+  {
+    "name": "empty-mobile",
+    "checks": [
+      {
+        "name": "font loaded",
+        "pass": true
+      },
+      {
+        "name": "no JS errors",
+        "pass": true
+      },
+      {
+        "name": "five navigation sections",
+        "pass": true
+      },
+      {
+        "name": "files and knowledge sections removed",
+        "pass": true
+      },
+      {
+        "name": "only history remains in lower sidebar",
+        "pass": true
+      },
+      {
+        "name": "no horizontal overflow",
+        "pass": true
+      },
+      {
+        "name": "right breakpoint",
+        "pass": true
+      },
+      {
+        "name": "sidebar breakpoint",
+        "pass": true
+      },
+      {
+        "name": "one composer in empty state",
+        "pass": true
+      },
+      {
+        "name": "four task cards",
+        "pass": true
+      }
+    ],
+    "errors": [],
+    "theme": "light",
+    "grid": "378px",
+    "font": "\"Plus Jakarta Sans\", system-ui, sans-serif"
+  },
+  {
+    "name": "interactive",
+    "checks": [
+      {
+        "name": "font loaded",
+        "pass": true
+      },
+      {
+        "name": "no JS errors",
+        "pass": true
+      },
+      {
+        "name": "five navigation sections",
+        "pass": true
+      },
+      {
+        "name": "files and knowledge sections removed",
+        "pass": true
+      },
+      {
+        "name": "only history remains in lower sidebar",
+        "pass": true
+      },
+      {
+        "name": "no horizontal overflow",
+        "pass": true
+      },
+      {
+        "name": "right breakpoint",
+        "pass": true
+      },
+      {
+        "name": "sidebar breakpoint",
+        "pass": true
+      },
+      {
+        "name": "one composer in empty state",
+        "pass": true
+      },
+      {
+        "name": "four task cards",
+        "pass": true
+      },
+      {
+        "name": "evolution opens right panel",
+        "pass": true
+      },
+      {
+        "name": "evolution closes and restores focus",
+        "pass": true
+      },
+      {
+        "name": "brain opens right panel",
+        "pass": true
+      },
+      {
+        "name": "brain closes and restores focus",
+        "pass": true
+      },
+      {
+        "name": "memory opens right panel",
+        "pass": true
+      },
+      {
+        "name": "memory closes and restores focus",
+        "pass": true
+      },
+      {
+        "name": "projects opens right panel",
+        "pass": true
+      },
+      {
+        "name": "projects closes and restores focus",
+        "pass": true
+      },
+      {
+        "name": "tools keyboard focus",
+        "pass": true
+      },
+      {
+        "name": "escape restores focus",
+        "pass": true
+      },
+      {
+        "name": "task card fills composer",
+        "pass": true
+      },
+      {
+        "name": "send becomes stop",
+        "pass": true
+      },
+      {
+        "name": "mode forwarded unchanged",
+        "pass": true
+      },
+      {
+        "name": "stop restores composer",
+        "pass": true
+      }
+    ],
+    "errors": [],
+    "theme": "light",
+    "grid": "268px 806px 300px",
+    "font": "\"Plus Jakarta Sans\", system-ui, sans-serif"
+  },
+  {
+    "name": "interactive-reduced",
+    "checks": [
+      {
+        "name": "font loaded",
+        "pass": true
+      },
+      {
+        "name": "no JS errors",
+        "pass": true
+      },
+      {
+        "name": "five navigation sections",
+        "pass": true
+      },
+      {
+        "name": "files and knowledge sections removed",
+        "pass": true
+      },
+      {
+        "name": "only history remains in lower sidebar",
+        "pass": true
+      },
+      {
+        "name": "no horizontal overflow",
+        "pass": true
+      },
+      {
+        "name": "right breakpoint",
+        "pass": true
+      },
+      {
+        "name": "sidebar breakpoint",
+        "pass": true
+      },
+      {
+        "name": "one composer in empty state",
+        "pass": true
+      },
+      {
+        "name": "four task cards",
+        "pass": true
+      },
+      {
+        "name": "evolution opens right panel",
+        "pass": true
+      },
+      {
+        "name": "evolution closes and restores focus",
+        "pass": true
+      },
+      {
+        "name": "brain opens right panel",
+        "pass": true
+      },
+      {
+        "name": "brain closes and restores focus",
+        "pass": true
+      },
+      {
+        "name": "memory opens right panel",
+        "pass": true
+      },
+      {
+        "name": "memory closes and restores focus",
+        "pass": true
+      },
+      {
+        "name": "projects opens right panel",
+        "pass": true
+      },
+      {
+        "name": "projects closes and restores focus",
+        "pass": true
+      },
+      {
+        "name": "tools keyboard focus",
+        "pass": true
+      },
+      {
+        "name": "escape restores focus",
+        "pass": true
+      },
+      {
+        "name": "task card fills composer",
+        "pass": true
+      },
+      {
+        "name": "send becomes stop",
+        "pass": true
+      },
+      {
+        "name": "mode forwarded unchanged",
+        "pass": true
+      },
+      {
+        "name": "stop restores composer",
+        "pass": true
+      },
+      {
+        "name": "reduced motion preference active",
+        "pass": true
+      },
+      {
+        "name": "reduced motion disables smooth scrolling",
+        "pass": true
+      }
+    ],
+    "errors": [],
+    "theme": "light",
+    "grid": "268px 806px 300px",
+    "font": "\"Plus Jakarta Sans\", system-ui, sans-serif"
+  },
+  {
+    "name": "panel-desktop",
+    "checks": [
+      {
+        "name": "font loaded",
+        "pass": true
+      },
+      {
+        "name": "no JS errors",
+        "pass": true
+      },
+      {
+        "name": "five navigation sections",
+        "pass": true
+      },
+      {
+        "name": "files and knowledge sections removed",
+        "pass": true
+      },
+      {
+        "name": "only history remains in lower sidebar",
+        "pass": true
+      },
+      {
+        "name": "no horizontal overflow",
+        "pass": true
+      },
+      {
+        "name": "right breakpoint",
+        "pass": true
+      },
+      {
+        "name": "sidebar breakpoint",
+        "pass": true
+      },
+      {
+        "name": "one composer in empty state",
+        "pass": true
+      },
+      {
+        "name": "four task cards",
+        "pass": true
+      },
+      {
+        "name": "right panel fills available space",
+        "pass": true
+      },
+      {
+        "name": "right panel is visible",
+        "pass": true
+      },
+      {
+        "name": "history stays visible",
+        "pass": true
+      }
+    ],
+    "errors": [],
+    "theme": "light",
+    "grid": "268px 806px 300px",
+    "font": "\"Plus Jakarta Sans\", system-ui, sans-serif"
+  },
+  {
+    "name": "panel-mobile",
+    "checks": [
+      {
+        "name": "font loaded",
+        "pass": true
+      },
+      {
+        "name": "no JS errors",
+        "pass": true
+      },
+      {
+        "name": "five navigation sections",
+        "pass": true
+      },
+      {
+        "name": "files and knowledge sections removed",
+        "pass": true
+      },
+      {
+        "name": "only history remains in lower sidebar",
+        "pass": true
+      },
+      {
+        "name": "no horizontal overflow",
+        "pass": true
+      },
+      {
+        "name": "right breakpoint",
+        "pass": true
+      },
+      {
+        "name": "sidebar breakpoint",
+        "pass": true
+      },
+      {
+        "name": "one composer in empty state",
+        "pass": true
+      },
+      {
+        "name": "four task cards",
+        "pass": true
+      },
+      {
+        "name": "right panel fills available space",
+        "pass": true
+      },
+      {
+        "name": "right panel is visible",
+        "pass": true
+      },
+      {
+        "name": "history stays visible",
+        "pass": true
+      }
+    ],
+    "errors": [],
+    "theme": "light",
+    "grid": "378px",
+    "font": "\"Plus Jakarta Sans\", system-ui, sans-serif"
+  }
+]

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AEXN AI</title>
+<link rel="stylesheet" href="/static/css/redesign.css"><style>body{padding:0;background-image:radial-gradient(60% 45% at 50% 0%,var(--glow),transparent 70%);font-size:14px}</style>
+<style>
+:root{--bg:#EFECE6;--panel:rgba(255,255,255,.62);--panel2:rgba(255,255,255,.9);--line:rgba(20,20,20,.1);--ink:#141414;--mute:#625E57;--acc:#E8603A;--acc2:#D4502B;--accsoft:rgba(232,96,58,.12);--bubble:#E6DFD3;--ok:#1F7F52;--oksoft:rgba(31,127,82,.12);--glow:rgba(232,96,58,.2);--shadow:0 8px 28px rgba(40,30,20,.08);
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#151311;--panel:rgba(255,255,255,.05);--panel2:rgba(255,255,255,.08);--line:rgba(255,255,255,.12);--ink:#F4F1EB;--mute:#AAA59B;--accsoft:rgba(232,96,58,.2);--bubble:#2B2723;--ok:#4CC98C;--oksoft:rgba(76,201,140,.14);--glow:rgba(232,96,58,.22);--shadow:0 8px 28px rgba(0,0,0,.4)}}
+:root[data-theme="dark"]{--bg:#151311;--panel:rgba(255,255,255,.05);--panel2:rgba(255,255,255,.08);--line:rgba(255,255,255,.12);--ink:#F4F1EB;--mute:#AAA59B;--accsoft:rgba(232,96,58,.2);--bubble:#2B2723;--ok:#4CC98C;--oksoft:rgba(76,201,140,.14);--glow:rgba(232,96,58,.22);--shadow:0 8px 28px rgba(0,0,0,.4)}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;overflow:hidden;background-image:radial-gradient(60% 45% at 50% 0%,var(--glow),transparent 70%)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+svg.i{width:18px;height:18px;flex:none}
+.shell{height:100%;padding:12px;display:grid;grid-template-columns:260px minmax(0,1fr) 290px;gap:12px}
+.shell.noright{grid-template-columns:260px minmax(0,1fr)}.shell.noright .right{display:none}
+.glass{background:var(--panel);border:1px solid var(--line);border-radius:22px;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:var(--shadow)}
+/* sidebar: whole column scrolls, nothing can be squashed */
+.side{display:flex;flex-direction:column;gap:4px;padding:14px 10px 10px;overflow-y:auto;min-height:0}
+.side>*{flex:none}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 8px 10px;font-weight:700;font-size:18px}
+.logo{width:28px;height:28px;position:relative}
+.logo i{position:absolute;border-radius:4px}.logo i:nth-child(1){left:0;top:10px;width:11px;height:11px;background:var(--acc)}.logo i:nth-child(2){left:9px;top:0;width:17px;height:17px;background:var(--ink);border-radius:5px}.logo i:nth-child(3){left:6px;top:22px;width:6px;height:6px;background:var(--ink)}
+.new{display:flex;align-items:center;justify-content:center;gap:8px;height:42px;margin:0 2px 8px;border-radius:13px;background:var(--acc);color:#fff;font-weight:600}
+.new:hover{background:var(--acc2)}
+.nav button,.chat{display:flex;align-items:center;gap:11px;width:100%;height:36px;padding:0 10px;border-radius:10px;text-align:left;color:var(--mute);font-weight:500;position:relative}
+.nav button:hover,.chat:hover{background:var(--accsoft);color:var(--ink)}
+.nav button.on,.chat.on{background:var(--panel2);color:var(--ink)}
+.nav button.on svg{color:var(--acc)}
+.nav .add{margin-left:auto;width:22px;height:22px;display:grid;place-items:center;border-radius:6px;color:var(--mute)}
+.chat.on::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:3px;border-radius:3px;background:var(--acc)}
+.grp{padding:14px 10px 4px;font-size:12px;font-weight:600;color:var(--mute)}
+.chat span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat{color:var(--ink);font-weight:400}
+.status{display:flex;align-items:center;gap:8px;margin-top:auto;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);font-size:12.5px;font-weight:500;position:sticky;bottom:0}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
+/* main */
+.main{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
+.top{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.title{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp{flex:1}
+.pill{height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);font-weight:500;display:flex;align-items:center;gap:7px}
+.pill:hover{border-color:var(--acc)}
+.scroll{flex:1;min-height:0;overflow:auto;padding:24px 24px 8px}
+.wrap{width:100%;max-width:740px;margin:0 auto}
+.dock{padding:8px 24px 16px}
+/* empty state */
+.empty .scroll{display:flex;flex-direction:column;justify-content:center}
+.empty .dock{display:none}
+h1{font-size:clamp(26px,3.2vw,36px);line-height:1.2;font-weight:600;text-align:center;margin-bottom:20px;letter-spacing:-.02em}
+.hero,.convo{display:none}
+.empty .hero{display:block}.chatting .convo{display:flex}
+/* composer */
+.comp{border-radius:20px;border:1px solid var(--line);background:var(--panel2);padding:10px 12px;box-shadow:var(--shadow)}
+.comp:focus-within{border-color:var(--acc);box-shadow:0 0 0 4px var(--accsoft)}
+.comp textarea{width:100%;height:48px;resize:none;border:0;outline:0;background:none;font:inherit;color:inherit;padding:6px}
+.comp textarea::placeholder{color:var(--mute)}
+.crow{display:flex;align-items:center;gap:6px}
+.ibtn{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--mute)}
+.ibtn:hover{background:var(--accsoft);color:var(--ink)}
+.mode{display:flex;align-items:center;gap:6px;height:34px;padding:0 11px;border-radius:10px;border:1px solid var(--line);font-size:12.5px;font-weight:500}
+.send{width:38px;height:38px;border-radius:12px;background:var(--acc);color:#fff;display:grid;place-items:center;margin-left:4px}
+.send:hover{background:var(--acc2)}
+.hint{text-align:center;color:var(--mute);font-size:12px;margin-top:8px}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:14px 0 20px}
+.chip{display:flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);font-weight:500}
+.chip:hover{border-color:var(--acc);background:var(--accsoft)}
+.chip svg{color:var(--acc);width:16px;height:16px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.card{text-align:left;padding:14px;border-radius:18px;border:1px solid var(--line);background:var(--panel);min-height:112px;display:flex;flex-direction:column;gap:2px}
+.card:hover{border-color:var(--acc)}
+.card b{font-weight:600}.card span{color:var(--mute);font-size:12.5px}
+.card svg{margin-top:auto;color:var(--acc)}
+/* conversation */
+.convo{flex-direction:column;gap:26px;padding-bottom:12px}
+.u{align-self:flex-end;max-width:80%;background:var(--bubble);padding:10px 16px;border-radius:18px 18px 4px 18px}
+.a{display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px}
+.av{width:36px;height:36px;border-radius:11px;background:var(--panel2);border:1px solid var(--line);display:grid;place-items:center}
+.av .logo{transform:scale(.6)}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:var(--oksoft);color:var(--ok);font-size:12px;font-weight:600}
+.meta{color:var(--mute);font-size:12px;margin-left:8px}
+.res{margin-top:10px;padding:14px 18px;border-radius:16px;border:1px solid var(--line);background:var(--panel)}
+.math{font-family:'STIX Two Text','Cambria Math',Georgia,serif;font-size:20px;line-height:1.7;overflow-x:auto;white-space:nowrap}
+.math i{font-style:italic}
+.math sup{font-size:.65em;line-height:0;position:relative;top:-.15em;vertical-align:super;margin-left:1px}
+.math.q{font-size:15px;color:var(--mute);margin-bottom:2px}
+.math.big{font-size:26px;font-weight:600}
+details{margin-top:8px}
+summary{cursor:pointer;color:var(--mute);font-weight:500;font-size:13px;padding:4px 0;list-style:none}
+summary::before{content:"\25B8  "}details[open] summary::before{content:"\25BE  "}
+.steps{margin-top:6px;padding-left:2px;display:grid;gap:4px;color:var(--ink)}
+.steps .math{font-size:17px;line-height:1.6}
+.acts{display:flex;gap:2px;margin-top:6px}
+.acts .ibtn{width:30px;height:30px}
+.acts svg{width:16px;height:16px}
+/* right */
+.right{display:flex;flex-direction:column;gap:10px;min-height:0;overflow:auto}
+.box{padding:16px;border-radius:20px}
+.box h3{font-size:13.5px;font-weight:600;margin-bottom:8px}
+.box p{color:var(--mute);font-size:12.5px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-top:1px solid var(--line);font-size:13px}
+.row:first-of-type{border-top:0}
+.ok{color:var(--ok);font-weight:600}.off{color:var(--mute)}
+.stat{display:flex;justify-content:space-between;font-size:13px;color:var(--mute);padding:2px 0}.stat b{color:var(--ink)}
+@media (max-width:1100px){.shell,.shell.noright{grid-template-columns:240px minmax(0,1fr)}.right{display:none}#panel{display:none}}
+@media (max-width:760px){.shell,.shell.noright{grid-template-columns:1fr;padding:6px}.side{display:none}.cards{grid-template-columns:1fr 1fr}.scroll,.dock{padding-left:14px;padding-right:14px}}
+@media (prefers-reduced-motion:no-preference){.chip,.card,.nav button,.chat,.new{transition:background .15s,border-color .15s}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6M18 3l3 3-9 9H9v-3z"/></symbol>
+<symbol id="folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+<symbol id="img" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-9 9"/></symbol>
+<symbol id="code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></symbol>
+<symbol id="chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></symbol>
+<symbol id="file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6zM14 3v4h4"/></symbol>
+<symbol id="book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M5 4h13v16H7a2 2 0 0 1-2-2zM9 8h6"/></symbol>
+<symbol id="mem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></symbol>
+<symbol id="brain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 3 5 3 3 0 0 0 5 1V5a2 2 0 0 0-3-1zM15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-3 5 3 3 0 0 1-5 1"/></symbol>
+<symbol id="evo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></symbol>
+<symbol id="search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+<symbol id="tool" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6a4 4 0 0 0 5 5l-9 9a2.1 2.1 0 0 1-3-3z"/></symbol>
+<symbol id="clip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m20 11-8 8a5 5 0 0 1-7-7l8-8a3.5 3.5 0 0 1 5 5l-8 8a2 2 0 0 1-3-3l7-7"/></symbol>
+<symbol id="mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+<symbol id="send" viewBox="0 0 24 24" fill="currentColor"><path d="M3 11.5 21 3l-5 18-4-7z"/></symbol>
+<symbol id="mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m3 8 9 6 9-6"/></symbol>
+<symbol id="bars" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 20V10M12 20V4M18 20v-7"/></symbol>
+<symbol id="help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17v.01"/></symbol>
+<symbol id="up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4v-9zM7 11l4-8c2 0 3 1 2.5 3L13 9h6a2 2 0 0 1 2 2.3l-1 6A2 2 0 0 1 18 19H7"/></symbol>
+<symbol id="copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></symbol>
+<symbol id="panel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M15 4v16"/></symbol>
+</defs></svg>
+
+<div class="shell" id="shell">
+<aside class="glass side" aria-label="Sidebar">
+  <div class="brand"><span class="logo"><i></i><i></i><i></i></span>AEXN AI</div>
+  <button class="new" id="newChat"><svg class="i"><use href="#edit"/></svg>New chat</button>
+  <nav class="nav" aria-label="Sections">
+    <button class="on"><svg class="i"><use href="#chat"/></svg>Chats</button>
+    <button><svg class="i"><use href="#folder"/></svg>Projects<span class="add" title="New project"><svg class="i" style="width:15px;height:15px"><use href="#plus"/></svg></span></button>
+    <button><svg class="i"><use href="#file"/></svg>Files</button>
+    <button><svg class="i"><use href="#book"/></svg>Knowledge</button>
+    <button><svg class="i"><use href="#mem"/></svg>Memory</button>
+    <button><svg class="i"><use href="#brain"/></svg>Brain</button>
+    <button><svg class="i"><use href="#evo"/></svg>Evolution</button>
+  </nav>
+  <div class="grp">Today</div>
+  <button class="chat on"><span>Greatest common divisor</span></button>
+  <button class="chat"><span>Differentiate a product</span></button>
+  <div class="grp">Yesterday</div>
+  <button class="chat"><span>Quick greeting</span></button>
+  <button class="chat"><span>Calculator checks</span></button>
+  <div class="status"><span class="dot"></span>Running locally on this device</div>
+</aside>
+
+<main class="glass main chatting" id="main">
+  <div class="top">
+    <div class="title" id="ttl">Differentiate a product</div>
+    <span class="sp"></span>
+    <button class="pill" id="panel" aria-label="Toggle details panel"><svg class="i"><use href="#panel"/></svg>Details</button>
+    <button class="pill" id="theme">Theme</button>
+  </div>
+  <div class="scroll"><div class="wrap">
+    <div class="hero">
+      <h1>What would you like to work on today?</h1>
+      <div id="slotTop"></div>
+      <div class="chips">
+        <button class="chip"><svg class="i"><use href="#img"/></svg>Create image</button>
+        <button class="chip"><svg class="i"><use href="#bars"/></svg>Solve math</button>
+        <button class="chip"><svg class="i"><use href="#file"/></svg>Summarize text</button>
+        <button class="chip"><svg class="i"><use href="#code"/></svg>Reverse engineer</button>
+      </div>
+      <div class="cards">
+        <button class="card"><b>Write an email</b><span>Professional tone</span><svg class="i"><use href="#mail"/></svg></button>
+        <button class="card"><b>Analyze data</b><span>CSV, Excel, JSON</span><svg class="i"><use href="#bars"/></svg></button>
+        <button class="card"><b>Explain anything</b><span>In simple terms</span><svg class="i"><use href="#help"/></svg></button>
+        <button class="card"><b>Code something</b><span>Python, JS, HTML</span><svg class="i"><use href="#code"/></svg></button>
+      </div>
+    </div>
+    <div class="convo" id="convo">
+      <div class="u">Differentiate f(x)=(2x^3-5x+4)(x^2+3x-1)</div>
+      <div class="a"><div class="av"><span class="logo"><i></i><i></i><i></i></span></div><div>
+        <span class="badge" title="Checked with a symbolic solver">&#10003; Math Solver verified</span><span class="meta">Product rule</span>
+        <div class="res">
+          <div class="math q">Differentiate <i>f</i>(<i>x</i>) = (2<i>x</i><sup>3</sup> &minus; 5<i>x</i> + 4)(<i>x</i><sup>2</sup> + 3<i>x</i> &minus; 1)</div>
+          <div class="math big"><i>f</i>&prime;(<i>x</i>) = 10<i>x</i><sup>4</sup> + 24<i>x</i><sup>3</sup> &minus; 21<i>x</i><sup>2</sup> &minus; 22<i>x</i> + 17</div>
+        </div>
+        <details><summary>Show steps</summary><div class="steps">
+          <div class="math">Let <i>u</i> = 2<i>x</i><sup>3</sup> &minus; 5<i>x</i> + 4 and <i>v</i> = <i>x</i><sup>2</sup> + 3<i>x</i> &minus; 1</div>
+          <div class="math"><i>u</i>&prime; = 6<i>x</i><sup>2</sup> &minus; 5, &nbsp; <i>v</i>&prime; = 2<i>x</i> + 3</div>
+          <div class="math"><i>f</i>&prime; = <i>u</i>&prime;<i>v</i> + <i>u</i><i>v</i>&prime;</div>
+          <div class="math">= (6<i>x</i><sup>4</sup> + 18<i>x</i><sup>3</sup> &minus; 11<i>x</i><sup>2</sup> &minus; 15<i>x</i> + 5) + (4<i>x</i><sup>4</sup> + 6<i>x</i><sup>3</sup> &minus; 10<i>x</i><sup>2</sup> &minus; 7<i>x</i> + 12)</div>
+        </div></details>
+        <div class="acts"><button class="ibtn" aria-label="Copy"><svg><use href="#copy"/></svg></button><button class="ibtn" aria-label="Good answer"><svg><use href="#up"/></svg></button><button class="ibtn" aria-label="Bad answer"><svg style="transform:scaleY(-1)"><use href="#up"/></svg></button></div>
+      </div></div>
+      <div class="u">25 * 48</div>
+      <div class="a"><div class="av"><span class="logo"><i></i><i></i><i></i></span></div><div>
+        <span class="badge">&#10003; Calculator verified</span>
+        <div class="res"><div class="math q">25 &times; 48</div><div class="math big">1,200</div></div>
+        <div class="acts"><button class="ibtn" aria-label="Copy"><svg><use href="#copy"/></svg></button><button class="ibtn" aria-label="Good answer"><svg><use href="#up"/></svg></button><button class="ibtn" aria-label="Bad answer"><svg style="transform:scaleY(-1)"><use href="#up"/></svg></button></div>
+      </div></div>
+    </div>
+  </div></div>
+  <div class="dock"><div class="wrap" id="slotBottom">
+    <div class="comp" id="comp">
+      <textarea id="msg" aria-label="Message" placeholder="Message AEXN AI"></textarea>
+      <div class="crow">
+        <button class="ibtn" aria-label="Attach file"><svg class="i"><use href="#clip"/></svg></button>
+        <button class="mode"><svg class="i" style="width:15px;height:15px"><use href="#tool"/></svg>Tools</button>
+        <button class="mode">Auto</button>
+        <span class="sp"></span>
+        <button class="ibtn" aria-label="Voice input"><svg class="i"><use href="#mic"/></svg></button>
+        <button class="send" id="send" aria-label="Send"><svg class="i"><use href="#send"/></svg></button>
+      </div>
+    </div>
+    <div class="hint">Enter to send &middot; Shift+Enter for a new line</div>
+  </div></div>
+</main>
+
+<aside class="right" aria-label="Details">
+  <section class="glass box"><h3>Local model</h3><p>Runs on your machine with Ollama. Your chats never leave this device.</p></section>
+  <section class="glass box"><h3>Capabilities</h3>
+    <div class="row">Math Solver <span class="ok">On</span></div><div class="row">Calculator <span class="ok">On</span></div><div class="row">Code runner <span class="ok">On</span></div><div class="row">Memory <span class="ok">On</span></div><div class="row">Image generation <span class="off">Off</span></div></section>
+  <section class="glass box"><h3>Your activity</h3><div class="stat">Messages sent <b>128</b></div><div class="stat">Verified answers <b>94</b></div><div class="stat">Time saved <b>3h 20m</b></div></section>
+</aside>
+</div>
+<script>
+(function(){
+var r=document.documentElement,main=document.getElementById('main'),comp=document.getElementById('comp'),
+ top=document.getElementById('slotTop'),bot=document.getElementById('slotBottom'),convo=document.getElementById('convo'),
+ msg=document.getElementById('msg'),ttl=document.getElementById('ttl'),shell=document.getElementById('shell'),hint=bot.querySelector('.hint');
+function view(v){main.className='glass main '+v;if(v==='empty'){top.appendChild(comp);hint.style.display='none';ttl.textContent='New chat'}else{bot.insertBefore(comp,hint);hint.style.display=''}}
+function setOn(el){document.querySelectorAll('.chat').forEach(function(c){c.classList.remove('on')});if(el)el.classList.add('on')}
+document.getElementById('newChat').onclick=function(){view('empty');setOn(null);msg.focus()};
+document.querySelectorAll('.chat').forEach(function(c){c.onclick=function(){view('chatting');setOn(c);ttl.textContent=c.textContent}});
+function send(){var t=msg.value.trim();if(!t)return;view('chatting');var d=document.createElement('div');d.className='u';d.textContent=t;convo.appendChild(d);msg.value='';var s=main.querySelector('.scroll');s.scrollTop=s.scrollHeight}
+document.getElementById('send').onclick=send;
+msg.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
+document.getElementById('panel').onclick=function(){shell.classList.toggle('noright')};
+document.getElementById('theme').onclick=function(){var d=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme:dark)').matches);r.setAttribute('data-theme',d?'light':'dark')};
+})();
+</script>
+</body>
+</html>

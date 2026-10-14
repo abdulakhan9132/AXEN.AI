@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AEXN AI — Your assistant</title>
+  <meta name="description" content="AXEN personal AI assistant with a from-scratch language brain, memory, and exact reasoning tools." />
+  <link rel="stylesheet" href="/static/css/styles.css?v=8" />
+  <link rel="stylesheet" href="/static/css/evolution.css?v=1" />
+  <link rel="stylesheet" href="/static/css/autonomy.css?v=2" />
+  <link rel="stylesheet" href="/static/vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="/static/css/redesign.css?v=1" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 28'><rect x='0' y='14' width='14' height='14' rx='3' fill='%23F05A28'/><rect x='12' y='0' width='20' height='20' rx='4' fill='%23000000'/><rect x='12' y='20' width='8' height='8' rx='2' fill='%23000000'/></svg>" />
+
+<script>
+window.errors=[]; window.addEventListener('error',e=>errors.push(e.message));
+window.addEventListener('unhandledrejection',e=>errors.push(String(e.reason)));
+localStorage.clear();localStorage.setItem('aexn_theme','light');
+window.EventSource=class{constructor(){}close(){}};
+window.confirm=()=>true; window.testRequests=[];
+window.fetch=async(url,options={})=>{
+ const route=String(url),request=options.body&&typeof options.body==='string'?JSON.parse(options.body):{};
+ testRequests.push({route,request});let data={};
+ if(route==='/api/brain')data={trained:true,steps:12};
+ if(route==='/api/status')data={status:'ready',model:'Local model',tools:['math_solver','calculator','python','memory']};
+ if(route==='/api/autonomy/status')data={status:'stopped',mode:'OFF',goals:[],resources:{available:true},remaining_seconds:0};
+ if(route==='/api/sessions')data={sessions:true?[{id:'demo',title:'Differentiate a product',created_at:new Date().toISOString(),message_count:4}]:[],active_session_id:true?'demo':null};
+ if(route==='/api/sessions/demo')data={id:'demo',messages:[
+  {role:'user',content:'Differentiate f(x)=(2x^3-5x+4)(x^2+3x-1)'},
+  {role:'assistant',content:"f'(x) = 10*x**4 + 24*x**3 - 21*x**2 - 22*x + 17",metadata:{selected_tool:'math_solver',verification:{passed:true}}},
+  {role:'user',content:'25 * 48'},
+  {role:'assistant',content:'1200',metadata:{selected_tool:'calculator',verification:{passed:true}}}]};
+ if(route==='/api/sessions/new')data={session_id:'qa-new'};
+ if(route==='/api/v2/chat'){
+  const stream=new ReadableStream({start(controller){
+    controller.enqueue(new TextEncoder().encode('data: '+JSON.stringify({type:'stage',data:'Working on your request'})+'\n\n'));
+    options.signal.addEventListener('abort',()=>controller.error(new DOMException('Aborted','AbortError')));
+  }});return new Response(stream,{headers:{'Content-Type':'text/event-stream'}});
+ }
+ return new Response(JSON.stringify(data),{headers:{'Content-Type':'application/json'}});
+};
+</script><script>document.documentElement.dataset.theme = localStorage.getItem('aexn_theme') || 'light';</script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="aexn-icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="aexn-icon-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6M18 3l3 3-9 9H9v-3z"/></symbol>
+<symbol id="aexn-icon-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+<symbol id="aexn-icon-img" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-9 9"/></symbol>
+<symbol id="aexn-icon-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></symbol>
+<symbol id="aexn-icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></symbol>
+<symbol id="aexn-icon-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6zM14 3v4h4"/></symbol>
+<symbol id="aexn-icon-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M5 4h13v16H7a2 2 0 0 1-2-2zM9 8h6"/></symbol>
+<symbol id="aexn-icon-mem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></symbol>
+<symbol id="aexn-icon-brain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 3 5 3 3 0 0 0 5 1V5a2 2 0 0 0-3-1zM15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-3 5 3 3 0 0 1-5 1"/></symbol>
+<symbol id="aexn-icon-evo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></symbol>
+<symbol id="aexn-icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+<symbol id="aexn-icon-tool" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6a4 4 0 0 0 5 5l-9 9a2.1 2.1 0 0 1-3-3z"/></symbol>
+<symbol id="aexn-icon-clip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m20 11-8 8a5 5 0 0 1-7-7l8-8a3.5 3.5 0 0 1 5 5l-8 8a2 2 0 0 1-3-3l7-7"/></symbol>
+<symbol id="aexn-icon-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+<symbol id="aexn-icon-send" viewBox="0 0 24 24" fill="currentColor"><path d="M3 11.5 21 3l-5 18-4-7z"/></symbol>
+<symbol id="aexn-icon-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m3 8 9 6 9-6"/></symbol>
+<symbol id="aexn-icon-bars" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 20V10M12 20V4M18 20v-7"/></symbol>
+<symbol id="aexn-icon-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17v.01"/></symbol>
+<symbol id="aexn-icon-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4v-9zM7 11l4-8c2 0 3 1 2.5 3L13 9h6a2 2 0 0 1 2 2.3l-1 6A2 2 0 0 1 18 19H7"/></symbol>
+<symbol id="aexn-icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></symbol>
+<symbol id="aexn-icon-panel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M15 4v16"/></symbol>
+</defs></svg>
+  <div class="app-container">
+    
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar" id="sidebar" aria-label="Sidebar navigation">
+      
+      <!-- Top Header: Logo + Collapse Button -->
+      <div class="sidebar-header">
+        <a class="brand-wrapper" href="#" id="brand-link" title="AXEN AI Home">
+          <div class="axen-logo-small">
+            <div class="sq-orange"></div>
+            <div class="sq-black-lg"></div>
+            <div class="sq-black-sm"></div>
+          </div>
+          <span class="brand-text">AEXN AI</span>
+        </a>
+        
+        <button class="btn-icon-toggle" id="btn-toggle-sidebar" title="Toggle Sidebar" aria-label="Collapse sidebar">
+          <!-- Sidebar collapse icon (window with split panel) -->
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- NEW CHAT, NEW PROJECT & VISION BUTTONS -->
+      <div class="sidebar-action-buttons">
+        <button class="btn-new-chat" id="btn-new-chat" aria-label="Start a new chat">
+          <svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-edit"/></svg>
+          <span>New chat</span>
+        </button>
+        <button class="btn-new-project" id="btn-new-project" aria-label="Create a new project workspace" title="New Project">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            <line x1="12" y1="11" x2="12" y2="17"></line>
+            <line x1="9" y1="14" x2="15" y2="14"></line>
+          </svg>
+          <span>New project</span>
+        </button>
+        <a href="#" id="btn-image-workspace" class="btn-new-project" style="text-decoration: none; color: inherit; width: auto;" title="Create an image with AEXN AI">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+          <span>Image</span>
+        </a>
+      </div>
+
+      <!-- SIDEBAR NAV TABS -->
+      <a href="/reverse-engineering" class="btn-new-project" style="text-decoration:none; margin:8px 0; min-height:44px;">Reverse engineer</a>
+      <nav class="sidebar-nav-tabs" role="tablist" aria-label="Sidebar Navigation">
+        <button class="nav-tab active" id="tab-chats" role="tab" aria-selected="true" title="Chats">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <span>Chats</span>
+        </button>
+        <button class="nav-tab" id="tab-projects" role="tab" aria-selected="false" title="Projects & Workspaces">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          <span>Projects</span>
+        </button>
+        <button class="nav-tab" id="tab-files" role="tab" aria-selected="false" title="Uploaded Files">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+          <span>Files</span>
+        </button>
+        <button class="nav-tab" id="tab-knowledge" role="tab" aria-selected="false" title="Knowledge Base">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          <span>Knowledge</span>
+        </button>
+        <button class="nav-tab" id="tab-memory" role="tab" aria-selected="false" title="Memory Settings">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <span>Memory</span>
+        </button>
+        <button class="nav-tab" id="tab-brain" role="tab" aria-selected="false" title="Brain Status & Learning">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 0-4 4c0 .88.29 1.7.78 2.37A6.5 6.5 0 0 0 4 14.5a6.5 6.5 0 0 0 5 6.32V22h6v-1.18a6.5 6.5 0 0 0 5-6.32 6.5 6.5 0 0 0-4.78-6.13A4 4 0 0 0 16 6a4 4 0 0 0-4-4z"></path></svg>
+          <span>Brain</span>
+        </button>
+        <button class="nav-tab" id="tab-evolution" role="tab" aria-selected="false" title="Self-Evolution Engine">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg>
+          <span>Evolution</span>
+        </button>
+      </nav>
+
+      <!-- CHATS VIEW CONTAINER -->
+      <div class="sidebar-view" id="view-chats">
+        <!-- CHATS SECTION HEADER -->
+        <div class="chats-section-header">
+          <span class="chats-title">Chats</span>
+          <div class="chats-header-actions">
+            <button class="btn-header-action" id="btn-search" title="Search chats" aria-label="Search chats">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Expandable Search Input -->
+        <div class="sidebar-search-box" id="sidebar-search-box">
+          <svg class="sidebar-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" class="sidebar-search-input" id="sidebar-search-input" placeholder="Search conversations..." aria-label="Search conversations" />
+        </div>
+
+        <!-- CONVERSATION LIST AREA -->
+        <div class="conversation-list" id="conversation-list" role="list">
+          <!-- Rendered dynamically via app.js -->
+        </div>
+      </div>
+
+      <!-- PROJECTS VIEW CONTAINER -->
+      <div class="sidebar-view hidden" id="view-projects">
+        <div class="chats-section-header">
+          <span class="chats-title">Projects</span>
+          <div class="chats-header-actions">
+            <button class="btn-header-action" id="btn-projects-search" title="Search projects" aria-label="Search projects">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </button>
+          </div>
+        </div>
+        <div class="sidebar-search-box visible" style="display:flex;">
+          <input type="text" class="sidebar-search-input" id="projects-search-input" placeholder="Search projects..." aria-label="Filter projects" />
+        </div>
+        <div class="projects-list" id="projects-list" role="list">
+          <!-- Rendered dynamically via app.js -->
+        </div>
+      </div>
+
+      <!-- FILES VIEW CONTAINER -->
+      <div class="sidebar-view hidden" id="view-files">
+        <div class="chats-section-header">
+          <span class="chats-title">Files</span>
+          <div class="chats-header-actions">
+            <button class="btn-header-action" id="btn-upload-direct" title="Upload files" aria-label="Upload files">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            </button>
+          </div>
+        </div>
+        <div class="sidebar-search-box visible" style="display:flex;">
+          <input type="text" class="sidebar-search-input" id="files-search-input" placeholder="Search files..." aria-label="Filter files" />
+        </div>
+        <div class="files-list" id="files-list" role="list"></div>
+      </div>
+
+      <!-- KNOWLEDGE VIEW CONTAINER -->
+      <div class="sidebar-view hidden" id="view-knowledge">
+        <div class="chats-section-header">
+          <span class="chats-title">Knowledge</span>
+          <div class="chats-header-actions">
+            <button class="btn-header-action" id="btn-knowledge-upload-direct" title="Add document to knowledge" aria-label="Add document">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+            </button>
+          </div>
+        </div>
+        <div class="sidebar-search-box visible" style="display:flex;">
+          <input type="text" class="sidebar-search-input" id="knowledge-search-input" placeholder="Search indexed docs..." aria-label="Search knowledge" />
+        </div>
+        <div class="knowledge-docs-list" id="knowledge-docs-list" role="list"></div>
+      </div>
+
+      <!-- MEMORY VIEW CONTAINER -->
+      <div class="sidebar-view hidden" id="view-memory">
+        <div class="chats-section-header">
+          <span class="chats-title">Memory 2.0</span>
+          <div class="chats-header-actions">
+            <button class="btn-header-action" id="btn-memory-refresh" title="Refresh memories" aria-label="Refresh memories">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            </button>
+          </div>
+        </div>
+        <div class="sidebar-search-box visible" style="display:flex;">
+          <input type="text" class="sidebar-search-input" id="memory-search-input" placeholder="Search saved memories..." aria-label="Search memories" />
+        </div>
+        <div class="memory-items-list" id="memory-items-list" style="padding: 12px; overflow-y: auto; flex: 1;" role="list"></div>
+      </div>
+
+      <!-- BRAIN VIEW CONTAINER -->
+      <div class="sidebar-view hidden" id="view-brain">
+        <div class="chats-section-header">
+          <span class="chats-title">Axen Brain</span>
+          <div class="chats-header-actions">
+            <button class="btn-header-action" id="btn-brain-refresh" title="Refresh status" aria-label="Refresh brain status">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            </button>
+          </div>
+        </div>
+        <div class="brain-panel-card">
+          <div class="brain-stat-grid">
+            <div class="brain-stat-box">
+              <div class="brain-stat-label">Parameters</div>
+              <div class="brain-stat-val" id="brain-params">62,208</div>
+            </div>
+            <div class="brain-stat-box">
+              <div class="brain-stat-label">Trained Steps</div>
+              <div class="brain-stat-val" id="brain-steps">0</div>
+            </div>
+            <div class="brain-stat-box">
+              <div class="brain-stat-label">Loss</div>
+              <div class="brain-stat-val" id="brain-loss">--</div>
+            </div>
+            <div class="brain-stat-box">
+              <div class="brain-stat-label">State</div>
+              <div class="brain-stat-val" id="brain-state" style="font-size: 13px;">Awake</div>
+            </div>
+          </div>
+
+          <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #6B7280; margin: 12px 0 6px 0; font-weight: 600;">Personality Traits</div>
+          <div id="brain-traits-list">
+            <div class="brain-trait-row"><span>Curiosity</span><div class="brain-trait-bar-bg"><div class="brain-trait-bar-fill" id="trait-curiosity" style="width: 50%;"></div></div></div>
+            <div class="brain-trait-row"><span>Caution</span><div class="brain-trait-bar-bg"><div class="brain-trait-bar-fill" id="trait-caution" style="width: 50%;"></div></div></div>
+            <div class="brain-trait-row"><span>Talkativeness</span><div class="brain-trait-bar-bg"><div class="brain-trait-bar-fill" id="trait-talkativeness" style="width: 50%;"></div></div></div>
+            <div class="brain-trait-row"><span>Creativity</span><div class="brain-trait-bar-bg"><div class="brain-trait-bar-fill" id="trait-creativity" style="width: 50%;"></div></div></div>
+            <div class="brain-trait-row"><span>Formality</span><div class="brain-trait-bar-bg"><div class="brain-trait-bar-fill" id="trait-formality" style="width: 50%;"></div></div></div>
+          </div>
+
+          <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #6B7280; margin: 12px 0 6px 0; font-weight: 600;">Memory Brain</div>
+          <div class="brain-stat-grid" style="margin-bottom: 6px;">
+            <div class="brain-stat-box">
+              <div class="brain-stat-label">Saved Facts</div>
+              <div class="brain-stat-val" id="brain-facts-count">0</div>
+            </div>
+            <div class="brain-stat-box">
+              <div class="brain-stat-label">Recalled Exchanges</div>
+              <div class="brain-stat-val" id="brain-exchanges-count">0</div>
+            </div>
+          </div>
+
+          <button class="btn-sleep-learn" id="btn-sleep-learn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            <span id="btn-sleep-text">Sleep and Learn (500 steps)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- EVOLUTION VIEW CONTAINER -->
+      <div class="sidebar-view hidden" id="view-evolution">
+        <div class="chats-section-header">
+          <span class="chats-title">Self-Evolution</span>
+          <div class="chats-header-actions">
+            <button class="btn-header-action" id="btn-evolution-refresh" title="Refresh evolution" aria-label="Refresh evolution dashboard">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="evolution-panel-container">
+          <div class="evolution-summary-card">
+            <div class="evolution-stat-grid">
+              <div class="evolution-stat-box">
+                <div class="evolution-stat-val" id="evo-total-exp">0</div>
+                <div class="evolution-stat-label">Experiments</div>
+              </div>
+              <div class="evolution-stat-box">
+                <div class="evolution-stat-val" id="evo-pending-app" style="color:#fbbf24;">0</div>
+                <div class="evolution-stat-label">Pending Approval</div>
+              </div>
+              <div class="evolution-stat-box">
+                <div class="evolution-stat-val" id="evo-success-imp" style="color:#34d399;">0</div>
+                <div class="evolution-stat-label">Merged</div>
+              </div>
+              <div class="evolution-stat-box">
+                <div class="evolution-stat-val" id="evo-failed-exp" style="color:#f87171;">0</div>
+                <div class="evolution-stat-label">Rejected</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="evolution-section-title">
+            <span>Pending Approvals</span>
+            <span style="font-size:9px; color:#9ca3af;">Human-in-the-loop</span>
+          </div>
+          <div class="pending-approvals-list" id="pending-approvals-list">
+            <div style="font-size:11px; color:#9ca3af; text-align:center; padding:8px;">Loading approvals...</div>
+          </div>
+
+          <div class="evolution-section-title">
+            <span>Recent Experiments</span>
+          </div>
+          <div class="experiments-list" id="experiments-list">
+            <div style="font-size:11px; color:#9ca3af; text-align:center; padding:8px;">Loading experiments...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIDEBAR FOOTER -->
+      <div class="sidebar-footer">
+        <div class="status-pill" id="status-pill" title="Local AI Runtime Status">
+          <div class="status-dot pulsing" id="status-dot"></div>
+          <span id="status-text">Brain: checking…</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Mobile / Overlay Backdrop -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content" id="main-content">
+      
+      <!-- Top floating toggle and control bar -->
+      <div class="main-top-bar">
+        <div class="chat-heading"><strong id="chat-panel-title">New chat</strong></div>
+        <button class="btn-floating-toggle" id="btn-floating-toggle" title="Open Sidebar" aria-label="Open sidebar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+          </svg>
+        </button>
+
+        <div class="top-bar-controls" style="display: flex; align-items: center; gap: 10px; margin-left: auto; padding-right: 16px;">
+          <span class="runtime-label">Local-first AI</span>
+          <button id="btn-details" class="btn-tool" aria-label="Toggle details panel" aria-expanded="true"><svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-panel"/></svg>Details</button>
+          <button id="btn-theme" class="btn-tool" aria-label="Switch color theme" title="Switch theme">Theme</button>
+        </div>
+      </div>
+
+      <!-- PROJECT WORKSPACE HEADER BANNER -->
+      <div class="project-workspace-header hidden" id="project-workspace-header">
+        <div class="project-header-left">
+          <div class="project-header-icon" id="project-header-icon">📁</div>
+          <div class="project-header-meta">
+            <div class="project-title-row">
+              <h2 class="project-title-text" id="project-header-title">Project Workspace</h2>
+              <span class="project-badge">Active Workspace</span>
+            </div>
+            <p class="project-desc-text" id="project-header-desc">Manage project chats, instructions, files, and knowledge</p>
+          </div>
+        </div>
+        <div class="project-header-center">
+          <nav class="project-tabs" role="tablist">
+            <button class="project-tab-btn active" id="tab-proj-chats" data-subpanel="chat">Chats</button>
+            <button class="project-tab-btn" id="tab-proj-files" data-subpanel="files">Files</button>
+            <button class="project-tab-btn" id="tab-proj-knowledge" data-subpanel="knowledge">Knowledge</button>
+            <button class="project-tab-btn" id="tab-proj-memory" data-subpanel="memory">Memory</button>
+            <button class="project-tab-btn" id="tab-proj-settings" data-subpanel="settings">Settings</button>
+          </nav>
+        </div>
+        <div class="project-header-right">
+          <button class="btn-project-exit" id="btn-project-exit" title="Exit to Global Chat">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <span>Exit Project</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- PROJECT SUBPANEL: FILES -->
+      <div class="project-subpanel-view hidden" id="subpanel-project-files">
+        <div class="subpanel-header">
+          <div class="subpanel-header-title">
+            <h3>Project Files</h3>
+            <span class="subpanel-subtitle">Files attached to this project workspace</span>
+          </div>
+          <button class="btn-action-primary" id="btn-proj-upload-file">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Upload File</span>
+          </button>
+        </div>
+        <div class="subpanel-content" id="proj-files-container"></div>
+      </div>
+
+      <!-- PROJECT SUBPANEL: KNOWLEDGE -->
+      <div class="project-subpanel-view hidden" id="subpanel-project-knowledge">
+        <div class="subpanel-header">
+          <div class="subpanel-header-title">
+            <h3>Project Knowledge Collections</h3>
+            <span class="subpanel-subtitle">Indexed knowledge documents isolated to this project</span>
+          </div>
+          <button class="btn-action-primary" id="btn-proj-add-knowledge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Add Document</span>
+          </button>
+        </div>
+        <div class="subpanel-content" id="proj-knowledge-container"></div>
+      </div>
+
+      <!-- PROJECT SUBPANEL: MEMORY -->
+      <div class="project-subpanel-view hidden" id="subpanel-project-memory">
+        <div class="subpanel-header">
+          <div class="subpanel-header-title">
+            <h3>Project Memory</h3>
+            <span class="subpanel-subtitle">Persistent key-value facts specific to this project</span>
+          </div>
+        </div>
+        <div class="memory-form-card">
+          <input type="text" id="proj-mem-key-input" placeholder="Memory key (e.g., tech_stack)" class="subpanel-input" />
+          <input type="text" id="proj-mem-val-input" placeholder="Value (e.g., Node.js, a due date)" class="subpanel-input flex-grow" />
+          <button class="btn-action-primary" id="btn-proj-save-mem">Save Memory</button>
+        </div>
+        <div class="subpanel-content" id="proj-memory-container"></div>
+      </div>
+
+      <!-- PROJECT SUBPANEL: SETTINGS -->
+      <div class="project-subpanel-view hidden" id="subpanel-project-settings">
+        <div class="subpanel-header">
+          <div class="subpanel-header-title">
+            <h3>Project Settings & Instructions</h3>
+            <span class="subpanel-subtitle">Customize behavior and security bounds for this workspace</span>
+          </div>
+        </div>
+        <div class="settings-card">
+          <div class="settings-field">
+            <label for="proj-settings-instructions">Custom Project Instructions</label>
+            <textarea id="proj-settings-instructions" class="settings-textarea" rows="4" placeholder="Instructions applied to all chats in this project (e.g. 'Use TypeScript. Prefer local tools.')..."></textarea>
+            <span class="field-hint">Project instructions are trusted configuration and guide the AgentLoop without bypassing security bounds.</span>
+          </div>
+          <div class="settings-field">
+            <label>Workspace Feature Toggles</label>
+            <div class="settings-toggle-group">
+              <label class="toggle-item"><input type="checkbox" id="toggle-proj-memory" checked /> Enable Project Memory</label>
+              <label class="toggle-item"><input type="checkbox" id="toggle-proj-knowledge" checked /> Enable Knowledge Retrieval</label>
+              <label class="toggle-item"><input type="checkbox" id="toggle-proj-files" checked /> Enable File Search</label>
+              <label class="toggle-item"><input type="checkbox" id="toggle-proj-web" checked /> Enable Web Agent Access</label>
+            </div>
+          </div>
+          <div class="settings-actions">
+            <button class="btn-action-primary" id="btn-save-project-settings">Save Changes</button>
+            <button class="btn-action-secondary" id="btn-archive-project-action">Archive Project</button>
+            <button class="btn-action-danger" id="btn-delete-project-trigger">Delete Project</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCROLLABLE MESSAGES VIEWPORT -->
+      <div class="messages-scroll-area" id="messages-scroll-area">
+        
+        <!-- CENTERED WELCOME SCREEN (Shown when no messages) -->
+        <div class="welcome-screen" id="welcome-screen">
+          <div class="axen-hero-mark" aria-hidden="true">
+            <div class="sq-orange"></div>
+            <div class="sq-black-lg"></div>
+            <div class="sq-black-sm"></div>
+          </div>
+          
+          <div class="welcome-kicker">LOCAL INTELLIGENCE. LIMITLESS IDEAS.</div>
+          <h1 class="welcome-heading">What would you like to work on today?</h1>
+          <p class="welcome-subtitle">A space to think, create, and make things happen.</p>
+          <div id="welcome-composer-slot"></div>
+          <div class="suggestion-chips" aria-label="Quick prompts">
+            <button data-prompt="Generate an image of "><svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-img"/></svg>Create image</button>
+            <button data-prompt="Solve this math problem step by step: "><svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-bars"/></svg>Solve math</button>
+            <button data-prompt="Summarize this text: "><svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-file"/></svg>Summarize text</button>
+            <button data-link="/reverse-engineering"><svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-code"/></svg>Reverse engineer</button>
+          </div>
+          <div class="task-cards" aria-label="Start a task">
+            <button class="task-card" data-prompt="Help me write a professional email."><strong>Write an email</strong><span>Professional tone</span><span class="task-icon"><svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-mail"/></svg></span></button>
+            <button class="task-card" data-prompt="Help me analyze a CSV, Excel or JSON document."><strong>Analyze data</strong><span>CSV, Excel, JSON</span><span class="task-icon"><svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-bars"/></svg></span></button>
+            <button class="task-card" data-prompt="Explain a difficult concept in simple terms."><strong>Explain anything</strong><span>In simple terms</span><span class="task-icon"><svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-help"/></svg></span></button>
+            <button class="task-card" data-prompt="Help me write code in Python, JavaScript or HTML."><strong>Code something</strong><span>Python, JS, HTML</span><span class="task-icon"><svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-code"/></svg></span></button>
+          </div>
+        </div>
+
+        <!-- CONVERSATION CONTAINER (Shown when messages exist) -->
+        <div class="messages-wrapper" id="messages-wrapper"></div>
+      </div>
+
+      <!-- DRAG & DROP OVERLAY -->
+      <div class="drag-drop-overlay hidden" id="drag-drop-overlay">
+        <div class="drag-drop-box">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <h3 class="drag-drop-title">Drop files here</h3>
+          <p class="drag-drop-subtitle">PDF, TXT, DOCX, CSV, JSON, Code, or Images</p>
+        </div>
+      </div>
+
+      <!-- ATTACHMENTS TRAY (Shown when attachments are selected) -->
+      <div class="composer-attachments-tray hidden" id="composer-attachments-tray"></div>
+
+      <!-- FLOATING MESSAGE COMPOSER -->
+      <div id="conversation-composer-slot" class="hidden"><div class="composer-hint">Enter to send · Shift+Enter for a new line</div></div>
+      <div class="composer-floating-container" id="composer-floating-container">
+        
+        <!-- Left: Rounded square plus button with menu -->
+        <div class="composer-plus-wrapper">
+          <button class="btn-composer-plus" id="btn-plus" title="Add files or knowledge" aria-label="Add files or knowledge">
+            <svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-clip"/></svg>
+          </button>
+
+          <!-- Plus Dropdown Menu -->
+          <div class="composer-plus-menu hidden" id="composer-plus-menu" role="menu">
+            <button class="plus-menu-item" id="menu-upload-files" role="menuitem">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <span>Upload files</span>
+            </button>
+            <button class="plus-menu-item" id="menu-add-knowledge" role="menuitem">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+              </svg>
+              <span>Add document to Knowledge</span>
+            </button>
+            <button class="plus-menu-item" id="menu-cancel" role="menuitem">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+              <span>Cancel</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Hidden Native File Inputs -->
+        <input type="file" id="file-input-chat" multiple class="hidden-file-input" style="display:none;" />
+        <input type="file" id="file-input-knowledge" multiple class="hidden-file-input" style="display:none;" />
+
+        <!-- Center: Text input area -->
+        <div class="composer-input-wrapper">
+          <textarea
+            class="composer-textarea"
+            id="composer-input"
+            rows="1"
+            placeholder="Message AI..."
+            aria-label="Message AI prompt"
+          ></textarea>
+        </div>
+
+        <!-- Right: Microphone button + Orange Send button -->
+        <div class="composer-actions-right">
+          <button type="button" id="btn-tools" class="composer-tools-button" aria-haspopup="menu" aria-expanded="false" aria-controls="composer-tools-menu"><svg class="i" width="18" height="18" aria-hidden="true"><use href="#aexn-icon-tool"/></svg>Tools</button>
+          <label class="composer-mode-label"><span class="sr-only">Response mode</span><select id="composer-mode" aria-label="Response mode"><option value="auto">Auto</option><option value="fast">Fast</option><option value="balanced">Balanced</option><option value="deep">Deep</option></select></label>
+          <div id="composer-tools-menu" class="composer-tools-menu hidden" role="menu"><button type="button" role="menuitem" data-prompt="Calculate ">Calculator</button><button type="button" role="menuitem" data-prompt="Solve this math problem step by step: ">Math Solver</button><button type="button" role="menuitem" id="tools-upload">Attach a document</button><button type="button" role="menuitem" data-prompt="Generate an image of ">Create an image</button></div>
+          <button class="btn-composer-voice" id="btn-voice" title="Voice dictation" aria-label="Start voice input">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+          </button>
+
+          <button class="btn-composer-send" id="btn-send" title="Send message" aria-label="Send message">
+            <!-- White paper-plane icon pointing diagonal up-right -->
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+    </main>
+
+    <aside class="info-panel" aria-label="Workspace information">
+      <section class="info-card"><h3>Local model</h3><p id="info-model-name">Local runtime</p><p id="info-runtime-status">Checking local runtime…</p></section>
+      <section class="info-card"><h3>Capabilities</h3><div class="capability-row">Math Solver <span data-capability="math">Checking…</span></div><div class="capability-row">Calculator <span data-capability="calculator">Checking…</span></div><div class="capability-row">Code runner <span data-capability="code">Checking…</span></div><div class="capability-row">Memory <span data-capability="memory">Checking…</span></div><div class="capability-row">Image generation <span data-capability="image">Checking…</span></div></section>
+      <section class="info-card"><h3>Your activity</h3><div class="info-stat">Conversations <b id="info-chat-count">—</b></div><div class="info-stat">Messages <b id="info-message-count">—</b></div><div class="info-stat">Verified answers <b id="info-verified-count">—</b></div></section>
+    </aside>
+
+  </div>
+
+  <!-- MODAL: CREATE NEW PROJECT -->
+  <div class="modal-backdrop hidden" id="modal-new-project">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Create New Project Workspace</h3>
+        <button class="modal-close-btn" id="btn-modal-project-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-field">
+          <label for="new-project-name">Project Name <span class="required">*</span></label>
+          <input type="text" id="new-project-name" class="modal-input" placeholder="e.g. AXEN AI, Portfolio, Job Search" required />
+        </div>
+        <div class="modal-field">
+          <label for="new-project-desc">Description</label>
+          <input type="text" id="new-project-desc" class="modal-input" placeholder="e.g. Development of personal local AI assistant" />
+        </div>
+        <div class="modal-field">
+          <label for="new-project-icon">Icon / Emoji</label>
+          <input type="text" id="new-project-icon" class="modal-input" placeholder="📁" value="📁" maxlength="4" style="width: 80px;" />
+        </div>
+        <div class="modal-field">
+          <label for="new-project-instructions">Custom Instructions (Optional)</label>
+          <textarea id="new-project-instructions" class="modal-textarea" rows="3" placeholder="e.g. You are assisting with AXEN. Prefer local solutions. Do not use cloud AI APIs."></textarea>
+          <span class="field-hint">These instructions will guide all conversations within this project.</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-cancel" id="btn-modal-project-cancel">Cancel</button>
+        <button class="btn-action-primary" id="btn-modal-project-submit">Create Project</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIRM DELETE PROJECT -->
+  <div class="modal-backdrop hidden" id="modal-delete-project">
+    <div class="modal-dialog danger-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Delete Project Workspace</h3>
+        <button class="modal-close-btn" id="btn-modal-delete-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-warning-text">Are you sure you want to permanently delete <strong id="delete-project-name-display">this project</strong>?</p>
+        <div class="modal-warning-box">
+          <p><strong>What will be deleted:</strong></p>
+          <ul>
+            <li>All conversations belonging to this project</li>
+            <li>All project memories and custom instructions</li>
+            <li>Project file references and knowledge collection links</li>
+          </ul>
+          <p class="modal-subnote">Physical files shared in global storage will remain preserved.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-modal-cancel" id="btn-modal-delete-cancel">Cancel</button>
+        <button class="btn-action-danger" id="btn-modal-delete-confirm">Delete Project</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Hidden Native File Inputs -->
+  <input type="file" id="file-input-project" multiple class="hidden-file-input" style="display:none;" />
+
+  <!-- Scripts: 100% offline Markdown parser + App Logic -->
+  <script src="/static/vendor/katex/katex.min.js"></script>
+  <script src="/static/js/math-renderer.js?v=1"></script>
+  <script src="/static/js/markdown.js?v=8"></script>
+  <script src="/static/js/evolution.js?v=1"></script>
+  <script src="/static/js/autonomy.js?v=2"></script>
+  <script src="/static/js/app.js?v=10"></script>
+  <script src="/static/js/redesign.js?v=1"></script>
+
+<pre id="redesign-results" hidden>pending</pre><script>
+window.addEventListener('load',()=>setTimeout(async()=>{
+ await document.fonts.ready;
+ const check=(name,pass)=>({name,pass:!!pass});
+ const side=document.getElementById('sidebar'),right=document.querySelector('.info-panel'),main=document.getElementById('main-content');
+ const checks=[check('font loaded',document.fonts.check('14px "Plus Jakarta Sans"')),
+  check('no JS errors',errors.length===0),check('all seven navigation sections',document.querySelectorAll('.sidebar-nav-tabs .nav-tab').length===7),
+  check('no horizontal overflow',document.documentElement.scrollWidth<=innerWidth),
+  check('right breakpoint',getComputedStyle(right).display===(1440<1180?'none':'flex')),
+  check('sidebar breakpoint',1440<760?getComputedStyle(side).display==='none':Math.round(side.getBoundingClientRect().width)===268)];
+ if(true){checks.push(check('verified backend badges',document.querySelectorAll('.tool-status-badge').length===2),
+  check('actual KaTeX math output',document.querySelectorAll('.assistant-body > .aexn-math .katex').length===2),
+  check('composer docks below conversation',document.getElementById('composer-floating-container').parentNode.id==='conversation-composer-slot'),
+  check('raw math preserved for context',document.querySelectorAll('.message-row')[1].dataset.rawContent.includes('**4')));
+ }else{checks.push(check('one composer in empty state',document.querySelectorAll('#composer-input').length===1&&document.getElementById('composer-floating-container').parentNode.id==='welcome-composer-slot'),
+  check('four task cards',document.querySelectorAll('.task-card').length===4));}
+ if(false){
+  const delay=()=>new Promise(resolve=>setTimeout(resolve,50));
+  document.getElementById('btn-tools').click();await delay();
+  checks.push(check('tools keyboard focus',document.activeElement.getAttribute('role')==='menuitem'));
+  document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+  checks.push(check('escape restores focus',document.activeElement.id==='btn-tools'));
+  document.querySelector('.task-card').click();checks.push(check('task card fills composer',document.getElementById('composer-input').value.includes('email')));
+  document.getElementById('composer-mode').value='fast';document.getElementById('btn-send').click();await delay();await delay();
+  checks.push(check('send becomes stop',document.getElementById('btn-send').getAttribute('aria-label')==='Stop generating'));
+  checks.push(check('mode forwarded unchanged',testRequests.find(r=>r.route==='/api/v2/chat').request.think_mode==='fast'));
+  document.getElementById('btn-send').click();await delay();await delay();
+  checks.push(check('stop restores composer',!document.getElementById('composer-input').disabled&&document.getElementById('btn-send').getAttribute('aria-label')==='Send message'));
+ }
+ document.getElementById('redesign-results').textContent=JSON.stringify({checks,errors,theme:document.documentElement.dataset.theme,
+  grid:getComputedStyle(document.querySelector('.app-container')).gridTemplateColumns,
+  font:getComputedStyle(document.body).fontFamily});
+},150));</script></body>
+</html>

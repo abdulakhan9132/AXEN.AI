@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="4" time="51.485" timestamp="2026-10-14T21:34:44.043524+05:30" hostname="Abdulla"><testcase classname="tests.test_autonomy_dashboard_browser" name="test_autonomy_controls_and_safe_event_rendering[1440-1000]" time="40.267" /><testcase classname="tests.test_autonomy_dashboard_browser" name="test_autonomy_controls_and_safe_event_rendering[390-844]" time="1.815" /><testcase classname="tests.test_ui_browser" name="test_actual_frontend_in_headless_browser[1440-1000]" time="1.918"><failure message="TypeError: expected string or bytes-like object, got 'NoneType'">tmp_path = WindowsPath('C:/Users/HN089WS/AppData/Local/Temp/pytest-of-Abdulla Khan Suri/pytest-252/test_actual_frontend_in_headle0')
+width = 1440, height = 1000
+
+    @pytest.mark.parametrize('width,height', [(1440, 1000), (390, 844)])
+    def test_actual_frontend_in_headless_browser(tmp_path, width, height):
+        if not BROWSER.exists():
+            pytest.skip('Installed Brave/Chromium browser required')
+        html = (ROOT / 'app/ui/templates/index.html').read_text(encoding='utf-8')
+        html = html.replace('"/static/', '"' + (ROOT / 'app/ui/static').as_uri() + '/')
+        html = html.replace('&lt;script src=', BOOTSTRAP + '&lt;script src=', 1)
+        html = html.replace('&lt;/body&gt;', RUNNER + '&lt;/body&gt;')
+        fixture = tmp_path / 'frontend.html'
+        fixture.write_text(html, encoding='utf-8')
+        result = subprocess.run([str(BROWSER), '--headless', '--disable-gpu', '--no-first-run',
+            '--force-device-scale-factor=1',
+            '--no-default-browser-check', '--disable-background-networking',
+            '--disable-crash-reporter', '--disable-breakpad',
+            '--user-data-dir=' + str(tmp_path / 'browser-profile'),
+            '--window-size=' + str(width) + ',' + str(height), '--virtual-time-budget=2500',
+            '--screenshot=' + str(tmp_path / 'frontend.png'), '--dump-dom', fixture.as_uri()],
+            capture_output=True, text=True, timeout=45)
+&gt;       match = re.search(r'&lt;pre id="frontend-test-results"[^&gt;]*&gt;(.*?)&lt;/pre&gt;', result.stdout, re.S)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_ui_browser.py:103: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+pattern = '&lt;pre id="frontend-test-results"[^&gt;]*&gt;(.*?)&lt;/pre&gt;', string = None
+flags = re.DOTALL
+
+    def search(pattern, string, flags=0):
+        """Scan through string looking for a match to the pattern, returning
+        a Match object, or None if no match was found."""
+&gt;       return _compile(pattern, flags).search(string)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: expected string or bytes-like object, got 'NoneType'
+
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\re\__init__.py:177: TypeError</failure></testcase><testcase classname="tests.test_ui_browser" name="test_actual_frontend_in_headless_browser[390-844]" time="4.976"><failure message="TypeError: expected string or bytes-like object, got 'NoneType'">tmp_path = WindowsPath('C:/Users/HN089WS/AppData/Local/Temp/pytest-of-Abdulla Khan Suri/pytest-252/test_actual_frontend_in_headle1')
+width = 390, height = 844
+
+    @pytest.mark.parametrize('width,height', [(1440, 1000), (390, 844)])
+    def test_actual_frontend_in_headless_browser(tmp_path, width, height):
+        if not BROWSER.exists():
+            pytest.skip('Installed Brave/Chromium browser required')
+        html = (ROOT / 'app/ui/templates/index.html').read_text(encoding='utf-8')
+        html = html.replace('"/static/', '"' + (ROOT / 'app/ui/static').as_uri() + '/')
+        html = html.replace('&lt;script src=', BOOTSTRAP + '&lt;script src=', 1)
+        html = html.replace('&lt;/body&gt;', RUNNER + '&lt;/body&gt;')
+        fixture = tmp_path / 'frontend.html'
+        fixture.write_text(html, encoding='utf-8')
+        result = subprocess.run([str(BROWSER), '--headless', '--disable-gpu', '--no-first-run',
+            '--force-device-scale-factor=1',
+            '--no-default-browser-check', '--disable-background-networking',
+            '--disable-crash-reporter', '--disable-breakpad',
+            '--user-data-dir=' + str(tmp_path / 'browser-profile'),
+            '--window-size=' + str(width) + ',' + str(height), '--virtual-time-budget=2500',
+            '--screenshot=' + str(tmp_path / 'frontend.png'), '--dump-dom', fixture.as_uri()],
+            capture_output=True, text=True, timeout=45)
+&gt;       match = re.search(r'&lt;pre id="frontend-test-results"[^&gt;]*&gt;(.*?)&lt;/pre&gt;', result.stdout, re.S)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_ui_browser.py:103: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+pattern = '&lt;pre id="frontend-test-results"[^&gt;]*&gt;(.*?)&lt;/pre&gt;', string = None
+flags = re.DOTALL
+
+    def search(pattern, string, flags=0):
+        """Scan through string looking for a match to the pattern, returning
+        a Match object, or None if no match was found."""
+&gt;       return _compile(pattern, flags).search(string)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: expected string or bytes-like object, got 'NoneType'
+
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\re\__init__.py:177: TypeError</failure></testcase></testsuite></testsuites>

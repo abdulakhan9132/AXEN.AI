@@ -1,0 +1,239 @@
+/* ==========================================================================
+   AXEN AI — Evolution Engine Dashboard Styles
+   ========================================================================== */
+
+.evolution-panel-container {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  max-height: calc(100vh - 120px);
+}
+
+.evolution-summary-card {
+  background: var(--surface-2, #18191d);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.evolution-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.evolution-stat-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 8px;
+  text-align: center;
+}
+
+.evolution-stat-val {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary, #ffffff);
+}
+
+.evolution-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted, #9ca3af);
+  margin-top: 2px;
+}
+
+.evolution-actions-bar {
+  display: flex;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.btn-evolution-action {
+  flex: 1;
+  background: #f05a28;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: opacity 0.2s;
+}
+
+.btn-evolution-action:hover {
+  opacity: 0.9;
+}
+
+.btn-evolution-action.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e5e7eb;
+}
+
+/* Pending Approvals Section */
+.evolution-section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #f05a28;
+  font-weight: 700;
+  margin-top: 6px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pending-approvals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.approval-card {
+  background: rgba(240, 90, 40, 0.08);
+  border: 1px solid rgba(240, 90, 40, 0.25);
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.approval-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.approval-target-file {
+  font-size: 11px;
+  font-weight: 600;
+  color: #f97316;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 170px;
+}
+
+.approval-risk-badge {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #374151;
+  color: #e5e7eb;
+  text-transform: uppercase;
+}
+
+.approval-diff-preview {
+  background: #111215;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  padding: 6px;
+  font-family: monospace;
+  font-size: 10px;
+  color: #d1d5db;
+  max-height: 80px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  margin-bottom: 8px;
+}
+
+.approval-btn-group {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-approve {
+  flex: 1;
+  background: #10b981;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-reject {
+  flex: 1;
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Experiments List */
+.experiments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.experiment-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.experiment-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.experiment-target {
+  font-size: 11px;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.experiment-status {
+  font-size: 9px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-awaiting_approval {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+.status-approved, .status-merged {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.status-rejected, .status-failed {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.status-evaluating, .status-generating {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.experiment-desc {
+  font-size: 10px;
+  color: #9ca3af;
+  line-height: 1.3;
+}

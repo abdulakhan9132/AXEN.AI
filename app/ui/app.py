@@ -42,7 +42,21 @@ async def lifespan(app: FastAPI):
     # Initialize singleton instance on startup
     service = AxenBackendService.get_instance()
     # DO NOT start model load in background; ModelManager will lazy-load via ModelRouter.
-    yield
+    from axen.evolution.learning_worker import get_worker
+    worker = get_worker()
+    from axen.evolution.background_agent import get_background_agent
+    background = get_background_agent(worker)
+    background.busy = lambda: service._chat_lock.locked() or service._foreground_requests > 0
+    background.start()
+    if worker.config.get("autostart") and not worker.emergency:
+        worker.command("start", "LEARNING", offline_demo=worker.config["offline_demo"])
+    try:
+        yield
+    finally:
+        background.shutdown()
+        worker.shutdown()
+        import axen.evolution.learning_worker as learning_runtime
+        learning_runtime._worker = None
 
 app = FastAPI(
     title="AXEN Local AI Assistant",
@@ -60,6 +74,15 @@ app.add_middleware(
 )
 
 from pydantic import BaseModel, Field
+
+# Evolution Engine Router
+try:
+    from axen.evolution.api import router as evolution_router
+    app.include_router(evolution_router)
+    from axen.evolution.learning_api import router as learning_router
+    app.include_router(learning_router)
+except Exception as _e:
+    logging.getLogger("axen.ui").warning("Evolution API router could not be loaded: %s", _e)
 
 # Mount static assets
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
@@ -250,7 +273,7 @@ async def chat_v2_endpoint(request: Request):
         try:
             yield "data: " + json.dumps({"type": "stage", "data": "Understanding your request"}) + "\n\n"
             service = AxenBackendService.get_instance()
-            task = asyncio.create_task(asyncio.to_thread(service.unified_response, message, model_manager,
+            task = asyncio.create_task(asyncio.to_thread(service.run_foreground, service.unified_response, message, model_manager,
                 current_file=body.get("current_file"), attachments=body.get("attachments") or [],
                 session_id=body.get("session_id"), project_id=body.get("project_id"),
                 persist_messages=not body.get("session_messages_managed", False), state_callback=progress))

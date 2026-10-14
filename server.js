@@ -3,10 +3,15 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 // Keep npm start on the complete application; this file remains the Node companion.
-if (process.argv.includes("--unified")) {
+if (["--unified", "--autonomy-status", "--autonomy-test", "--learning-demo-offline"].some(flag => process.argv.includes(flag))) {
   const { spawn } = require("child_process");
   const python = path.join(__dirname, ".venv", process.platform === "win32" ? "Scripts" : "bin", process.platform === "win32" ? "python.exe" : "python");
-  const child = spawn(python, [path.join(__dirname, "run_ui.py")], { stdio: "inherit", windowsHide: true });
+  const args = process.argv.includes("--autonomy-status") ? ["autonomy", "status"]
+    : process.argv.includes("--autonomy-test") ? ["autonomy-test"]
+    : process.argv.includes("--learning-demo-offline") ? ["autonomy-demo", "--offline"] : ["serve"];
+  const child = spawn(python, [path.join(__dirname, "main.py"), ...args], {
+    cwd: __dirname, stdio: "inherit", windowsHide: true
+  });
   child.on("error", error => { console.error(error.message); process.exitCode = 1; });
   child.on("exit", code => { process.exitCode = code ?? 1; });
   return;
