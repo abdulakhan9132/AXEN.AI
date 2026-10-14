@@ -290,15 +290,74 @@ class AXENFoundationModel(nn.Module):
             return torch.device("cuda" if torch.cuda.is_available() else "cpu")
         return torch.device(dev)
 
+    def _init_weights(self, module: nn.Module) -> None:
+        """Initialize weights with standard normal distribution for healthy gradient flow."""
+        if isinstance(module, nn.Linear):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+            if module.bias is not None:
+                torch.nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.Embedding):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+
     def count_parameters(self) -> Tuple[int, int]:
         """Returns (total_params, trainable_params)."""
         total = sum(p.numel() for p in self.parameters())
         trainable = sum(p.numel() for p in self.parameters() if p.requires_grad)
         return total, trainable
 
-    def forward(self, token_ids: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self,
+        token_ids: torch.Tensor,
+        targets: Optional[torch.Tensor] = None,
+    ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+        """
+        Forward propagation.
+        If targets is provided, computes and returns (logits, cross_entropy_loss).
+        Otherwise returns logits.
+        """
+        if token_ids.dim() == 1:
+            token_ids = token_ids.unsqueeze(0)
         hidden = self.transformer(token_ids)
-        return self.lm_head(hidden)
+        logits = self.lm_head(hidden)
+
+        if targets is not None:
+            if targets.dim() == 1:
+                targets = targets.unsqueeze(0)
+            loss = torch.nn.functional.cross_entropy(
+                logits.view(-1, logits.size(-1)),
+                targets.view(-1),
+                ignore_index=-100,
+            )
+            return logits, loss
+        return logits
+
+    def configure_optimizers(
+        self,
+        weight_decay: float = 0.01,
+        learning_rate: float = 0.0003,
+        betas: Tuple[float, float] = (0.9, 0.999),
+        eps: float = 1e-8,
+        amsgrad: bool = False,
+    ) -> torch.optim.AdamW:
+        """
+        Configure AdamW with decoupled weight decay:
+        - 2D weight matrices (linear layers, embeddings) undergo decoupled weight decay.
+        - 1D parameters (biases, layer norm gains and biases) have zero weight decay.
+        """
+        decay_params = []
+        nodecay_params = []
+        for pn, p in self.named_parameters():
+            if not p.requires_grad:
+                continue
+            if p.dim() >= 2:
+                decay_params.append(p)
+            else:
+                nodecay_params.append(p)
+        optim_groups = [
+            {"params": decay_params, "weight_decay": weight_decay},
+            {"params": nodecay_params, "weight_decay": 0.0},
+        ]
+        return torch.optim.AdamW(optim_groups, lr=learning_rate, betas=betas, eps=eps, amsgrad=amsgrad)
 
     @staticmethod
     def format_prompt(user_query: str) -> str:
@@ -311,8 +370,9 @@ class AXENFoundationModel(nn.Module):
         max_new_tokens: int = 150,
         temperature: float = 0.7,
         top_p: float = 0.9,
+        top_k: Optional[int] = None,
     ) -> str:
-        """Autoregressive text generation."""
+        """Autoregressive text generation with temperature, top-k, and top-p sampling."""
         self.eval()
         if isinstance(prompt_or_tokens, str):
             encoded = self.tokenizer.encode(prompt_or_tokens, add_special_tokens=True)
@@ -322,6 +382,8 @@ class AXENFoundationModel(nn.Module):
             token_ids = torch.tensor([encoded], dtype=torch.long, device=self.device)
         else:
             token_ids = prompt_or_tokens.to(self.device)
+            if token_ids.dim() == 1:
+                token_ids = token_ids.unsqueeze(0)
 
         context_length = self.config.context_length
         generated = token_ids.clone()
@@ -334,6 +396,10 @@ class AXENFoundationModel(nn.Module):
                 if temperature <= 0.05:
                     next_token = torch.argmax(logits, dim=-1, keepdim=True)
                 else:
+                    if top_k is not None and top_k > 0:
+                        v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
+                        logits = logits.masked_fill(logits < v[:, [-1]], -1e9)
+
                     if top_p is not None and 0.0 < top_p < 1.0:
                         probs = torch.softmax(logits, dim=-1)
                         sorted_probs, sorted_indices = torch.sort(probs, descending=True, dim=-1)

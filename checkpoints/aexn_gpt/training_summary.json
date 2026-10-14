@@ -1,0 +1,90 @@
+{
+  "model_name": "aexn_gpt_1.0",
+  "total_parameters": 1327872,
+  "trainable_parameters": 1327872,
+  "start_step": 0,
+  "completed_steps": 500,
+  "total_duration_sec": 15.61,
+  "avg_tokens_per_sec": 8201.8,
+  "initial_val_loss": 7.7953,
+  "initial_val_ppl": 2429.25,
+  "best_val_loss": 5.8621,
+  "final_val_loss": 5.9403,
+  "final_val_ppl": 380.03,
+  "sample_generation_before": " commot leaveowslishCE honour mouth\ufffd PageThereoint newOch happy merultresve sla French5ack\ufffdorseav1 fellFF",
+  "sample_generation_after": ";\n\nThat.\n\n\nThat.\n\nS.\nAnds.\nAnd,\nP!\nAnd the.\n\nAnd,\n\nH.\nAnd.\n",
+  "history": {
+    "step": [
+      50,
+      100,
+      150,
+      200,
+      250,
+      300,
+      350,
+      400,
+      450,
+      500
+    ],
+    "train_loss": [
+      7.4208,
+      6.3609,
+      6.0929,
+      5.9947,
+      5.9121,
+      5.886,
+      5.8832,
+      5.811,
+      5.8484,
+      5.787
+    ],
+    "val_loss": [
+      6.7587,
+      6.2798,
+      6.1178,
+      5.9669,
+      5.9718,
+      5.927,
+      5.8791,
+      5.8621,
+      5.9399,
+      5.9403
+    ],
+    "val_ppl": [
+      861.5,
+      533.66,
+      453.86,
+      390.28,
+      392.2,
+      375.03,
+      357.48,
+      351.46,
+      379.91,
+      380.03
+    ],
+    "lr": [
+      0.0002941176470588235,
+      0.00029217775612628503,
+      0.0002690192877747315,
+      0.00023331455815635705,
+      0.00018937008460882557,
+      0.0001424862191933262,
+      9.831784801112883e-05,
+      6.219232848254056e-05,
+      3.846693141859465e-05,
+      3.000328985477171e-05
+    ],
+    "tokens_per_sec": [
+      10462.8,
+      10129.4,
+      12758.6,
+      12940.4,
+      10841.9,
+      11876.4,
+      13606.8,
+      10637.2,
+      10128.4,
+      7287.7
+    ]
+  }
+}

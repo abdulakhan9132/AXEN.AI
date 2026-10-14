@@ -155,7 +155,19 @@
     setupProjectHandlers();
     setupFileHandlers();
     setupSpeechRecognition();
-    initCodingWorkspace();
+    const themeButton = document.getElementById('btn-theme');
+    if (themeButton) themeButton.onclick = () => {
+      const theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = theme;
+      localStorage.setItem('aexn_theme', theme);
+      themeButton.setAttribute('aria-label', `Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`);
+    };
+    const imageButton = document.getElementById('btn-image-workspace');
+    if (imageButton) imageButton.onclick = (event) => {
+      event.preventDefault();
+      composerInput.value = 'Generate an image of ';
+      composerInput.focus();
+    };
     restoreSidebarState();
     await fetchStatus();
     setInterval(() => {
@@ -186,6 +198,7 @@
     } catch (err) {
       const stateEl = document.getElementById('brain-state');
       if (stateEl) stateEl.textContent = 'Status unavailable';
+      if (statusText) statusText.textContent = 'AEXN AI · Local-first';
     }
   }
 
@@ -195,9 +208,7 @@
     const pill = document.getElementById('status-pill');
     const lossText = data.loss != null ? Number(data.loss).toFixed(3) : '--';
     if (statusText) {
-      statusText.textContent = data.trained
-        ? `Brain: ${Number(data.steps || 0).toLocaleString()} steps, loss ${lossText}`
-        : 'Untrained: run training';
+      statusText.textContent = 'AEXN AI · Local-first';
     }
     if (dot) {
       dot.className = data.sleeping ? 'status-dot pulsing' : (data.trained ? 'status-dot online' : 'status-dot offline');
@@ -708,11 +719,9 @@
   }
 
   async function ask(messages, { onStage, onToken, onDone, onError }, signal) {
-    const thinkModeSelect = document.getElementById('select-think-mode');
-    const thinkMode = thinkModeSelect ? thinkModeSelect.value : 'auto';
-    const modelSelect = document.getElementById('select-active-model');
-    const model = modelSelect ? modelSelect.value : 'router';
-    const payload = { messages, think_mode: thinkMode, mode: thinkMode, model: model };
+    const payload = { messages, model: 'router', think_mode: 'auto',
+      attachments: activeAttachments.map(a => a.file_id).filter(Boolean),
+      session_id: activeSessionId, project_id: activeProjectId, session_messages_managed: true };
 
     let endpoint = '/api/v2/chat';
     let response = await fetch(endpoint, {
@@ -763,6 +772,7 @@
         onStage(payload.data);
       } else if (payload.type === 'token') {
         onToken(payload.data);
+
       } else if (payload.type === 'done') {
         finalAnswer = payload.data || '';
         if (!finalAnswer) onError('Axen completed the request without a response.');
@@ -879,7 +889,7 @@
           <polyline points="12 6 12 12 14 14"></polyline>
         </svg>
       </span>
-      <span class="axen-thinking-title">Thinking</span>
+      <span class="axen-thinking-title">Working on your request</span>
       <span class="axen-thinking-timer">0.0s</span>
     `;
 
@@ -947,7 +957,7 @@
           clearInterval(timerId);
           const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
           timerEl.textContent = elapsed + 's';
-          titleEl.textContent = `Thought for ${elapsed}s`;
+          titleEl.textContent = 'Completed';
           thinking.open = false; // Collapse thinking panel when generation finishes
 
           const resText = finalText != null && finalText !== '' ? finalText : accumulatedAnswer;
@@ -1367,34 +1377,6 @@
       };
     }
 
-    // Model selector change handler
-    const selectActiveModel = document.getElementById('select-active-model');
-    if (selectActiveModel) {
-      selectActiveModel.addEventListener('change', async (e) => {
-        const modelId = e.target.value;
-        try {
-          const res = await fetch('/api/models/select', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ model_id: modelId }),
-          });
-          if (res.ok) {
-            showToast(`Active model: ${e.target.options[e.target.selectedIndex].text}`);
-          }
-        } catch (err) {
-          console.warn('Model switch error:', err);
-        }
-      });
-    }
-
-    // Thinking mode selector change handler
-    const selectThinkMode = document.getElementById('select-think-mode');
-    if (selectThinkMode) {
-      selectThinkMode.addEventListener('change', (e) => {
-        showToast(`Reasoning mode: ${e.target.options[e.target.selectedIndex].text}`);
-      });
-    }
-
     // Sidebar Navigation Tabs & Views
     const tabMemory = document.getElementById('tab-memory');
     const viewMemory = document.getElementById('view-memory');
@@ -1696,7 +1678,7 @@
 
   function restoreSidebarState() {
     const saved = localStorage.getItem('axen_sidebar_collapsed');
-    if (saved === '1' && window.innerWidth > 768) {
+    if (window.innerWidth <= 768 || saved === '1') {
       sidebar.classList.add('collapsed');
     }
   }
@@ -2247,553 +2229,14 @@
       } else {
         showToast('Could not delete project');
       }
-  // ---------------------------------------------------------------------------
-  // Phase 5: Codex-Style Coding Workspace
-  // ---------------------------------------------------------------------------
-  function initCodingWorkspace() {
-    const viewCodingWs = document.getElementById('view-coding-workspace');
-    const tabCoding = document.getElementById('tab-coding');
-    const btnTopToggleCoding = document.getElementById('btn-top-toggle-coding');
-    const btnCloseCoding = document.getElementById('btn-close-coding');
-
-    const currentWsPath = document.getElementById('current-ws-path');
-    const btnSwitchWs = document.getElementById('btn-switch-ws');
-    const codingGitBranch = document.getElementById('coding-git-branch');
-    const codingPermBadge = document.getElementById('coding-perm-badge');
-
-    const fileTreeList = document.getElementById('file-tree-list');
-    const treeSearchInput = document.getElementById('tree-search-input');
-    const btnRefreshTree = document.getElementById('btn-refresh-tree');
-
-    const codingEditorTextarea = document.getElementById('coding-editor-textarea');
-    const editorGutter = document.getElementById('editor-gutter');
-    const activeTabName = document.getElementById('active-tab-name');
-    const tabDirtyIndicator = document.getElementById('tab-dirty-indicator');
-    const editorStatusLang = document.getElementById('editor-status-lang');
-    const editorStatusLines = document.getElementById('editor-status-lines');
-    const editorStatusMsg = document.getElementById('editor-status-msg');
-    const btnSaveFile = document.getElementById('btn-save-file');
-
-    const diffPreviewBanner = document.getElementById('diff-preview-banner');
-    const diffCodeView = document.getElementById('diff-code-view');
-    const btnApplyPatch = document.getElementById('btn-apply-patch');
-    const btnRejectPatch = document.getElementById('btn-reject-patch');
-
-    const btnRunTests = document.getElementById('btn-run-tests');
-    const btnGitDiff = document.getElementById('btn-git-diff');
-    const btnUndoChange = document.getElementById('btn-undo-change');
-
-    const codingBottomConsole = document.getElementById('coding-bottom-console');
-    const consoleHeaderToggle = document.getElementById('console-header-toggle');
-    const consoleToggleIcon = document.getElementById('console-toggle-icon');
-    const codingConsoleOutput = document.getElementById('coding-console-output');
-
-    const codingProgressTimeline = document.getElementById('coding-progress-timeline');
-    const codingChatHistory = document.getElementById('coding-chat-history');
-    const codingAgentInput = document.getElementById('coding-agent-input');
-    const codingThinkMode = document.getElementById('coding-think-mode');
-    const btnSendCodingTask = document.getElementById('btn-send-coding-task');
-    const agentActiveMode = document.getElementById('agent-active-mode');
-
-    let currentOpenFilePath = '';
-    let pendingPatchData = null;
-    let fullFileTree = null;
-
-    function toggleCodingWorkspace(show) {
-      if (!viewCodingWs) return;
-      if (show) {
-        viewCodingWs.classList.remove('hidden');
-        loadWorkspaceMetadata();
-        loadTree();
-      } else {
-        viewCodingWs.classList.add('hidden');
-      }
+    } catch (e) {
+      console.error('Delete project error:', e);
+      showToast('Could not delete project');
     }
-
-    if (tabCoding) tabCoding.onclick = () => toggleCodingWorkspace(true);
-    if (btnTopToggleCoding) btnTopToggleCoding.onclick = () => toggleCodingWorkspace(true);
-    if (btnCloseCoding) btnCloseCoding.onclick = () => toggleCodingWorkspace(false);
-
-    // Load Workspace Info
-    async function loadWorkspaceMetadata() {
-      try {
-        const res = await fetch('/api/coding/workspace');
-        if (res.ok) {
-          const data = await res.json();
-          const ws = data.workspace;
-          if (currentWsPath) currentWsPath.textContent = ws.root_path || ws.workspace_name;
-          if (codingGitBranch) codingGitBranch.textContent = ws.git_branch || 'no-git';
-          if (codingPermBadge) codingPermBadge.textContent = '🛡️ ' + (ws.permission_level || 'EXECUTE');
-        }
-      } catch (e) {
-        console.warn('Could not load coding workspace metadata:', e);
-      }
-    }
-
-    // Switch workspace directory
-    if (btnSwitchWs) {
-      btnSwitchWs.onclick = async () => {
-        const newPath = prompt('Enter absolute or relative path to workspace directory:', currentWsPath ? currentWsPath.textContent : '.');
-        if (!newPath) return;
-        try {
-          const res = await fetch('/api/coding/workspace', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ path: newPath.trim() }),
-          });
-          const data = await res.json();
-          if (res.ok) {
-            showToast('Workspace switched: ' + data.workspace.workspace_name);
-            loadWorkspaceMetadata();
-            loadTree();
-          } else {
-            showToast('Failed to switch workspace: ' + (data.detail || 'Path error'));
-          }
-        } catch (err) {
-          showToast('Error switching workspace');
-        }
-      };
-    }
-
-    // Load File Tree
-    async function loadTree() {
-      if (!fileTreeList) return;
-      fileTreeList.innerHTML = '<div style="padding:10px; color:#71717a;">Loading files...</div>';
-      try {
-        const res = await fetch('/api/coding/tree?max_depth=4');
-        if (res.ok) {
-          const data = await res.json();
-          fullFileTree = data.tree;
-          renderTree(fullFileTree, fileTreeList, 0);
-        } else {
-          fileTreeList.innerHTML = '<div style="padding:10px; color:#ef4444;">Error loading tree</div>';
-        }
-      } catch (e) {
-        fileTreeList.innerHTML = '<div style="padding:10px; color:#ef4444;">Network error</div>';
-      }
-    }
-
-    function renderTree(node, container, depth, filterText = '') {
-      if (!node) return;
-      if (depth === 0) container.innerHTML = '';
-
-      const children = node.children || [];
-      children.forEach(child => {
-        if (filterText && !child.name.toLowerCase().includes(filterText.toLowerCase()) && child.type === 'file') {
-          return;
-        }
-
-        const itemEl = document.createElement('div');
-        itemEl.className = `tree-item tree-indent-${Math.min(depth + 1, 4)} ${child.type === 'directory' ? 'folder' : 'file'}`;
-        
-        let icon = '📄';
-        if (child.type === 'directory') icon = '📁';
-        else if (child.extension === '.py') icon = '🐍';
-        else if (child.extension === '.js' || child.extension === '.ts') icon = '⚡';
-        else if (child.extension === '.json') icon = '⚙️';
-        else if (child.extension === '.html') icon = '🌐';
-        else if (child.extension === '.css') icon = '🎨';
-
-        itemEl.innerHTML = `<span style="font-size:11px;">${icon}</span> <span>${child.name}</span>`;
-        itemEl.onclick = () => {
-          if (child.type === 'file') {
-            document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
-            itemEl.classList.add('active');
-            openFile(child.path);
-          }
-        };
-
-        container.appendChild(itemEl);
-
-        if (child.type === 'directory' && child.children) {
-          renderTree(child, container, depth + 1, filterText);
-        }
-      });
-    }
-
-    if (btnRefreshTree) btnRefreshTree.onclick = () => loadTree();
-    if (treeSearchInput) {
-      treeSearchInput.oninput = (e) => {
-        if (fullFileTree) renderTree(fullFileTree, fileTreeList, 0, e.target.value.trim());
-      };
-    }
-
-    // Open File into Editor
-    async function openFile(relPath) {
-      try {
-        if (editorStatusMsg) editorStatusMsg.textContent = 'Opening ' + relPath + '...';
-        const res = await fetch(`/api/coding/file?path=${encodeURIComponent(relPath)}`);
-        if (!res.ok) {
-          const err = await res.json();
-          showToast('Could not open file: ' + (err.detail || 'Error'));
-          return;
-        }
-        const data = await res.json();
-        const f = data.file;
-
-        currentOpenFilePath = f.path;
-        if (activeTabName) activeTabName.textContent = f.filename;
-        if (tabDirtyIndicator) tabDirtyIndicator.classList.add('hidden');
-        if (codingEditorTextarea) codingEditorTextarea.value = f.content;
-        if (editorStatusLang) editorStatusLang.textContent = f.syntax.toUpperCase();
-        if (editorStatusLines) editorStatusLines.textContent = `${f.lines_count} lines`;
-        if (editorStatusMsg) editorStatusMsg.textContent = 'Saved';
-
-        updateGutter();
-      } catch (e) {
-        showToast('Error opening file');
-      }
-    }
-
-    // Update Gutter line numbers
-    function updateGutter() {
-      if (!codingEditorTextarea || !editorGutter) return;
-      const lines = codingEditorTextarea.value.split('\n').length;
-      let gutterText = '';
-      for (let i = 1; i <= lines; i++) {
-        gutterText += i + '\n';
-      }
-      editorGutter.textContent = gutterText;
-      if (editorStatusLines) editorStatusLines.textContent = `${lines} lines`;
-    }
-
-    if (codingEditorTextarea) {
-      codingEditorTextarea.addEventListener('input', () => {
-        updateGutter();
-        if (tabDirtyIndicator) tabDirtyIndicator.classList.remove('hidden');
-        if (editorStatusMsg) editorStatusMsg.textContent = 'Unsaved changes';
-      });
-      codingEditorTextarea.addEventListener('scroll', () => {
-        if (editorGutter) editorGutter.scrollTop = codingEditorTextarea.scrollTop;
-      });
-      codingEditorTextarea.addEventListener('keydown', (e) => {
-        // Ctrl+S shortcut to save
-        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-          e.preventDefault();
-          saveActiveFile();
-        }
-      });
-    }
-
-    // Save File
-    async function saveActiveFile() {
-      if (!currentOpenFilePath) {
-        showToast('No active file to save.');
-        return;
-      }
-      if (editorStatusMsg) editorStatusMsg.textContent = 'Saving...';
-      try {
-        const res = await fetch('/api/coding/file/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            path: currentOpenFilePath,
-            content: codingEditorTextarea.value,
-            validate_syntax: true,
-          }),
-        });
-        const data = await res.json();
-        if (res.ok && data.status === 'ok') {
-          if (tabDirtyIndicator) tabDirtyIndicator.classList.add('hidden');
-          if (editorStatusMsg) editorStatusMsg.textContent = 'Saved successfully';
-          showToast('File saved & syntax verified.');
-        } else {
-          const errDetail = data.result?.error || data.detail || 'Save failed';
-          if (editorStatusMsg) editorStatusMsg.textContent = 'Syntax error';
-          showToast('Save rejected: ' + errDetail);
-          printConsole('Error saving ' + currentOpenFilePath + ':\n' + errDetail);
-        }
-      } catch (err) {
-        showToast('Save error');
-      }
-    }
-
-    if (btnSaveFile) btnSaveFile.onclick = () => saveActiveFile();
-
-    // Bottom Console Toggle
-    if (consoleHeaderToggle) {
-      consoleHeaderToggle.onclick = () => {
-        codingBottomConsole.classList.toggle('collapsed');
-        if (consoleToggleIcon) {
-          consoleToggleIcon.textContent = codingBottomConsole.classList.contains('collapsed') ? '▲' : '▼';
-        }
-      };
-    }
-
-    function printConsole(text) {
-      if (!codingConsoleOutput) return;
-      codingConsoleOutput.textContent = text;
-      if (codingBottomConsole) codingBottomConsole.classList.remove('collapsed');
-      if (consoleToggleIcon) consoleToggleIcon.textContent = '▼';
-    }
-
-    // Run Tests Action
-    if (btnRunTests) {
-      btnRunTests.onclick = async () => {
-        showToast('Running workspace tests...');
-        printConsole('Executing test runner in workspace...');
-        try {
-          const res = await fetch('/api/coding/test', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({}),
-          });
-          const data = await res.json();
-          if (res.ok) {
-            const tr = data.test_run;
-            let report = `=== TEST SUITE RESULTS ===\nCommand: ${tr.command}\nPassed: ${tr.passed} | Failed: ${tr.failed} | Duration: ${tr.duration_seconds}s\n\n`;
-            if (tr.all_passed) {
-              report += '✓ ALL TESTS PASSED SUCCESSFULLY.\n';
-            } else {
-              report += `✕ FAILURES DETECTED (${tr.failures.length}):\n`;
-              tr.failures.forEach(f => {
-                report += `\n• [${f.error_type}] ${f.test_name}\n  File: ${f.file_path}:${f.line_number}\n  Message: ${f.message}\n`;
-              });
-            }
-            if (tr.raw_stderr) report += `\nStderr:\n${tr.raw_stderr}`;
-            printConsole(report);
-            showToast(tr.all_passed ? 'All tests passed!' : 'Tests failed. See output.');
-          } else {
-            printConsole('Test execution failed: ' + (data.detail || 'Error'));
-          }
-        } catch (err) {
-          printConsole('Error running tests: ' + err.message);
-        }
-      };
-    }
-
-    // Git Diff Action
-    if (btnGitDiff) {
-      btnGitDiff.onclick = async () => {
-        try {
-          const res = await fetch('/api/coding/git/diff');
-          const data = await res.json();
-          if (res.ok) {
-            const diff = data.diff;
-            if (diff) {
-              showDiffBanner('Git Working Tree Diff', diff);
-            } else {
-              showToast('Working tree is clean. No uncommitted diffs.');
-            }
-          }
-        } catch (err) {
-          showToast('Could not fetch git diff');
-        }
-      };
-    }
-
-    function showDiffBanner(title, diffText, patchTarget = null, patchReplacement = null, targetFile = null) {
-      if (!diffPreviewBanner || !diffCodeView) return;
-      diffPreviewBanner.classList.remove('hidden');
-      const titleEl = diffPreviewBanner.querySelector('.diff-banner-title');
-      if (titleEl) titleEl.textContent = title;
-      diffCodeView.textContent = diffText;
-
-      pendingPatchData = targetFile && patchTarget ? {
-        file_path: targetFile,
-        target: patchTarget,
-        replacement: patchReplacement
-      } : null;
-
-      if (!pendingPatchData) {
-        if (btnApplyPatch) btnApplyPatch.style.display = 'none';
-      } else {
-        if (btnApplyPatch) btnApplyPatch.style.display = '';
-      }
-    }
-
-    if (btnRejectPatch) {
-      btnRejectPatch.onclick = () => {
-        if (diffPreviewBanner) diffPreviewBanner.classList.add('hidden');
-        pendingPatchData = null;
-      };
-    }
-
-    if (btnApplyPatch) {
-      btnApplyPatch.onclick = async () => {
-        if (!pendingPatchData) return;
-        try {
-          const res = await fetch('/api/coding/patch/apply', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(pendingPatchData),
-          });
-          const data = await res.json();
-          if (res.ok && data.status === 'ok') {
-            showToast('Patch applied successfully.');
-            if (diffPreviewBanner) diffPreviewBanner.classList.add('hidden');
-            if (currentOpenFilePath === pendingPatchData.file_path) {
-              openFile(currentOpenFilePath);
-            }
-            pendingPatchData = null;
-          } else {
-            showToast('Patch failed: ' + (data.result?.error || 'Error'));
-          }
-        } catch (err) {
-          showToast('Apply patch error');
-        }
-      };
-    }
-
-    // Undo / Rollback
-    if (btnUndoChange) {
-      btnUndoChange.onclick = async () => {
-        if (!currentOpenFilePath) {
-          showToast('Open a file first to undo changes.');
-          return;
-        }
-        if (!confirm(`Are you sure you want to rollback changes to '${currentOpenFilePath}'?`)) return;
-
-        try {
-          const res = await fetch('/api/coding/undo', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ file_path: currentOpenFilePath }),
-          });
-          const data = await res.json();
-          if (res.ok && data.status === 'ok') {
-            showToast(`Rolled back via ${data.result.method}`);
-            openFile(currentOpenFilePath);
-          } else {
-            showToast('Rollback failed: ' + (data.result?.error || 'No backup'));
-          }
-        } catch (err) {
-          showToast('Undo error');
-        }
-      };
-    }
-
-    // AI Coding Chat & Task Execution
-    async function submitCodingTask(userPrompt) {
-      const prompt = userPrompt || (codingAgentInput ? codingAgentInput.value.trim() : '');
-      if (!prompt) return;
-
-      if (codingAgentInput) codingAgentInput.value = '';
-
-      // Append User message to coding chat
-      appendCodingChatMsg('user', prompt);
-
-      // Show Timeline
-      if (codingProgressTimeline) {
-        codingProgressTimeline.classList.remove('hidden');
-        ['step-understand', 'step-plan', 'step-patch', 'step-test', 'step-verify'].forEach(s => {
-          const el = document.getElementById(s);
-          if (el) { el.classList.remove('active', 'done'); }
-        });
-        const u = document.getElementById('step-understand');
-        if (u) u.classList.add('active');
-      }
-
-      const thinkMode = codingThinkMode ? codingThinkMode.value : 'balanced';
-      if (agentActiveMode) agentActiveMode.textContent = thinkMode.toUpperCase();
-
-      try {
-        const res = await fetch('/api/coding/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: prompt, think_mode: thinkMode }),
-        });
-        const data = await res.json();
-
-        // Complete timeline
-        if (codingProgressTimeline) {
-          ['step-understand', 'step-plan', 'step-patch', 'step-test', 'step-verify'].forEach(s => {
-            const el = document.getElementById(s);
-            if (el) { el.classList.remove('active'); el.classList.add('done'); }
-          });
-        }
-
-        if (res.ok) {
-          const result = data.task_result;
-          appendCodingAssistantResult(result);
-        } else {
-          appendCodingChatMsg('assistant', 'Error executing coding task: ' + (data.detail || 'Server error'));
-        }
-      } catch (err) {
-        appendCodingChatMsg('assistant', 'Network error executing coding task.');
-      }
-    }
-
-    function appendCodingChatMsg(role, text) {
-      if (!codingChatHistory) return;
-      const msgEl = document.createElement('div');
-      msgEl.className = `coding-msg ${role}`;
-      msgEl.innerHTML = `
-        <div class="avatar">${role === 'user' ? '👤' : '⚡'}</div>
-        <div class="bubble"><p style="margin:0; white-space:pre-wrap;">${escapeHtml(text)}</p></div>
-      `;
-      codingChatHistory.appendChild(msgEl);
-      codingChatHistory.scrollTop = codingChatHistory.scrollHeight;
-    }
-
-    function appendCodingAssistantResult(result) {
-      if (!codingChatHistory) return;
-      const msgEl = document.createElement('div');
-      msgEl.className = 'coding-msg assistant';
-
-      let cardHtml = `<div class="avatar">⚡</div><div class="bubble">`;
-      cardHtml += `<div style="font-weight:600; margin-bottom:6px; color:#38bdf8;">Task ${result.success ? 'Completed' : 'Finished'}: ${result.task_type}</div>`;
-      cardHtml += `<div style="margin-bottom:8px; line-height:1.5;">${escapeHtml(result.summary || '')}</div>`;
-
-      // Plan steps if any
-      if (result.plan_steps && result.plan_steps.length > 0) {
-        cardHtml += `<div style="font-size:11px; color:#a1a1aa; margin-bottom:8px; background:#121215; padding:6px 8px; border-radius:4px;"><strong>Plan:</strong><br/>${result.plan_steps.map(s => escapeHtml(s)).join('<br/>')}</div>`;
-      }
-
-      // If diff applied or available
-      if (result.diffs && result.diffs.length > 0) {
-        cardHtml += `
-          <div style="margin-top:8px; border:1px solid #27272a; border-radius:6px; overflow:hidden;">
-            <div style="background:#202024; padding:4px 8px; font-size:11px; font-weight:600; color:#10b981;">Unified Diff Applied:</div>
-            <pre style="margin:0; padding:6px 8px; font-size:10px; background:#0e0e11; overflow-x:auto;">${escapeHtml(result.diffs.join('\n\n'))}</pre>
-          </div>
-        `;
-      }
-
-      // If tests run
-      if (result.tests_run > 0) {
-        const badgeColor = result.tests_failed === 0 ? '#10b981' : '#ef4444';
-        cardHtml += `
-          <div style="margin-top:8px; font-size:11px;">
-            <span style="background:${badgeColor}; color:#000; font-weight:700; padding:2px 6px; border-radius:4px;">Tests: ${result.tests_passed} passed, ${result.tests_failed} failed</span>
-          </div>
-        `;
-      }
-
-      cardHtml += `</div>`;
-      msgEl.innerHTML = cardHtml;
-      codingChatHistory.appendChild(msgEl);
-      codingChatHistory.scrollTop = codingChatHistory.scrollHeight;
-
-      // If a file was modified, refresh if open
-      if (result.files_modified && result.files_modified.length > 0) {
-        if (result.files_modified.includes(currentOpenFilePath)) {
-          openFile(currentOpenFilePath);
-        }
-      }
-    }
-
-    if (btnSendCodingTask) {
-      btnSendCodingTask.onclick = () => submitCodingTask();
-    }
-    if (codingAgentInput) {
-      codingAgentInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          submitCodingTask();
-        }
-      });
-    }
-
-    // Quick prompt chips
-    document.querySelectorAll('.chip-prompt').forEach(chip => {
-      chip.onclick = () => {
-        const prompt = chip.getAttribute('data-prompt');
-        if (prompt) submitCodingTask(prompt);
-      };
-    });
   }
 
+  // ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
   // Global helper for code block copying
   window.AxenUI = {
     copyCode: function (button) {

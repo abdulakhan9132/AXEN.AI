@@ -42,7 +42,7 @@ class TaskClassifier:
     """General Intelligence Router and Intent Classifier for AXEN."""
 
     _GREETINGS = re.compile(
-        r"^(?:hello|hi|hey|greetings|good\s+(?:morning|afternoon|evening|day)|howdy|sup)(?:[\s,]+(?:there|axen|friend|everyone|everybody))?[\s\.\!\?]*$|"
+        r"^(?:hello|hi|hey|greetings|good\s+(?:morning|afternoon|evening|day)|howdy|sup)(?:[\s,]+(?:there|aexn|axen|friend|everyone|everybody))?[\s\.\!\?]*$|"
         r"^(?:how\s+are\s+you(?:\s+doing|\s+today)?|what'?s\s+up(?:\s+axen|\s+there)?|how's\s+it\s+going)[\s\.\!\?]*$",
         re.IGNORECASE,
     )

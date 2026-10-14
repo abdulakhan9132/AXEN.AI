@@ -665,3 +665,37 @@
 .btn-send-coding:hover {
   background: #3b82f6;
 }
+
+/* Workspace and chat share one assistant and one visual system. */
+.coding-workspace-container { background: var(--canvas); color: var(--text); }
+.coding-toolbar, .pane-header, .editor-tabs-bar, .editor-status-bar, .console-header,
+.coding-file-tree-pane, .coding-editor-pane, .coding-agent-pane, .coding-input-box {
+  background: var(--surface); color: var(--text); border-color: var(--border); }
+.workspace-path-pill, .tree-search-box input, .editor-tab.active, .editor-gutter,
+.coding-bottom-console, .console-body, .diff-preview-banner { background: var(--surface-raised); color: var(--muted); border-color: var(--border); }
+.editor-textarea, .diff-code-view { background: var(--canvas); color: var(--text); }
+.coding-file-tree-pane { width: 210px; min-width: 170px; }
+.coding-agent-pane { width: 38%; min-width: 340px; }
+.coding-chat-history { padding: 0; display: flex; overflow: hidden; flex: 1; }
+.coding-chat-history .messages-scroll-area { width: 100%; min-height: 0; padding: 20px 16px; }
+.coding-chat-history .welcome-heading { font-size: 25px; letter-spacing: -.5px; }
+.coding-chat-history .welcome-screen { min-height: 200px; padding: 24px 12px; }
+.coding-chat-history .axen-hero-mark { transform: scale(.7); margin-bottom: 16px; }
+.coding-input-box .composer-floating-container { position: static; transform: none; width: 100%; min-height: 70px; margin: 0;
+  padding: 10px; border-radius: 14px; box-shadow: none; }
+.coding-input-box .composer-textarea { color: var(--text); background: transparent; border: 0; font-size: 13px; }
+.tree-item { cursor: pointer; color: var(--muted); border-radius: 6px; }
+.tree-item:hover, .tree-item.active { background: var(--surface-raised); color: var(--text); }
+.toolbar-title { color: var(--text); font-size: 13px; letter-spacing: 0; }
+.toolbar-right .btn-tool, .btn-tool-mini { background: var(--surface-raised); color: var(--text); border-color: var(--border); }
+.tree-folder > summary::before { content: '›'; width: 10px; color: var(--muted); }
+.tree-folder[open] > summary::before { content: '⌄'; }
+@media(max-width: 1100px) { .coding-file-tree-pane { width: 165px; min-width: 140px; }
+  .coding-agent-pane { width: 40%; min-width: 280px; } .workspace-path-pill { max-width: 200px; } .git-badge, .perm-badge { display: none; } }
+@media(max-width: 768px) { .coding-toolbar { flex-wrap: wrap; padding: 10px; }
+  .coding-main-split { flex-direction: column; overflow-y: auto; }
+  .coding-file-tree-pane { width: 100%; min-height: 120px; max-height: 180px; }
+  .coding-editor-pane { width: 100%; min-height: 280px; }
+  .coding-agent-pane { width: 100%; min-width: 0; min-height: 400px; }
+  .coding-input-box .composer-floating-container { position: static; }
+  .toolbar-title { display: none; } }

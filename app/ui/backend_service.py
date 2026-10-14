@@ -143,6 +143,80 @@ class AxenBackendService:
     # Chat Dispatch with Status Events
     # -----------------------------------------------------------------------
 
+    def unified_response(self, message, manager, *, current_file=None, attachments=None,
+                         session_id=None, project_id=None, persist_messages=True, state_callback=None):
+        """One AEXN request dispatcher, reusing local models, Think Engine and tools."""
+        from app.ai.router import ModelRouter
+        from app.ai.chat_adapter import ProviderChatAdapter, CODING_INSTRUCTIONS
+        kind = ModelRouter.task_kind(message)
+        with self._chat_lock:
+            history = list(self.conversations.get(session_id, {}).get('messages', []))
+        # The frontend may have saved this user turn already. Don't duplicate it.
+        if history and history[-1].get('role') == 'user' and history[-1].get('content') == message:
+            history = history[:-1]
+        previous = next((turn for turn in reversed(history) if turn.get('role') == 'assistant'), {})
+        new_code_request = bool(re.search(r"\b(give|write|generate|create|build)\b.*\b(code|program|script|page|website|app|example)\b|\b(simple|new|another|different)\b.*\b(code|program|script|example|page)\b", message, re.I))
+        following_code = bool(not new_code_request and re.search(r"\b(change|update|add|remove|make|fix|use|replace)\b", message, re.I)
+                              and '```' in previous.get('content', ''))
+        if kind == 'conversation' and following_code:
+            kind = 'coding'
+        def finish(result):
+            if persist_messages:
+                sid = session_id if session_id in self.conversations else self.new_session(title=message[:36], project_id=project_id)
+                with self._chat_lock:
+                    conv = self.conversations[sid]
+                    for role, text in [('user', message), ('assistant', result['response'])]:
+                        conv['messages'].append({'id': str(uuid.uuid4()), 'role': role, 'content': text,
+                                                 'capability': result.get('capability') if role == 'assistant' else None,
+                                                 'timestamp': datetime.now().isoformat()})
+                    conv['updated_at'] = datetime.now().isoformat()
+                    self._save_conversations_to_disk()
+                result['session_id'] = sid
+            return result
+        if kind == "document" and not attachments:
+            return finish({"response": "Attach the document you want me to analyze, then send your question.", "capability": "document"})
+        if kind == "image":
+            from image_brain import ImageBrain
+            if state_callback:
+                state_callback("GENERATING", "Generating your image", {})
+            result = ImageBrain().generate(message)
+            paths = result.get("paths", [])
+            if not paths:
+                raise RuntimeError("Image pipeline returned no image")
+            filename = Path(paths[0]).name
+            return finish({"response": f"![Generated image](/images/{filename})", "capability": "image"})
+        if kind == "coding":
+            from app.context.models import AssembledContext, ModelRequest
+            from axen.agent.intent import IntentInfo
+            from axen.agent.think_engine import ThinkEngine
+            think_engine = ThinkEngine()
+            complexity = 'HIGH' if re.search(r"\b(complex|full.?stack|multi.?file)\b", message, re.I) else 'MEDIUM'
+            metrics, config = think_engine.start_request(message,
+                IntentInfo(intent='coding', complexity=complexity, requires_reasoning=True))
+            if state_callback:
+                state_callback('PLANNING', 'Preparing your code', {})
+            messages = [{'role': 'system', 'content': CODING_INSTRUCTIONS}]
+            relevant_history = history[-2:] if following_code else []
+            messages += [{'role': turn['role'], 'content': turn['content']} for turn in relevant_history
+                         if turn.get('role') in ('user', 'assistant')]
+            messages.append({'role': 'user', 'content': message})
+            try:
+                answer = manager.get_model('router').generate(ModelRequest(
+                    AssembledContext(messages_for_model=messages),
+                    {'task_type': 'coding', 'max_tokens': min(4096, config.budget.max_tokens),
+                     'timeout': config.budget.max_runtime_seconds}, {}))
+                if not isinstance(answer, str) or not answer.strip():
+                    raise RuntimeError('Coding model returned an empty response')
+                think_engine.finish_request(metrics)
+            except Exception:
+                think_engine.finish_request(metrics, status='failed')
+                raise
+            return finish({'response': answer, 'capability': 'coding_example'})
+        return self.chat(message, session_id=session_id, project_id=project_id,
+            attachments=attachments, think_mode=None, state_callback=state_callback,
+            inference_model=ProviderChatAdapter(manager.get_model("router"), "AEXN AI"),
+            persist_messages=persist_messages)
+
     def chat(
         self,
         message: str,
@@ -154,6 +228,8 @@ class AxenBackendService:
         state_callback: Optional[Callable[[str, str, Optional[Dict[str, Any]]], None]] = None,
         cancel_event: Optional[threading.Event] = None,
         think_mode: Optional[str] = None,
+        inference_model: Optional[Any] = None,
+        persist_messages: bool = True,
     ) -> Dict[str, Any]:
         """
         Process a user message through AssistantController.
@@ -171,7 +247,7 @@ class AxenBackendService:
 
         with self._chat_lock:
             # Isolate session history: synchronize controller memory with this session
-            self._sync_controller_memory(sid)
+            self._sync_controller_memory(sid, exclude_last_user=not persist_messages)
 
             if request_id:
                 with self._lock:
@@ -212,7 +288,8 @@ class AxenBackendService:
                 "attachments": attachments or [],
                 "timestamp": datetime.now().isoformat(),
             }
-            conv["messages"].append(user_msg)
+            if persist_messages:
+                conv["messages"].append(user_msg)
 
             # Update title if it's the first message
             if len(conv["messages"]) == 1 or conv.get("title") == "New Chat":
@@ -221,7 +298,10 @@ class AxenBackendService:
                     conv["title"] = clean_title
 
             # Execute through AssistantController
+            previous_model = self.controller.model
             try:
+                if inference_model is not None:
+                    self.controller.model = inference_model
                 start_time = time.perf_counter()
                 response_text = self.controller.respond(
                     message,
@@ -235,6 +315,7 @@ class AxenBackendService:
                 )
                 elapsed_sec = time.perf_counter() - start_time
             finally:
+                self.controller.model = previous_model
                 if request_id:
                     self.cleanup_task(request_id)
 
@@ -274,7 +355,8 @@ class AxenBackendService:
                 "claim_verification": claim_verification,
             },
         }
-        conv["messages"].append(assistant_msg)
+        if persist_messages:
+            conv["messages"].append(assistant_msg)
         conv["updated_at"] = datetime.now().isoformat()
         self._save_conversations_to_disk()
 
@@ -317,13 +399,16 @@ class AxenBackendService:
         self._save_conversations_to_disk()
         return new_id
 
-    def _sync_controller_memory(self, session_id: str) -> None:
+    def _sync_controller_memory(self, session_id: str, exclude_last_user: bool = False) -> None:
         """Synchronize controller short-term memory to exclusively contain this session's history."""
         self.controller.reset_conversation()
         conv = self.conversations.get(session_id)
         if not conv:
             return
-        for msg in conv.get("messages", []):
+        messages = conv.get("messages", [])
+        if exclude_last_user and messages and messages[-1].get("role") == "user":
+            messages = messages[:-1]
+        for msg in messages:
             role = msg.get("role")
             content = msg.get("content", "")
             if not content:

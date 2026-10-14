@@ -2,6 +2,15 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+// Keep npm start on the complete application; this file remains the Node companion.
+if (process.argv.includes("--unified")) {
+  const { spawn } = require("child_process");
+  const python = path.join(__dirname, ".venv", process.platform === "win32" ? "Scripts" : "bin", process.platform === "win32" ? "python.exe" : "python");
+  const child = spawn(python, [path.join(__dirname, "run_ui.py")], { stdio: "inherit", windowsHide: true });
+  child.on("error", error => { console.error(error.message); process.exitCode = 1; });
+  child.on("exit", code => { process.exitCode = code ?? 1; });
+  return;
+}
 const routes = require("./ai/routes");
 
 const PORT = process.env.PORT || 8000;
@@ -376,12 +385,16 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "GET" && pathname === "/api/coding/tree") {
     function buildTree(dir, depth = 0) {
       if (depth > 4) return null;
+      try {
+        const relative = path.relative(fs.realpathSync(__dirname), fs.realpathSync(dir));
+        if (path.isAbsolute(relative) || relative === ".." || relative.startsWith(".." + path.sep)) return null;
+      } catch { return null; }
       const name = path.basename(dir) || dir;
       const children = [];
       try {
         const entries = fs.readdirSync(dir, { withFileTypes: true });
         for (const entry of entries) {
-          if (entry.name.startsWith(".") || entry.name === "node_modules" || entry.name === "__pycache__" || entry.name === ".venv") continue;
+          if (entry.name.startsWith(".") || entry.name === "node_modules" || entry.name === "__pycache__" || entry.name === ".venv" || entry.name === "%SystemDrive%") continue;
           const full = path.join(dir, entry.name);
           const rel = path.relative(__dirname, full).replace(/\\/g, "/");
           if (entry.isDirectory()) {

@@ -141,6 +141,7 @@ class TestRunner:
         target_path: Optional[str] = None,
         custom_command: Optional[str] = None,
         timeout: float = 45.0,
+        sandboxed: bool = False,
     ) -> TestResult:
         """Run tests for the project or a targeted test file."""
         lang, default_cmd = self.inspector.detect_ecosystem()
@@ -150,9 +151,10 @@ class TestRunner:
         elif default_cmd == "pytest" or lang == "python":
             python_exe = sys.executable
             if target_path:
-                cmd = f'"{python_exe}" -m pytest {target_path} -v'
+                safe_target = self.workspace.resolve_path(target_path).relative_to(self.workspace.root_path).as_posix()
+                cmd = [python_exe, "-m", "pytest", safe_target, "-v"]
             else:
-                cmd = f'"{python_exe}" -m pytest -v'
+                cmd = [python_exe, "-m", "pytest", "-v"]
         elif default_cmd:
             cmd = f"{default_cmd} {target_path or ''}".strip()
         else:
@@ -162,7 +164,7 @@ class TestRunner:
                 raw_stderr="No test runner detected for this project.",
             )
 
-        cmd_res = self.runner.run(cmd, timeout=timeout)
+        cmd_res = self.runner.run_sandboxed(cmd, timeout=timeout) if sandboxed else self.runner.run(cmd, timeout=timeout)
         return self._parse_result(cmd_res)
 
     def _parse_result(self, cmd_res: CommandResult) -> TestResult:

@@ -18,6 +18,24 @@
       .replace(/'/g, '&#039;');
   }
 
+  function highlightCode(code, language) {
+    if (language === 'diff') return code.split('\n').map(line => {
+      const kind = line.startsWith('+') ? 'diff-add' : line.startsWith('-') ? 'diff-remove' : 'diff-context';
+      return `<span class="${kind}">${escapeHtml(line)}</span>`;
+    }).join('\n');
+    const tokens = /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\/\/[^\n]*|#[^\n]*|\b(?:def|class|return|import|from|if|else|elif|for|while|try|except|async|await|const|let|var|function|new|export|True|False|None|null|true|false)\b|\b\d+(?:\.\d+)?\b)/g;
+    let html = '', previous = 0;
+    for (const match of code.matchAll(tokens)) {
+      html += escapeHtml(code.slice(previous, match.index));
+      const token = match[0];
+      const kind = /^['"]/.test(token) ? 'syntax-string' : /^(?:#|\/\/)/.test(token) ? 'syntax-comment'
+        : /^\d/.test(token) ? 'syntax-number' : 'syntax-keyword';
+      html += `<span class="${kind}">${escapeHtml(token)}</span>`;
+      previous = match.index + token.length;
+    }
+    return html + escapeHtml(code.slice(previous));
+  }
+
   function parseMarkdown(md) {
     if (!md) return '';
 
@@ -40,6 +58,8 @@
       return id;
     });
 
+    // Treat model/file output as text before introducing our own HTML markup.
+    src = escapeHtml(src);
     // 3. Tables
     src = src.replace(/(([^\n]+\|[^\n]+\n)+)/g, function (match) {
       const rows = match.trim().split('\n');
@@ -76,21 +96,22 @@
     src = src.replace(/^# (.*$)/gim, '<h1>$1</h1>');
 
     // 5. Blockquotes
-    src = src.replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>');
+    src = src.replace(/^&gt; (.*$)/gim, '<blockquote>$1</blockquote>');
 
     // 6. Emphasis (bold, italic, strikethrough)
     src = src.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-    src = src.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+    src = src.replace(/(?<!\w)__([^_]+)__(?!\w)/g, '<strong>$1</strong>');
     src = src.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-    src = src.replace(/_([^_]+)_/g, '<em>$1</em>');
+    src = src.replace(/(?<!\w)_([^_]+)_(?!\w)/g, '<em>$1</em>');
     src = src.replace(/~~([^~]+)~~/g, '<del>$1</del>');
 
     // 6.5 Images (markdown syntax: ![alt](url))
     src = src.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, function (match, alt, url) {
+      if (!/^\/images\/[a-zA-Z0-9_\-\.]+\.(?:png|jpg|jpeg|webp)$/i.test(url)) return alt;
       const cleanAlt = escapeHtml(alt || 'Generated Image');
       return `
         <div class="generated-image-card">
-          <img src="${url}" alt="${cleanAlt}" class="generated-image-preview" loading="lazy" />
+          <img src="${url}" alt="${cleanAlt}" class="generated-image-preview" width="512" height="512" loading="lazy" />
           <div class="image-card-actions">
             <a href="${url}" download class="image-download-btn">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -106,10 +127,10 @@
     });
 
     // 6.6 Standalone /images/... URLs in agent replies
-    src = src.replace(/(?:URL:\s*)?(\/images\/[a-zA-Z0-9_\-\.]+\.(?:png|jpg|jpeg|webp))/g, function (match, url) {
+    src = src.replace(/^(?:URL:\s*)?(\/images\/[a-zA-Z0-9_\-\.]+\.(?:png|jpg|jpeg|webp))\s*$/gim, function (match, url) {
       return `
         <div class="generated-image-card">
-          <img src="${url}" alt="Generated Image" class="generated-image-preview" loading="lazy" />
+          <img src="${url}" alt="Generated Image" class="generated-image-preview" width="512" height="512" loading="lazy" />
           <div class="image-card-actions">
             <a href="${url}" download class="image-download-btn">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -125,7 +146,10 @@
     });
 
     // 7. Links
-    src = src.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    src = src.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function (match, label, url) {
+      if (!/^(?:https?:\/\/|\/(?!\/)|#|mailto:)/i.test(url)) return label;
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+    });
 
     // 8. Lists
     // Unordered lists
@@ -163,7 +187,7 @@
 
     // 11. Restore fenced code blocks with copy button
     codeBlocks.forEach((item, index) => {
-      const escapedCode = escapeHtml(item.code);
+      const escapedCode = highlightCode(item.code, item.lang);
       const copyId = `code-btn-${Math.random().toString(36).substring(2, 9)}`;
       const blockHtml = `
         <div class="code-block-container">

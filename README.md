@@ -1,6 +1,14 @@
 # AXEN - Personal AI Assistant
 
-Axen's chat runs on its built-in local assistant. It does not connect to external AI providers or require their API keys. The small built-in model is experimental and cannot reliably plan and implement complex websites or generate original images. The local project workspace and browser preview are available as foundations for a future coding workflow.
+## Complete web application
+
+Run `npm start` or, on Windows, `.venv\Scripts\python.exe run_ui.py`. Both start the existing Python application on http://127.0.0.1:8000 and the Node feature companion on port 8001. `npm run start:node` retains the standalone Node service.
+
+AEXN AI uses one chat and one composer for conversations, images and project work. The internal router uses configured local conversational, coding and reasoning providers, and the existing AEXN GPT checkpoint for literary tasks. Configure `CONVERSATIONAL_MODEL`, `CODING_MODEL` and optionally `REASONING_MODEL` for models installed in your Ollama runtime. A configured API key does not grant cloud consent; this interface defaults to local-only requests. An unavailable provider produces an explicit error instead of silently sending your content to a cloud API. The small Shakespeare checkpoint is experimental and is not a general-purpose coding assistant.
+
+Code replies are displayed directly in chat. The previous Codex workspace UI is removed. The new Code Agent currently has milestone 1 implemented: confined file tools, per-action approval tickets, diff previews and SQLite audit logging. The model loop, API and Code mode UI are subsequent milestones. Commands use the existing offline Docker sandbox and fail closed without an existing local `AEXN_SANDBOX_IMAGE`; no new dependencies are installed automatically.
+
+The existing Think Engine chooses reasoning automatically and publishes brief progress messages. Chat uses SSE progress and response frames; model inference currently completes before the response text is emitted, so this is not native token-by-token model streaming. Image requests reuse the existing local ImageBrain pipeline. Attach documents using the existing upload tools.
 
 Generated projects are stored in `data/generated-sites/`. The built-in preview serves project files locally. Axen can store source files in multiple programming languages, but this does not mean it can execute every language or install project dependencies.
 

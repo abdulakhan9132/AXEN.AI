@@ -1,0 +1,180 @@
+{
+  "model_name": "aexn_gpt_1.0",
+  "total_parameters": 1327872,
+  "trainable_parameters": 1327872,
+  "start_step": 60,
+  "completed_steps": 70,
+  "total_duration_sec": 0.98,
+  "avg_tokens_per_sec": 2612.7,
+  "initial_val_loss": 6.6547,
+  "initial_val_ppl": 776.4,
+  "best_val_loss": 6.6043,
+  "final_val_loss": 6.6043,
+  "final_val_ppl": 738.26,
+  "sample_generation_before": "\n\n\n\n\n\n\n\n.\n,\n\n\n.\n\n\n\n\n, so\n\n\n,\n.\n.",
+  "sample_generation_after": "\n\n\n\n\n,\n\n\n,\n\n\n\n\n\n\n\n\n\n\n\n\n.\n\n\n\n\n.,\n\n\n.\n\n\n,\n",
+  "history": {
+    "step": [
+      70
+    ],
+    "train_loss": [
+      6.4954
+    ],
+    "val_loss": [
+      6.6043
+    ],
+    "val_ppl": [
+      738.26
+    ],
+    "lr": [
+      3.1662074019656414e-05
+    ],
+    "tokens_per_sec": [
+      5648.6
+    ],
+    "updates": [
+      {
+        "step": 61,
+        "loss": 6.623390197753906,
+        "grad_norm": 0.9504368901252747,
+        "clipped_grad_norm": 0.9504368901252747,
+        "update_applied": true,
+        "lr": 0.00016499999999999997
+      },
+      {
+        "step": 62,
+        "loss": 6.426185607910156,
+        "grad_norm": 1.0477006435394287,
+        "clipped_grad_norm": 1.0,
+        "update_applied": true,
+        "lr": 0.0001438813472195688
+      },
+      {
+        "step": 63,
+        "loss": 6.507331848144531,
+        "grad_norm": 1.0201126337051392,
+        "clipped_grad_norm": 1.0,
+        "update_applied": true,
+        "lr": 0.0001232827057593821
+      },
+      {
+        "step": 64,
+        "loss": 6.275047302246094,
+        "grad_norm": 1.1172324419021606,
+        "clipped_grad_norm": 1.0,
+        "update_applied": true,
+        "lr": 0.00010371128253516117
+      },
+      {
+        "step": 65,
+        "loss": 6.668220520019531,
+        "grad_norm": 0.9392917156219482,
+        "clipped_grad_norm": 0.9392917156219482,
+        "update_applied": true,
+        "lr": 8.564899094051613e-05
+      },
+      {
+        "step": 66,
+        "loss": 6.380748748779297,
+        "grad_norm": 0.9926025867462158,
+        "clipped_grad_norm": 0.9926025867462158,
+        "update_applied": true,
+        "lr": 6.954058453981609e-05
+      },
+      {
+        "step": 67,
+        "loss": 6.5279541015625,
+        "grad_norm": 0.9497687220573425,
+        "clipped_grad_norm": 0.9497687220573425,
+        "update_applied": true,
+        "lr": 5.5782705759382104e-05
+      },
+      {
+        "step": 68,
+        "loss": 6.542243957519531,
+        "grad_norm": 0.9028530120849609,
+        "clipped_grad_norm": 0.9028530120849609,
+        "update_applied": true,
+        "lr": 4.471411923457034e-05
+      },
+      {
+        "step": 69,
+        "loss": 6.310993194580078,
+        "grad_norm": 1.0045180320739746,
+        "clipped_grad_norm": 1.0,
+        "update_applied": true,
+        "lr": 3.660737030015427e-05
+      },
+      {
+        "step": 70,
+        "loss": 6.691677093505859,
+        "grad_norm": 0.9077399373054504,
+        "clipped_grad_norm": 0.9077399373054504,
+        "update_applied": true,
+        "lr": 3.1662074019656414e-05
+      }
+    ]
+  },
+  "initial_train_loss": 6.566491889953613,
+  "final_train_loss": 6.691677093505859,
+  "hyperparameters": {
+    "model": {
+      "model_name": "aexn_gpt_1.0",
+      "vocab_size": 2048,
+      "context_length": 64,
+      "embedding_dim": 128,
+      "num_layers": 4,
+      "num_heads": 4,
+      "ff_dim": 512,
+      "dropout": 0.1,
+      "activation": "gelu",
+      "tokenizer_type": "byte_level_bpe",
+      "tokenizer_path": "data/shakespeare/aexn_bpe.json",
+      "learning_rate": 0.0003,
+      "device": "cuda",
+      "tokenizer_version": "v2"
+    },
+    "training": {
+      "optimizer": "AdamW",
+      "amsgrad": false,
+      "scheduler": "cosine",
+      "batch_size": 4,
+      "learning_rate": 0.0003,
+      "min_lr": 3e-05,
+      "weight_decay": 0.01,
+      "beta1": 0.9,
+      "beta2": 0.999,
+      "eps": 1e-08,
+      "grad_clip": 1.0,
+      "warmup_steps": 50,
+      "max_steps": 70,
+      "eval_interval": 50,
+      "eval_steps": 20,
+      "mixed_precision": true,
+      "device": "auto",
+      "seed": 1337
+    },
+    "data": {
+      "train_binary": "data/shakespeare/train_ids.bin",
+      "val_binary": "data/shakespeare/val_ids.bin",
+      "metadata_file": "data/shakespeare/metadata.json",
+      "tokenizer_file": "data/shakespeare/aexn_bpe.json"
+    },
+    "checkpoints": {
+      "checkpoint_dir": "outputs\\adamw_verification_20261014",
+      "save_latest": true,
+      "save_best": true,
+      "save_interval": 100
+    }
+  },
+  "schedule_config": {
+    "warmup_steps": 50,
+    "max_steps": 70,
+    "base_lr": 0.0003,
+    "min_lr": 3e-05
+  },
+  "device": "cuda",
+  "mixed_precision": true,
+  "peak_vram_mb": 65.36181640625,
+  "skipped_updates": 0
+}

@@ -1,0 +1,39 @@
+{
+  "model_name": "AEXN GPT 1.0",
+  "tokenizer_type": "byte_level_bpe",
+  "tokenizer_version": "1.0",
+  "corpus_title": "The Complete Works of William Shakespeare",
+  "target_vocab_size": 2048,
+  "actual_vocab_size": 2048,
+  "min_frequency": 2,
+  "dtype": "uint16",
+  "bytes_per_token": 2,
+  "special_tokens": {
+    "<PAD>": 0,
+    "<UNK>": 1,
+    "<BOS>": 2,
+    "<EOS>": 3
+  },
+  "corpus_stats": {
+    "total_lines": 196015,
+    "total_chars": 5359343,
+    "total_words": 963460,
+    "total_bytes": 5422620,
+    "train_lines": 176413,
+    "train_chars": 4787505,
+    "train_words": 860842,
+    "train_bytes": 4842435,
+    "val_lines": 19602,
+    "val_chars": 571838,
+    "val_words": 102618,
+    "val_bytes": 580185
+  },
+  "train_tokens": 1770438,
+  "val_tokens": 212735,
+  "total_tokens": 1983173,
+  "train_compression_ratio": 2.735,
+  "val_compression_ratio": 2.727,
+  "train_binary_file": "train_ids.bin",
+  "val_binary_file": "val_ids.bin",
+  "tokenizer_file": "aexn_bpe.json"
+}

@@ -112,7 +112,8 @@ class CodingAgent:
             return CodingTaskType.FEATURE_IMPLEMENTATION
         if any(w in r for w in ("run tests", "run test", "test suite", "check tests")):
             return CodingTaskType.TEST_EXECUTION
-        if any(w in r for w in ("project map", "project structure", "show files", "list files")):
+        if any(w in r for w in ("project map", "project structure", "show files", "list files",
+                                "analyze this project", "analyse this project", "project overview")):
             return CodingTaskType.PROJECT_ANALYSIS
         if any(w in r for w in ("write a python", "write a function", "generate code", "how to write")):
             return CodingTaskType.CODE_GENERATION

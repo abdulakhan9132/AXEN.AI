@@ -26,7 +26,13 @@ class LocalModel(AIModel):
     def health_check(self) -> bool:
         try:
             response = requests.get(f"{self.base_url}/api/tags", timeout=min(self.timeout, 2.5))
-            return response.status_code == 200
+            if response.status_code != 200:
+                return False
+            payload = response.json()
+            if not isinstance(payload, dict):
+                return False
+            names = {entry.get('name') for entry in payload.get('models', []) if isinstance(entry, dict)}
+            return self.model_name in names or self.model_name + ':latest' in names
         except Exception:
             return False
 
@@ -43,13 +49,13 @@ class LocalModel(AIModel):
             "options": {
                 "temperature": self.temperature,
                 "num_ctx": self.context_length,
-                "num_predict": self.max_output_tokens,
+                "num_predict": request.generation_settings.get("max_tokens", self.max_output_tokens),
             },
         }
         if request.generation_settings.get("format"):
             payload["format"] = request.generation_settings["format"]
 
-        response = requests.post(f"{self.base_url}/api/chat", json=payload, timeout=self.timeout)
+        response = requests.post(f"{self.base_url}/api/chat", json=payload, timeout=request.generation_settings.get("timeout", self.timeout))
         response.raise_for_status()
         data = response.json()
         msg_content = data.get("message", {}).get("content", "") if isinstance(data.get("message"), dict) else ""

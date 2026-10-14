@@ -199,9 +199,11 @@ class Workspace:
         ignore_dirs = {
             ".git", ".venv", "venv", "__pycache__", "node_modules",
             ".pytest_cache", ".mypy_cache", "dist", "build", ".egg-info",
+            ".agents", ".codex", ".gsd-staging", "%SystemDrive%",
         }
 
         for root, dirs, files in os.walk(start_dir):
+            dirs[:] = [d for d in dirs if self.is_inside(Path(root) / d)]
             if not include_ignored:
                 # Prune noisy directories in-place
                 dirs[:] = [d for d in dirs if d not in ignore_dirs and not d.endswith(".egg-info")]
@@ -211,6 +213,8 @@ class Workspace:
                 if f.endswith((".axen_backup", ".pyc", ".pyo", ".exe", ".dll", ".so", ".dylib")):
                     continue
                 full_path = Path(root) / f
+                if not self.is_inside(full_path):
+                    continue
                 results.append(full_path)
                 if max_files and len(results) >= max_files:
                     return results

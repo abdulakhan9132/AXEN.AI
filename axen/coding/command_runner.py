@@ -17,6 +17,11 @@ import re
 import shlex
 import subprocess
 import time
+import os
+import shutil
+import tempfile
+import sys
+import uuid
 from typing import List, Optional
 
 from .permissions import OperationType, PermissionPolicy
@@ -77,6 +82,45 @@ class CommandRunner:
                 raise CommandSecurityError(
                     f"Blocked dangerous command pattern in: '{command_str}'."
                 )
+
+    def run_sandboxed(self, command, timeout=45.0):
+        """Untrusted tests run in an ephemeral, offline container, never on the host."""
+        image = os.getenv("AEXN_SANDBOX_IMAGE")
+        docker = shutil.which("docker")
+        if not image or not docker:
+            raise CommandSecurityError("No external sandbox configured. Set AEXN_SANDBOX_IMAGE to an existing local Docker image with the project's test dependencies.")
+        args = list(command) if isinstance(command, list) else shlex.split(command)
+        self.validate_command(" ".join(args))
+        if args[0] == sys.executable:
+            args[0] = "python"
+        with tempfile.TemporaryDirectory(prefix="aexn-sandbox-") as folder:
+            copied = 0
+            for source in self.workspace.list_files(max_files=2000):
+                if source.name.startswith('.') or any(word in source.name.lower() for word in ('credential', 'secret', 'token', 'password')) or source.suffix.lower() not in ('.py', '.js', '.ts', '.json', '.txt', '.toml', '.yaml', '.yml', '.html', '.css', '.md', '.cfg', '.ini'):
+                    continue
+                copied += source.stat().st_size
+                if copied > 50 * 1024 * 1024:
+                    raise CommandSecurityError("Sandbox source copy exceeds 50 MB")
+                target = Path(folder) / source.relative_to(self.workspace.root_path)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source, target)
+            container_name = 'aexn-' + uuid.uuid4().hex
+            argv = [docker, "run", "--name", container_name, "--rm", "--pull=never", "--network=none", "--read-only",
+                    "--cap-drop=ALL", "--security-opt=no-new-privileges", "--pids-limit=128",
+                    "--memory=1g", "--cpus=2", "--tmpfs=/tmp", "-v", f"{folder}:/workspace:rw",
+                    "-w", "/workspace", image, *args]
+            started = time.perf_counter()
+            try:
+                result = subprocess.run(argv, capture_output=True, text=True, timeout=timeout, shell=False)
+                return CommandResult(" ".join(args), result.returncode, result.stdout, result.stderr,
+                                     time.perf_counter() - started)
+            except subprocess.TimeoutExpired:
+                return CommandResult(" ".join(args), -1, "", "Sandbox timed out", time.perf_counter() - started, True)
+            finally:
+                try:
+                    subprocess.run([docker, 'rm', '-f', container_name], capture_output=True, timeout=10, shell=False)
+                except (OSError, subprocess.TimeoutExpired):
+                    logger.warning("Could not confirm sandbox cleanup: %s", container_name)
 
     def run(
         self,

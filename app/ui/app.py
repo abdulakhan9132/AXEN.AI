@@ -22,6 +22,10 @@ from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.ui.backend_service import AxenBackendService
+from app.ai.model_manager import ModelManager
+
+# Keep selection and loaded providers alive across requests.
+model_manager = ModelManager()
 
 logger = logging.getLogger("axen.ui")
 BASE_DIR = Path(__file__).resolve().parent
@@ -107,7 +111,7 @@ async def generate_image_endpoint(req: ImageApiRequest) -> Dict[str, Any]:
 def get_models() -> Dict[str, Any]:
     """Return catalog of local open-weight and configured cloud models."""
     from app.ai.model_manager import ModelManager
-    manager = ModelManager()
+    manager = model_manager
     return {
         "active_model": manager.active_model_name,
         "models": manager.list_models(),
@@ -118,11 +122,36 @@ class SelectModelRequest(BaseModel):
     model_id: str = Field(..., min_length=1)
 
 
+@app.get("/api/brain")
+@app.post("/api/sleep")
+@app.post("/api/feedback")
+@app.get("/api/reverse-engineering/status")
+@app.post("/api/reverse-engineering")
+async def node_feature_proxy(request: Request):
+    """Forward Node-owned features to their existing implementation."""
+    import httpx
+    origin = request.headers.get("origin")
+    if request.method == "POST" and origin and origin != str(request.base_url).rstrip("/"):
+        raise HTTPException(status_code=403, detail="Open this feature from AEXN to continue")
+    try:
+        async with httpx.AsyncClient(timeout=120) as client:
+            response = await client.request(
+                request.method, "http://127.0.0.1:8001" + request.url.path,
+                content=await request.body(),
+                headers={"Content-Type": request.headers.get("content-type", "application/json")},
+            )
+        return JSONResponse(status_code=response.status_code, content=response.json())
+    except httpx.RequestError:
+        raise HTTPException(status_code=503, detail="Node feature service is unavailable on port 8001")
+
+
 @app.post("/api/models/select")
 def select_model(req: SelectModelRequest) -> Dict[str, Any]:
     """Select the active model runtime."""
     from app.ai.model_manager import ModelManager
-    manager = ModelManager()
+    manager = model_manager
+    if req.model_id not in {m["id"] for m in manager.list_models()}:
+        raise HTTPException(status_code=400, detail="Unknown model ID")
     success = manager.switch_model(req.model_id)
     return {
         "success": success,
@@ -201,107 +230,53 @@ async def chat_endpoint(payload: Dict[str, Any]) -> Dict[str, Any]:
 
 @app.post("/api/v2/chat")
 async def chat_v2_endpoint(request: Request):
-    """
-    Backwards-compatible Phase 4 streaming endpoint.
-    Emits raw tokens using the format expected by the legacy UI:
-    data: {"type": "token", "data": "..."}
-    """
-    try:
-        body = await request.json()
-    except Exception:
-        body = {}
-        
+    """Unified AEXN chat: automatic capability routing and public progress events."""
+    body = await request.json()
     messages = body.get("messages", [])
-    if not messages:
+    if not isinstance(messages, list) or not messages or not isinstance(messages[-1], dict):
         raise HTTPException(status_code=400, detail="messages array is required")
-        
-    last_msg = messages[-1].get("content", "") if messages else ""
-    
-    async def event_generator() -> AsyncGenerator[str, None]:
+    message = str(messages[-1].get("content") or "").strip()
+    if not message:
+        raise HTTPException(status_code=400, detail="A message is required")
+
+    async def events():
+        queue = asyncio.Queue()
+        loop = asyncio.get_running_loop()
+        public = {"READING": "Reading project files", "PLANNING": "Preparing a plan",
+                  "GENERATING": "Preparing your response", "VERIFYING": "Checking results",
+                  "UNDERSTANDING": "Understanding your request", "USING_TOOL": "Working on your request"}
+        def progress(state, text, meta=None):
+            loop.call_soon_threadsafe(queue.put_nowait, {"type": "stage", "data": public.get(state, "Working on your request")})
         try:
-            think_mode = body.get("think_mode") or body.get("mode")
-            if think_mode in ("fast", "balanced", "deep") or body.get("use_think_engine"):
-                service = AxenBackendService.get_instance()
-                yield f"data: {json.dumps({'type': 'stage', 'data': f'Think Engine: {str(think_mode).upper()} mode...' })}\n\n"
-                
-                res = service.chat(
-                    message=last_msg,
-                    think_mode=think_mode,
-                )
-                final_answer = res.get("response", "")
-                words = final_answer.split(" ")
-                for idx, word in enumerate(words):
-                    chunk = word + (" " if idx < len(words) - 1 else "")
-                    yield f"data: {json.dumps({'type': 'token', 'data': chunk})}\n\n"
-                    await asyncio.sleep(0.01)
-                    
-                yield f"data: {json.dumps({'type': 'done', 'data': final_answer})}\n\n"
-                return
-
-            from app.ai.router import ModelRouter
-            from app.context.engine import ContextEngine
-            from app.context.models import ContextRequest, ContextComponent, ContextPriority, ModelCapability, ModelRequest
-            
-            router = ModelRouter()
-            engine = ContextEngine()
-            
-            # Step 1: Create ContextRequest
-            req = ContextRequest()
-            
-            for msg in messages:
-                comp = ContextComponent(
-                    source="user" if msg.get("role") == "user" else "assistant",
-                    content=msg.get("content", ""),
-                    priority=ContextPriority.CURRENT_USER_MESSAGE if msg == messages[-1] else ContextPriority.CONVERSATION_CONTEXT_RECENT,
-                    metadata={"role": msg.get("role", "user")}
-                )
-                if msg == messages[-1]:
-                    req.current_message = comp
-                else:
-                    req.conversation_history.append(comp)
-                    
-            # Step 2: Define Capabilities
-            # In a real app we might load this from a config
-            cap = ModelCapability(
-                context_length=4096,
-                max_output_tokens=512,
-                tokenizer="default",
-                provider="router",
-                model_id="default"
-            )
-            
-            # Step 3: Assemble Context
-            assembled = engine.assemble(req, cap)
-            
-            # Step 4: Create Model Request
-            model_req = ModelRequest(
-                context=assembled,
-                generation_settings={},
-                session_metadata={}
-            )
-            
-            yield f"data: {json.dumps({'type': 'stage', 'data': 'Routing task...' })}\n\n"
-            
-            final_answer = ""
-            for token in router.stream(model_req):
-                final_answer += token
-                yield f"data: {json.dumps({'type': 'token', 'data': token})}\n\n"
-                
-            yield f"data: {json.dumps({'type': 'done', 'data': final_answer})}\n\n"
-        except Exception as e:
-            logger.exception("v2 chat error")
-            yield f"data: {json.dumps({'type': 'error', 'data': str(e)})}\n\n"
-
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "X-Accel-Buffering": "no",
-        },
-    )
-
+            yield "data: " + json.dumps({"type": "stage", "data": "Understanding your request"}) + "\n\n"
+            service = AxenBackendService.get_instance()
+            task = asyncio.create_task(asyncio.to_thread(service.unified_response, message, model_manager,
+                current_file=body.get("current_file"), attachments=body.get("attachments") or [],
+                session_id=body.get("session_id"), project_id=body.get("project_id"),
+                persist_messages=not body.get("session_messages_managed", False), state_callback=progress))
+            while not task.done():
+                try:
+                    event = await asyncio.wait_for(queue.get(), timeout=0.1)
+                    yield "data: " + json.dumps(event) + "\n\n"
+                except asyncio.TimeoutError:
+                    continue
+            result = await task
+            while not queue.empty():
+                yield "data: " + json.dumps(queue.get_nowait()) + "\n\n"
+            answer = result.get("response", "")
+            if not answer:
+                raise RuntimeError("AEXN returned no response")
+            if result.get("coding_result"):
+                yield "data: " + json.dumps({"type": "workspace", "data": result["coding_result"]}) + "\n\n"
+            for word in answer.split(" ")[:-1]:
+                yield "data: " + json.dumps({"type": "token", "data": word + " "}) + "\n\n"
+                await asyncio.sleep(0)
+            yield "data: " + json.dumps({"type": "token", "data": answer.split(" ")[-1]}) + "\n\n"
+            yield "data: " + json.dumps({"type": "done", "data": answer}) + "\n\n"
+        except Exception as error:
+            logger.exception("Unified chat failed")
+            yield "data: " + json.dumps({"type": "error", "data": str(error)}) + "\n\n"
+    return StreamingResponse(events(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
 
 @app.api_route("/api/chat/stream", methods=["GET", "POST"])
@@ -475,6 +450,26 @@ def get_session(session_id: str) -> Dict[str, Any]:
     if not session:
         raise HTTPException(status_code=404, detail="Conversation not found")
     return session
+
+
+@app.post("/api/sessions/{session_id}/messages")
+def append_session_message(session_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Persist frontend-owned streaming turns in the existing conversation store."""
+    from datetime import datetime
+    service = AxenBackendService.get_instance()
+    role = payload.get("role")
+    content = str(payload.get("content") or "").strip()
+    if role not in ("user", "assistant") or not content:
+        raise HTTPException(status_code=400, detail="A user/assistant message is required")
+    with service._chat_lock:
+        conv = service.conversations.get(session_id)
+        if conv is None:
+            raise HTTPException(status_code=404, detail="Conversation not found")
+        conv["messages"].append({"id": str(uuid.uuid4()), "role": role,
+                                 "content": content, "timestamp": datetime.now().isoformat()})
+        conv["updated_at"] = datetime.now().isoformat()
+        service._save_conversations_to_disk()
+    return {"status": "ok"}
 
 
 @app.post("/api/sessions/{session_id}/switch")
@@ -1245,6 +1240,8 @@ def apply_coding_patch(payload: Dict[str, Any]) -> Dict[str, Any]:
 def undo_coding_file(payload: Dict[str, Any]) -> Dict[str, Any]:
     """Rollback a modified file to backup or git head."""
     file_path = str(payload.get("file_path") or "").strip()
+    if payload.get("approved") is not True:
+        raise HTTPException(status_code=403, detail="Rollback requires explicit approval")
     if not file_path:
         raise HTTPException(status_code=400, detail="file_path is required.")
 
@@ -1258,9 +1255,14 @@ def undo_coding_file(payload: Dict[str, Any]) -> Dict[str, Any]:
 def run_coding_tests(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Run tests in the workspace and return parsed diagnostics."""
     target = (payload or {}).get("target")
+    if (payload or {}).get("approved_execution") is not True:
+        raise HTTPException(status_code=403, detail="Test execution requires explicit approval")
     from axen.coding.coding_service import CodingService
     service = CodingService.get_instance()
-    res = service.run_tests(target=target)
+    try:
+        res = service.run_tests(target=target, sandboxed=(payload or {}).get("trusted_project") is not True)
+    except PermissionError as error:
+        raise HTTPException(status_code=403, detail=str(error))
     return {"status": "ok", "test_run": res}
 
 
@@ -1282,8 +1284,57 @@ def run_coding_chat_task(payload: Dict[str, Any]) -> Dict[str, Any]:
     def _state_cb(state: str, text: str, meta: Optional[Dict[str, Any]] = None):
         events.append({"state": state, "text": text, "meta": meta or {}})
 
-    res = service.execute_task(message, think_mode=think_mode, state_callback=_state_cb)
+    if "run" in message.lower() and "test" in message.lower():
+        raise HTTPException(status_code=403, detail="Approve test execution using Run tests")
+    try:
+        res = service.propose_task(message, model_manager.get_model("router"), payload.get("current_file"), _state_cb)
+    except PermissionError as error:
+        raise HTTPException(status_code=403, detail=str(error))
     return {"status": "ok", "task_result": res, "timeline": events}
+
+
+@app.post("/api/coding/proposals/{proposal_id}/apply")
+def apply_coding_proposal(proposal_id: str, payload: Dict[str, Any]):
+    if payload.get("approved") is not True:
+        raise HTTPException(status_code=403, detail="Review and approve the proposed changes first")
+    from axen.coding.coding_service import CodingService
+    try:
+        return {"status": "ok", "result": CodingService.get_instance().apply_proposal(proposal_id)}
+    except PermissionError as error:
+        raise HTTPException(status_code=403, detail=str(error))
+    except (ValueError, OSError) as error:
+        raise HTTPException(status_code=409, detail=str(error))
+
+
+@app.post("/api/coding/git/checkpoint")
+def create_coding_checkpoint(payload: Dict[str, Any]):
+    if payload.get('approved') is not True:
+        raise HTTPException(status_code=403, detail='Git checkpoint creation requires approval')
+    from axen.coding.coding_service import CodingService
+    try:
+        return CodingService.get_instance().create_git_checkpoint()
+    except (ValueError, OSError) as error:
+        raise HTTPException(status_code=409, detail=str(error))
+
+
+@app.get("/api/coding/git/checkpoint/{token}/preview")
+def preview_coding_checkpoint(token: str):
+    from axen.coding.coding_service import CodingService
+    try:
+        return CodingService.get_instance().preview_git_rollback(token)
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail=str(error))
+
+
+@app.post("/api/coding/git/checkpoint/{token}/restore")
+def restore_coding_checkpoint(token: str, payload: Dict[str, Any]):
+    if payload.get('approved') is not True:
+        raise HTTPException(status_code=403, detail='Rollback requires approval after preview')
+    from axen.coding.coding_service import CodingService
+    try:
+        return CodingService.get_instance().restore_git_checkpoint(token)
+    except (ValueError, OSError) as error:
+        raise HTTPException(status_code=409, detail=str(error))
 
 
 

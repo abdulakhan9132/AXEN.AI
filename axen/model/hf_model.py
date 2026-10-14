@@ -102,31 +102,23 @@ def _truncate_turn(text: str) -> str:
     return text[:earliest].strip()
 
 
-try:
-    from transformers import StoppingCriteria, StoppingCriteriaList
+StoppingCriteriaList = None
 
-    class TurnStoppingCriteria(StoppingCriteria):
-        """Halts generation if any turn boundary sequence appears in the newly generated tokens."""
 
-        def __init__(self, tokenizer: Any, prompt_length: int, stop_sequences: list[str]) -> None:
-            super().__init__()
-            self.tokenizer = tokenizer
-            self.prompt_length = prompt_length
-            self.stop_sequences = stop_sequences
+class TurnStoppingCriteria:
+    """Callable stopping criterion; importing the UI must not load Transformers."""
 
-        def __call__(self, input_ids: Any, scores: Any, **kwargs: Any) -> bool:
-            new_ids = input_ids[0][self.prompt_length:]
-            if len(new_ids) < 1:
-                return False
-            tail_text = self.tokenizer.decode(new_ids[-15:], skip_special_tokens=False)
-            for seq in self.stop_sequences:
-                if seq in tail_text:
-                    return True
+    def __init__(self, tokenizer: Any, prompt_length: int, stop_sequences: list[str]) -> None:
+        self.tokenizer = tokenizer
+        self.prompt_length = prompt_length
+        self.stop_sequences = stop_sequences
+
+    def __call__(self, input_ids: Any, scores: Any, **kwargs: Any) -> bool:
+        new_ids = input_ids[0][self.prompt_length:]
+        if len(new_ids) < 1:
             return False
-
-except Exception:
-    TurnStoppingCriteria = None  # type: ignore[assignment,misc]
-    StoppingCriteriaList = None  # type: ignore[assignment,misc]
+        tail_text = self.tokenizer.decode(new_ids[-15:], skip_special_tokens=False)
+        return any(seq in tail_text for seq in self.stop_sequences)
 
 
 # ---------------------------------------------------------------
@@ -180,7 +172,8 @@ class HFLocalModel:
         """
         try:
             import torch
-            from transformers import AutoModelForCausalLM, AutoTokenizer
+            global StoppingCriteriaList
+            from transformers import AutoModelForCausalLM, AutoTokenizer, StoppingCriteriaList
         except ImportError as exc:
             raise ImportError(
                 "The 'transformers' and 'torch' packages are required for local model inference. "

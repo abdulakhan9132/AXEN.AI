@@ -598,7 +598,7 @@ class AgentLoop:
         is_greeting = bool(
             intent_info.extracted_data.get("is_greeting")
             or re.match(
-                r"^(?:hello|hi|hey|greetings|good\s+(?:morning|afternoon|evening|day)|howdy|sup)(?:[\s,]+(?:there|axen|friend|everyone|everybody))?[\s\.\!\?]*$|"
+                r"^(?:hello|hi|hey|greetings|good\s+(?:morning|afternoon|evening|day)|howdy|sup)(?:[\s,]+(?:there|aexn|axen|friend|everyone|everybody))?[\s\.\!\?]*$|"
                 r"^(?:how\s+are\s+you(?:\s+doing|\s+today)?|what'?s\s+up(?:\s+axen|\s+there)?|how's\s+it\s+going)[\s\.\!\?]*$",
                 user_request.strip(),
                 re.I,
@@ -2030,7 +2030,7 @@ class AgentLoop:
 
         # Adaptive max_new_tokens according to task type & greeting
         is_greeting = bool(re.match(
-            r"^(?:hello|hi|hey|greetings|good\s+(?:morning|afternoon|evening|day)|howdy|sup)(?:[\s,]+(?:there|axen|friend|everyone|everybody))?[\s\.\!\?]*$|"
+            r"^(?:hello|hi|hey|greetings|good\s+(?:morning|afternoon|evening|day)|howdy|sup)(?:[\s,]+(?:there|aexn|axen|friend|everyone|everybody))?[\s\.\!\?]*$|"
             r"^(?:how\s+are\s+you(?:\s+doing|\s+today)?|what'?s\s+up(?:\s+axen|\s+there)?|how's\s+it\s+going)[\s\.\!\?]*$",
             req.strip(),
             re.I,
@@ -2284,7 +2284,7 @@ class AgentLoop:
                 "Hey! How can I help you today?",
                 "Hi there! What can I help you with?",
                 "Hello! How can I assist you today?",
-                "Hi! I'm AXEN. What can I help you with?",
+                "Hi! I'm AEXN AI. What can I help you with?",
                 "Hey there! What would you like to work on today?",
             ]
 
@@ -2298,7 +2298,7 @@ class AgentLoop:
 
         # For simple greetings ('hi', 'hello', etc.), return clean conversational greeting
         if re.match(
-            r"^(?:hello|hi|hey|greetings|good\s+(?:morning|afternoon|evening|day)|howdy|sup)(?:[\s,]+(?:there|axen|friend|everyone|everybody))?[\s\.\!\?]*$|"
+            r"^(?:hello|hi|hey|greetings|good\s+(?:morning|afternoon|evening|day)|howdy|sup)(?:[\s,]+(?:there|aexn|axen|friend|everyone|everybody))?[\s\.\!\?]*$|"
             r"^(?:how\s+are\s+you(?:\s+doing|\s+today)?|what'?s\s+up(?:\s+axen|\s+there)?|how's\s+it\s+going)[\s\.\!\?]*$",
             lower_q,
         ):
@@ -2316,12 +2316,12 @@ class AgentLoop:
         # Identity questions: "who are you", "what are you"
         if re.search(r"\b(?:who\s+are\s+you|what\s+are\s+you|what\s+is\s+your\s+name)\b", lower_q):
             if any(phrase in lower_r for phrase in ["work for", "employed by", "founded by", "company called", "job search", "hobbies"]):
-                return "I am AXEN, a local AI assistant running on your computer."
+                return "I am AEXN AI, a local AI assistant running on your computer."
 
         # Company / employer questions
         if re.search(r"\b(?:what|which)\s+company\s+(?:do\s+you|are\s+you)\b|\bwho\s+do\s+you\s+work\s+for\b|\byour\s+employer\b", lower_q):
             if any(phrase in lower_r for phrase in ["i work for", "employed by", "founded by", "company called", "joined the company"]):
-                return "I don't work for a company. I'm AXEN, a local AI assistant running on your computer."
+                return "I don't work for a company. I'm AEXN AI, a local AI assistant running on your computer."
 
         # Hobbies questions
         if re.search(r"\b(?:do\s+you\s+have|what\s+are\s+your)\s+hobbies\b", lower_q):

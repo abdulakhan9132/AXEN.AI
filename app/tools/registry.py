@@ -9,8 +9,12 @@ from .shell import build_shell_tool
 from .knowledge import build_knowledge_tool
 
 
-def build_registry() -> ToolRegistry:
+def build_registry(*, code_tools=None) -> ToolRegistry:
     registry = ToolRegistry()
+    if code_tools is not None:
+        for tool in code_tools.definitions():
+            registry.register(tool)
+        return registry
     for tool in build_filesystem_tools():
         registry.register(tool)
     registry.register(build_calculator_tool())

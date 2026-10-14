@@ -8,6 +8,7 @@ from .base_model import AIModel
 from .config import LocalAIConfig, load_local_config
 from .local_model import LocalModel as OllamaCodingProvider
 from .own_brain import AxenOwnBrainProvider
+from .aexn_gpt_provider import AEXNGPTProvider
 from .router import ModelRouter
 from .cloud_provider import CloudModelProvider
 
@@ -34,9 +35,11 @@ class ModelManager:
         name = (model_name or self.active_model_name).lower()
         if name not in self._models:
             if name == "router":
-                self._models[name] = ModelRouter()
+                self._models[name] = ModelRouter(provider_resolver=self.get_model)
             elif name in ("own_brain", "axen_own_brain"):
                 self._models[name] = AxenOwnBrainProvider()
+            elif name in ("aexn_gpt_1.0", "aexn-gpt-1.0", "aexn_gpt", "custom_gpt"):
+                self._models[name] = AEXNGPTProvider()
             elif name.startswith("cloud_") or name in ("openai", "openrouter", "anthropic"):
                 provider_type = name.replace("cloud_", "")
                 self._models[name] = CloudModelProvider(provider=provider_type)
@@ -120,6 +123,16 @@ class ModelManager:
                 "status": "active" if self.active_model_name == "cloud_openrouter" else "ready",
                 "available": self.health_check("cloud_openrouter"),
                 "description": "Optional cloud provider for frontier models (Claude 3.5 Sonnet, GPT-4o, DeepSeek).",
+            },
+            {
+                "id": "aexn_gpt_1.0",
+                "name": "AEXN GPT 1.0 — My Own Trained Model",
+                "provider": "aexn_native_bpe",
+                "type": "local",
+                "context_length": 64,
+                "status": "active" if self.active_model_name in ("aexn_gpt_1.0", "aexn-gpt-1.0", "aexn_gpt") else "ready",
+                "available": self.health_check("aexn_gpt_1.0"),
+                "description": "Custom GPT-style decoder-only Transformer with trained Byte Pair Encoding (BPE) on Shakespeare & instruction data.",
             },
         ]
         return models

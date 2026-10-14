@@ -1,0 +1,13 @@
+{
+  "title": "The Complete Works of William Shakespeare",
+  "source_catalog": "https://www.gutenberg.org/ebooks/100",
+  "source_text": "https://www.gutenberg.org/ebooks/100.txt.utf-8",
+  "downloaded_at_utc": "2026-10-14T07:08:08.062098+00:00",
+  "source_notice": "Project Gutenberg lists eBook #100 as public domain in the USA; verify laws where you live.",
+  "raw_bytes": 5638480,
+  "raw_lines": 196398,
+  "cleaned_bytes": 5618634,
+  "cleaned_lines": 196015,
+  "cleaned_sha256": "11280b7d9d0b919c1ceb7b1b09c6e3dfce4e373aaf57eb9a9c3b7330c95f3fb0",
+  "count_note": "Line count varies with source edition, blank lines, and formatting; not guaranteed to be 167,205."
+}

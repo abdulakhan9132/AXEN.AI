@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AXEN® — Local AI Assistant</title>
+  <title>AEXN AI — Your assistant</title>
   <meta name="description" content="AXEN personal AI assistant with a from-scratch language brain, memory, and exact reasoning tools." />
-  <link rel="stylesheet" href="/static/css/styles.css?v=6" />
-  <link rel="stylesheet" href="/static/css/coding-workspace.css?v=1" />
+  <link rel="stylesheet" href="/static/css/styles.css?v=8" />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 28'><rect x='0' y='14' width='14' height='14' rx='3' fill='%23F05A28'/><rect x='12' y='0' width='20' height='20' rx='4' fill='%23000000'/><rect x='12' y='20' width='8' height='8' rx='2' fill='%23000000'/></svg>" />
+<script>document.documentElement.dataset.theme = localStorage.getItem('aexn_theme') || 'dark';</script>
 </head>
 <body>
   <div class="app-container">
@@ -23,7 +23,7 @@
             <div class="sq-black-lg"></div>
             <div class="sq-black-sm"></div>
           </div>
-          <span class="brand-text">AXEN<span class="brand-trademark">®</span></span>
+          <span class="brand-text">AEXN AI</span>
         </a>
         
         <button class="btn-icon-toggle" id="btn-toggle-sidebar" title="Toggle Sidebar" aria-label="Collapse sidebar">
@@ -52,7 +52,7 @@
             <line x1="9" y1="14" x2="15" y2="14"></line>
           </svg>
         </button>
-        <a href="/vision" class="btn-new-project" style="text-decoration: none; color: inherit; width: auto;" title="Axen Vision Image Generation">
+        <a href="#" id="btn-image-workspace" class="btn-new-project" style="text-decoration: none; color: inherit; width: auto;" title="Create an image with AEXN AI">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
             <circle cx="8.5" cy="8.5" r="1.5"></circle>
@@ -87,10 +87,6 @@
         <button class="nav-tab" id="tab-brain" role="tab" aria-selected="false" title="Brain Status & Learning">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 0-4 4c0 .88.29 1.7.78 2.37A6.5 6.5 0 0 0 4 14.5a6.5 6.5 0 0 0 5 6.32V22h6v-1.18a6.5 6.5 0 0 0 5-6.32 6.5 6.5 0 0 0-4.78-6.13A4 4 0 0 0 16 6a4 4 0 0 0-4-4z"></path></svg>
           <span>Brain</span>
-        </button>
-        <button class="nav-tab" id="tab-coding" role="tab" aria-selected="false" title="Codex Coding Workspace">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-          <span>Code</span>
         </button>
       </nav>
 
@@ -273,172 +269,8 @@
         </button>
 
         <div class="top-bar-controls" style="display: flex; align-items: center; gap: 10px; margin-left: auto; padding-right: 16px;">
-          <!-- Model Selector Pill -->
-          <div class="model-selector-pill" id="model-selector-pill" style="display: flex; align-items: center; background: #18181b; border: 1px solid #27272a; border-radius: 99px; padding: 2px 8px; font-size: 13px;">
-            <span style="color: #a1a1aa; padding: 0 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Model:</span>
-            <select id="select-active-model" style="background: transparent; border: none; color: #fafafa; font-size: 12px; font-weight: 500; outline: none; cursor: pointer; padding: 4px 6px;">
-              <option value="router" selected style="background: #18181b; color: #fafafa;">🌐 Auto Router</option>
-              <option value="qwen2.5:1.5b" style="background: #18181b; color: #fafafa;">💻 Qwen 2.5 Coder (Ollama)</option>
-              <option value="tinyllama" style="background: #18181b; color: #fafafa;">🔥 TinyLlama (CUDA)</option>
-              <option value="own_brain" style="background: #18181b; color: #fafafa;">🧠 AXEN Local Brain</option>
-              <option value="cloud_openrouter" style="background: #18181b; color: #fafafa;">☁️ Cloud API (Optional)</option>
-            </select>
-          </div>
-
-          <!-- Thinking Mode Selector Pill -->
-          <div class="think-mode-selector" id="think-mode-selector" style="display: flex; align-items: center; background: #18181b; border: 1px solid #27272a; border-radius: 99px; padding: 2px 8px; font-size: 13px;">
-            <span style="color: #a1a1aa; padding: 0 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Mode:</span>
-            <select id="select-think-mode" style="background: transparent; border: none; color: #fafafa; font-size: 12px; font-weight: 500; outline: none; cursor: pointer; padding: 4px 6px;">
-              <option value="auto" selected style="background: #18181b; color: #fafafa;">⚡ Auto (Classify)</option>
-              <option value="fast" style="background: #18181b; color: #fafafa;">🚀 Fast (Direct)</option>
-              <option value="balanced" style="background: #18181b; color: #fafafa;">⚖️ Balanced (Standard)</option>
-              <option value="deep" style="background: #18181b; color: #fafafa;">🧠 Deep (Multi-step)</option>
-            </select>
-          </div>
-
-          <!-- Quick Code Workspace Toggle Button -->
-          <button class="btn-tool" id="btn-top-toggle-coding" style="margin-left:4px; font-size:12px; font-weight:600; background:#1e1b4b; border:1px solid #4338ca; color:#a5b4fc; padding:4px 10px; border-radius:99px; cursor:pointer;" title="Open Codex Coding Assistant Workspace">💻 Code Assistant</button>
-        </div>
-      </div>
-
-      <!-- CODEX-STYLE CODING WORKSPACE CONTAINER -->
-      <div class="coding-workspace-container hidden" id="view-coding-workspace">
-        <!-- Top Workspace Control Toolbar -->
-        <div class="coding-toolbar">
-          <div class="toolbar-left">
-            <span class="toolbar-title">⚡ AXEN Codex Workspace</span>
-            <div class="workspace-path-pill" id="workspace-path-pill" title="Active Workspace Path">
-              <span class="icon">📁</span>
-              <span id="current-ws-path" class="path-text">Workspace</span>
-              <button id="btn-switch-ws" class="btn-tool-mini" title="Switch directory">Change</button>
-            </div>
-            <span class="git-badge" id="coding-git-badge">🌿 <span id="coding-git-branch">main</span></span>
-            <span class="perm-badge" id="coding-perm-badge">🛡️ EXECUTE</span>
-          </div>
-          <div class="toolbar-right">
-            <button class="btn-tool" id="btn-run-tests" title="Run workspace test suite">▶ Run Tests</button>
-            <button class="btn-tool" id="btn-git-diff" title="View Git status and uncommitted changes">🔍 Git Diff</button>
-            <button class="btn-tool" id="btn-undo-change" title="Revert last modification / rollback">↺ Undo</button>
-            <button class="btn-tool btn-close-ws" id="btn-close-coding" title="Return to Chat">✕ Close</button>
-          </div>
-        </div>
-
-        <!-- Main 3-Column Split Area -->
-        <div class="coding-main-split">
-          <!-- Left Column: File Explorer Tree -->
-          <div class="coding-file-tree-pane" id="coding-file-tree-pane">
-            <div class="pane-header">
-              <span class="pane-title">Files</span>
-              <button class="btn-icon" id="btn-refresh-tree" style="background:transparent; border:none; cursor:pointer;" title="Refresh files">🔄</button>
-            </div>
-            <div class="tree-search-box">
-              <input type="text" id="tree-search-input" placeholder="Search files / symbols..." />
-            </div>
-            <div class="file-tree-list" id="file-tree-list">
-              <!-- Rendered dynamically -->
-            </div>
-          </div>
-
-          <!-- Center Column: Multi-File Editor & Diff Viewer -->
-          <div class="coding-editor-pane" id="coding-editor-pane">
-            <!-- Editor Tabs Bar -->
-            <div class="editor-tabs-bar" id="editor-tabs-bar">
-              <div class="editor-tab active" data-file="" id="tab-active-file">
-                <span class="tab-label" id="active-tab-name">untitled.py</span>
-                <span class="tab-dirty hidden" id="tab-dirty-indicator">●</span>
-              </div>
-              <button class="btn-new-tab" id="btn-new-tab" title="New file">+</button>
-            </div>
-
-            <!-- Diff / Patch Banner -->
-            <div class="diff-preview-banner hidden" id="diff-preview-banner">
-              <div class="diff-banner-header">
-                <span class="diff-banner-title">Proposed Patch Preview</span>
-                <div class="diff-actions">
-                  <button class="btn-action-apply" id="btn-apply-patch">✓ Apply Patch</button>
-                  <button class="btn-action-reject" id="btn-reject-patch">✕ Reject</button>
-                </div>
-              </div>
-              <pre class="diff-code-view" id="diff-code-view"></pre>
-            </div>
-
-            <!-- Editor Content & Line Numbers -->
-            <div class="editor-content-wrapper" id="editor-content-wrapper">
-              <div class="editor-gutter" id="editor-gutter">1</div>
-              <textarea class="editor-textarea" id="coding-editor-textarea" spellcheck="false" placeholder="// Select a file from the explorer to view or edit..."></textarea>
-            </div>
-
-            <!-- Editor Status & Action Bar -->
-            <div class="editor-status-bar">
-              <div class="status-left">
-                <span id="editor-status-lang">Python</span>
-                <span class="sep">|</span>
-                <span id="editor-status-lines">0 lines</span>
-                <span class="sep">|</span>
-                <span id="editor-status-msg" class="status-msg">Ready</span>
-              </div>
-              <div class="status-right">
-                <button class="btn-save-file" id="btn-save-file">💾 Save File (Ctrl+S)</button>
-              </div>
-            </div>
-
-            <!-- Collapsible Bottom Test / Diagnostics Console -->
-            <div class="coding-bottom-console" id="coding-bottom-console">
-              <div class="console-header" id="console-header-toggle">
-                <span class="console-title">Output & Diagnostics</span>
-                <span class="console-toggle-icon" id="console-toggle-icon">▲</span>
-              </div>
-              <div class="console-body" id="console-body">
-                <pre class="console-output" id="coding-console-output">Test and diagnostic logs will appear here...</pre>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right Column: AI Coding Assistant & Think Engine -->
-          <div class="coding-agent-pane" id="coding-agent-pane">
-            <div class="pane-header">
-              <span class="pane-title">AI Coding Assistant</span>
-              <span class="agent-mode-badge" id="agent-active-mode">BALANCED</span>
-            </div>
-
-            <!-- Timeline / Progress Indicator -->
-            <div class="coding-progress-timeline hidden" id="coding-progress-timeline">
-              <div class="timeline-step" id="step-understand"><span>1</span> Understand</div>
-              <div class="timeline-step" id="step-plan"><span>2</span> Plan</div>
-              <div class="timeline-step" id="step-patch"><span>3</span> Patch</div>
-              <div class="timeline-step" id="step-test"><span>4</span> Test</div>
-              <div class="timeline-step" id="step-verify"><span>5</span> Verify</div>
-            </div>
-
-            <!-- Coding Chat Message History -->
-            <div class="coding-chat-history" id="coding-chat-history">
-              <div class="coding-msg assistant-intro">
-                <div class="avatar">⚡</div>
-                <div class="bubble">
-                  <strong>AXEN Code Assistant Ready</strong>
-                  <p>I can understand your repository, write functions, fix bugs, inspect test failures, and propose unified diff patches.</p>
-                  <div class="quick-prompts">
-                    <button class="chip-prompt" data-prompt="Inspect repository structure and summarize architecture">📊 Inspect architecture</button>
-                    <button class="chip-prompt" data-prompt="Run test suite and diagnose any failures">🧪 Run tests & diagnose</button>
-                    <button class="chip-prompt" data-prompt="Review the currently open file for bugs or improvements">🔍 Review open file</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Coding Prompt Input Form -->
-            <div class="coding-input-box">
-              <textarea id="coding-agent-input" placeholder="Ask a coding question, describe a bug to fix, or request a feature..." rows="2"></textarea>
-              <div class="coding-input-controls">
-                <select id="coding-think-mode" title="Thinking Engine Mode">
-                  <option value="balanced" selected>⚖️ Balanced (Verify)</option>
-                  <option value="fast">🚀 Fast (Explain)</option>
-                  <option value="deep">🧠 Deep (Multi-step)</option>
-                </select>
-                <button id="btn-send-coding-task" class="btn-send-coding">Send ➔</button>
-              </div>
-            </div>
-          </div>
+          <span class="runtime-label">Local-first AI</span>
+          <button id="btn-theme" class="btn-tool" aria-label="Switch color theme" title="Switch theme">Theme</button>
         </div>
       </div>
 
@@ -559,8 +391,8 @@
             <div class="sq-black-sm"></div>
           </div>
           
-          <h1 class="welcome-heading">How Can I Help You Today?</h1>
-          <p class="welcome-subtitle">Ask Anything, Get Ideas, Write, Analyze, Design, Or Solve Problems With AI.</p>
+          <h1 class="welcome-heading">What will we build today?</h1>
+          <p class="welcome-subtitle">One conversation. From an idea to a working project.</p>
         </div>
 
         <!-- CONVERSATION CONTAINER (Shown when messages exist) -->
@@ -728,7 +560,7 @@
   <input type="file" id="file-input-project" multiple class="hidden-file-input" style="display:none;" />
 
   <!-- Scripts: 100% offline Markdown parser + App Logic -->
-  <script src="/static/js/markdown.js"></script>
-  <script src="/static/js/app.js?v=6"></script>
+  <script src="/static/js/markdown.js?v=8"></script>
+  <script src="/static/js/app.js?v=10"></script>
 </body>
 </html>

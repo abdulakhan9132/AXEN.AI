@@ -265,10 +265,8 @@ def main() -> int:
     if args.command == "test":
         return run_tests()
     if args.command == "serve":
-        from app.ui.app import app
-        import uvicorn
-
-        uvicorn.run(app, host="127.0.0.1", port=8000)
+        from run_ui import main as run_web_ui
+        run_web_ui()
         return 0
     if args.command == "math":
         problem = args.query or args.goal

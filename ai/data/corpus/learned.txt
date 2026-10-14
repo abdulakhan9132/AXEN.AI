@@ -8,3 +8,857 @@ Axen: I can chat, do math, remember facts you tell me, and from thhtelp.
 User: hi
 Axen: Hello! I am Axen. How can I help you today?
 
+User: write a python function to check if a number is prime, with 3 test cases
+Axen: ```python
+def is_prime(n):
+    """Check if a number is prime."""
+    if n <= 1:
+        return False
+    if n <= 3:
+        return True
+    if n % 2 == 0 or n % 3 == 0:
+        return False
+    i = 5
+    while i * i <= n:
+        if n % i == 0 or n % (i + 2) == 0:
+            return False
+        i += 6
+    return True
+
+# Test cases
+print(is_prime(2))  # True
+print(is_prime(3))  # True
+print(is_prime(4))  # False
+```
+
+User: write a python command-line to-do app that can add, list, complete, and delete tasks, and saves them to a JSON file
+Axen: ```python
+import json
+import argparse
+
+# Load tasks from JSON file
+def load_tasks():
+    try:
+        with open('tasks.json', 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return []
+
+# Save tasks to JSON file
+def save_tasks(tasks):
+    with open('tasks.json', 'w') as file:
+        json.dump(tasks, file)
+
+# Add a new task
+def add_task(tasks, task):
+    tasks.append(task)
+    save_tasks(tasks)
+    print(f"Added: {task}")
+
+# List all tasks
+def list_tasks(tasks):
+    if not tasks:
+        print("No tasks.")
+    else:
+        print("Tasks:")
+        for index, task in enumerate(tasks, start=1):
+            print(f"{index}. {task}")
+
+# Complete a task
+def complete_task(tasks, task):
+    tasks.remove(task)
+    save_tasks(tasks)
+    print(f"Completed: {task}")
+
+# Delete a task
+def delete_task(tasks, task):
+    tasks.remove(task)
+    save_tasks(tasks)
+    print(f"Deleted: {task}")
+
+# Main command-line interface
+def main():
+    parser = argparse.ArgumentParser(description="A simple command-line to-do app.")
+    parser.add_argument('command', choices=['add', 'list', 'complete', 'delete', 'save', 'load', 'exit'], help="Command to execute: add, list, complete, delete, save, load, or exit.")
+    parser.add_argument('task', nargs='*', help="Task to add or complete, or task to delete.")
+
+    args = parser.parse_args()
+
+    if args.command == 'save':
+        save_tasks(args.task)
+    elif args.command == 'load':
+        tasks = load_tasks()
+    elif args.command == 'exit':
+        print("Exiting the to-do app.")
+        return
+    else:
+        tasks = load_tasks()
+
+    if args.command == 'add':
+        add_task(tasks, ' '.join(args.task))
+    elif args.command == 'list':
+        list_tasks(tasks)
+    elif args.command == 'complete':
+        complete_task(tasks, ' '.join(args.task))
+    elif args.command == 'delete':
+        delete_task(tasks, ' '.join(args.task))
+
+if __name__ == '__main__':
+    main()
+```
+
+User: build a complete single-file HTML page for a personal portfolio: sticky navbar, hero section, about, skills with progress bars, project cards, contact form with validation, footer, dark and light theme toggle, responsive layout, and smooth scroll. Use only HTML, CSS, and JavaScript in one file.
+Axen: ```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Portfolio</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="scripts.js"></script>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="brand">
+                <a href="#home" class="logo">My Name</a>
+            </div>
+            <div class="nav-links">
+                <a href="#home" class="nav-link">Home</a>
+                <a href="#about" class="nav-link">About</a>
+                <a href="#skills" class="nav-link">Skills</a>
+                <a href="#projects" class="nav-link">Projects</a>
+                <a href="#contact" class="nav-link">Contact</a>
+            </div>
+        </nav>
+    </header>
+    <section id="hero">
+        <div class="hero-content">
+            <h1>Welcome to My Portfolio</h1>
+            <p>Explore my journey and skills.</p>
+        </div>
+    </section>
+    <section id="about">
+        <div class="about-content">
+            <h2>About Me</h2>
+            <p>Learn more about who I am and what I do.</p>
+        </div>
+    </section>
+    <section id="skills">
+        <div class="skills-content">
+            <h2>Skills</h2>
+            <div class="progress-bar">
+                <div class="progress-bar-bar" style="width: 70%;"></div>
+                <p>HTML</p>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-bar-bar" style="width: 60%;"></div>
+                <p>CSS</p>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-bar-bar" style="width: 50%;"></div>
+                <p>JavaScript</p>
+            </div>
+        </div>
+    </section>
+    <section id="projects">
+        <div class="projects-content">
+            <h2>Projects</h2>
+            <div class="project-card">
+                <h3>Project 1</h3>
+                <p>Description of Project 1</p>
+                <a href="#">View Project</a>
+            </div>
+            <div class="project-card">
+                <h3>Project 2</h3>
+                <p>Description of Project 2</p>
+                <a href="#">View Project</a>
+            </div>
+            <div class="project-card">
+                <h3>Project 3</h3>
+                <p>Description of Project 3</p>
+                <a href="#">View Project</a>
+            </div>
+        </div>
+    </section>
+    <section id="contact">
+        <div class="contact-content">
+            <h2>Contact Me</h2>
+            <form id="contact-form">
+                <div class="form-group">
+                    <input type="text" id="name" name="name" placeholder="Name" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="email" name="email" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <textarea id="message" name="message" placeholder="Message" required></textarea>
+                </div>
+                <button type="submit">Send</button>
+            </form>
+            <div id="contact-form-validation"></div>
+        </div>
+    </section>
+    <footer>
+        <div class="footer-content">
+            <h3>Contact Me</h3>
+            <p>Email: myemail@example.com</p>
+            <p>Phone: (123) 456-7890</p>
+            <p>Address: 123 Main St, Anytown, USA</p>
+        </div>
+    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => link.addEventListener('click', function() {
+                const target = this.getAttribute('href');
+                const navLinks = document.querySelectorAll('.nav-link');
+                navLinks.forEach(link => link.classList.remove('active'));
+                this.classList.add('active');
+                document.querySelector(target).scrollIntoView({ behavior: 'smooth' });
+            }));
+        });
+    </script>
+</body>
+</html>
+```
+
+User: create a FastAPI project with these files: main.py, models.py, database.py, routes/users.py, routes/tasks.py, requirements.txt. Use SQLite with SQLAlchemy, JWT login, CRUD for users and tasks, input validation, and error handling. Show every file in full.
+Axen: To create a FastAPI project with the specified files, follow these steps:
+
+1. Create a new directory for your project and navigate into it.
+2. Initialize a new Python project:
+```bash
+mkdir fastapi-project
+cd fastapi-project
+```
+3. Create a `requirements.txt` file with the following content:
+```
+fastapi==0.70.0
+uvicorn==0.15.0
+python-jose==4.1.2
+pydantic==1.10.1
+```
+4. Create the `main.py` file with the following content:
+```python
+from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.orm import Session
+from database import engine, get_db
+from models import User, Task
+from schemas import UserCreate, UserLogin, UserRead, TaskCreate, TaskRead
+from routes.users import users_router
+from routes.tasks import tasks_router
+
+app = FastAPI()
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+@app.on_event("startup")
+def on_startup():
+    import models
+    models.Base.metadata.create_all(bind=engine)
+
+@app.on_event("shutdown")
+def on_shutdown():
+    import models
+    models.Base.metadata.drop_all(bind=engine)
+
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
+
+@app.get("/users/{user_id}")
+async def read_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+@app.post("/users/", response_model=UserRead)
+async def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.email == user.email).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    user.password = UserCreate.hash_password(user.password)
+    db_user = User(email=user.email, password=user.password)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+@app.post("/login")
+async def login(user: UserLogin, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == user.email).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+    if not UserLogin.verify_password(user.password, user.password):
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+    token = UserLogin.create_token(user.email)
+    return {"token": token}
+
+@app.post("/tasks/")
+async def create_task(task: TaskCreate, db: Session = Depends(get_db)):
+    db_task = db.query(Task).filter(Task.title == task.title).first()
+    if db_task:
+        raise HTTPException(status_code=400, detail="Task already exists")
+    task.title = TaskCreate.hash_title(task.title)
+    task.description = TaskCreate.hash_description(task.description)
+    db_task = Task(title=task.title, description=task.description)
+    db.add(db_task)
+    db.commit()
+    db.refresh(db_task)
+    return db_task
+
+@app.get("/tasks/")
+async def read_tasks(db: Session = Depends(get_db)):
+    tasks = db.query(Task).all()
+    return tasks
+
+@app.delete("/tasks/{task_id}")
+async def delete_task(task_id: int, db: Session = Depends(get_db)):
+    db_task = db.query(Task).filter(Task.id == task_id).first()
+    if not db_task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    db.delete(db_task)
+    db.commit()
+    return {"message": "Task deleted"}
+```
+5. Create the `models.py` file with the following content:
+```python
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, DateTime, Float, Text
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+from datetime import datetime
+from pydantic import BaseModel
+
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True)
+    password = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class Task(Base):
+    __tablename__ = "tasks"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, unique=True, index=True)
+    description = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+```
+6. Create the `database.py` file with the following content:
+```python
+import os
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+from models import Base
+
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./fastapi.db")
+
+engine = create_async_engine(DATABASE_URL, echo=True)
+SessionLocal = sessionmaker(
+    bind=engine, expire_on_commit=False, class_=AsyncSession
+)
+
+Base.metadata.create_all(bind=engine)
+```
+7. Create the `routes/users.py` file with the following content:
+```python
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from models import User
+from schemas import UserCreate, UserRead
+from database import get_db
+
+router = APIRouter()
+
+@router.post("/users/", response_model=UserRead)
+async def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.email == user.email).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    user.password = UserCreate.hash_password(user.password)
+    db_user = User(email=user.email, password=user.password)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+```
+8. Create the `routes/tasks.py` file with the following content:
+```python
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from models import Task
+from schemas import TaskCreate, TaskRead
+from database import get_db
+
+router = APIRouter()
+
+@router.post("/tasks/", response_model=TaskRead)
+async def create_task(task: TaskCreate, db: Session = Depends(get_db)):
+    db_task = db.query(Task).filter(Task.title == task.title).first()
+    if db_task:
+        raise HTTPException(status_code=400, detail="Task already exists")
+    task.title = TaskCreate.hash_title(task.title)
+    task.description = TaskCreate.hash_description(task.description)
+    db_task = Task(title=task.title, description=task.description)
+    db.add(db_task)
+    db.commit()
+    db.refresh(db_task)
+    return db_task
+```
+9. Create the `requirements.txt` file with the following content:
+```
+fastapi==0.70.0
+uvicorn==0.15.0
+python-jose==4.1.2
+pydantic==1.10.1
+```
+10. Create the `main.py` file with the following content:
+```python
+from fastapi import FastAPI, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from models import User, Task
+from schemas import UserCreate, UserRead, UserLogin, UserRead, TaskCreate, TaskRead
+from routes.users import users_router
+from routes.tasks import tasks_router
+
+app = FastAPI()
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+@app.on_event("startup")
+def on_startup():
+    import models
+    models.Base.metadata.create_all(bind=engine)
+
+@app.on_event("shutdown")
+def on_shutdown():
+    import models
+    models.Base.metadata.drop_all(bind=engine)
+
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
+
+@app.get("/users/{user_id}")
+async def read_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+@app.post("/users/", response_model=UserRead)
+async def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.email == user.email).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    user.password = UserCreate.hash_password(user.password)
+    db_user = User(email=user.email, password=user.password)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+@app.post("/login")
+async def login(user: UserLogin, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == user.email).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+    if not UserLogin.verify_password(user.password, user.password):
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+    token = UserLogin.create_token(user.email)
+    return {"token": token}
+
+@app.post("/tasks/")
+async def create_task(task: TaskCreate, db: Session = Depends(get_db)):
+    db_task = db.query(Task).filter(Task.title == task.title).first()
+    if db_task:
+        raise HTTPException(status_code=400, detail="Task already exists")
+    task.title = TaskCreate.hash_title(task.title)
+    task.description = TaskCreate.hash_description(task.description)
+    db_task = Task(title=task.title, description=task.description)
+    db.add(db_task)
+    db.commit()
+    db.refresh(db_task)
+    return db_task
+
+@app.get("/tasks/")
+async def read_tasks(db: Session = Depends(get_db)):
+    tasks = db.query(Task).all()
+    return tasks
+
+@app.delete("/tasks/{task_id}")
+async def delete_task(task_id: int, db: Session = Depends(get_db)):
+    db_task = db.query(Task).filter(Task.id == task_id).first()
+    if not db_task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    db.delete(db_task)
+    db.commit()
+    return {"message": "Task deleted"}
+```
+11. Create the `models.py` file with the following content:
+```python
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, DateTime, Float, Text
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+from datetime import datetime
+from pydantic import BaseModel
+
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True)
+    password = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class Task(Base):
+    __tablename__ = "tasks"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, unique=True, index=True)
+    description = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+```
+12. Create the `database.py` file with the following content:
+```python
+import os
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+from models import Base
+
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./fastapi.db")
+
+engine = create_async_engine(DATABASE_URL, echo=True)
+SessionLocal = sessionmaker(
+    bind=engine, expire_on_commit=False, class_=AsyncSession
+)
+
+Base.metadata.create_all(bind=engine)
+```
+13. Create the `routes/users.py` file with the following content:
+```python
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from models import User
+from schemas import UserCreate, UserRead
+from database import get_db
+
+router = APIRouter()
+
+@router.post("/users/", response_model=UserRead)
+async def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.email == user.email).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    user.password = UserCreate.hash_password(user.password)
+    db_user = User(email=user.email, password=user.password)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+```
+14. Create the `routes/tasks.py` file with the following content:
+```python
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from models import Task
+from schemas import TaskCreate, TaskRead
+from database import get_db
+
+router = APIRouter()
+
+@router.post("/tasks/", response_model=TaskRead)
+async def create_task(task: TaskCreate, db: Session = Depends(get_db)):
+    db_task = db.query(Task).filter(Task.title == task.title).first()
+    if db_task:
+        raise HTTPException(status_code=400, detail="Task already exists")
+    task.title = TaskCreate.hash_title(task.title)
+    task.description = TaskCreate.hash_description(task.description)
+    db_task = Task(title=task.title, description=task.description)
+    db.add(db_task)
+    db.commit()
+    db.refresh(db_task)
+    return db_task
+```
+15. Create the `schemas.py` file with the following content:
+```python
+from pydantic import BaseModel
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
+class UserRead(BaseModel):
+    id: int
+    email: str
+    password: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class TaskCreate(BaseModel):
+    title: str
+    description: str
+
+class TaskRead(BaseModel):
+    id: int
+    title: str
+    description: str
+```
+16. Create the `schemas.py` file with the following content:
+```python
+from pydantic import BaseModel
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
+class UserRead(BaseModel):
+    id: int
+    email: str
+    password: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class TaskCreate(BaseModel):
+    title: str
+    description: str
+
+class TaskRead(BaseModel):
+    id: int
+    title: str
+    description: str
+```
+17. Create the `schemas.py` file with the following content:
+```python
+from pydantic import BaseModel
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
+class UserRead(BaseModel):
+    id: int
+    email: str
+    password: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class TaskCreate(BaseModel):
+    title: str
+    description: str
+
+class TaskRead(BaseModel):
+    id: int
+    title: str
+    description: str
+```
+18. Create the `schemas.py` file with the following content:
+```python
+from pydantic import BaseModel
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
+class UserRead(BaseModel):
+    id: int
+    email: str
+    password: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class TaskCreate(BaseModel):
+    title: str
+    description: str
+
+class TaskRead(BaseModel):
+    id: int
+    title: str
+    description: str
+```
+19. Create the `schemas.py` file with the following content:
+```python
+from pydantic import BaseModel
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
+class UserRead(BaseModel):
+    id: int
+    email: str
+    password: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class TaskCreate(BaseModel):
+    title: str
+    description: str
+
+class TaskRead(BaseModel):
+    id: int
+    title: str
+    description: str
+```
+20. Create the `schemas.py` file with the following content:
+```python
+from pydantic import BaseModel
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
+class UserRead(BaseModel):
+    id: int
+    email: str
+    password: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class TaskCreate(BaseModel):
+    title: str
+    description: str
+
+class TaskRead(BaseModel):
+    id: int
+    title: str
+    description: str
+```
+21. Create the `schemas.py` file with the following content:
+```python
+from pydantic import BaseModel
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
+class UserRead(BaseModel):
+    id: int
+    email: str
+    password: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class TaskCreate(BaseModel):
+    title: str
+    description: str
+
+class TaskRead(BaseModel):
+    id: int
+    title: str
+    description: str
+```
+22. Create the `schemas.py` file with the following content:
+```python
+from pydantic import BaseModel
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
+class UserRead(BaseModel):
+    id: int
+    email: str
+    password: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class TaskCreate(BaseModel):
+    title: str
+    description: str
+
+class TaskRead(BaseModel):
+    id: int
+    title: str
+    description: str
+```
+23. Create the `schemas.py` file with the following content:
+```python
+from pydantic import BaseModel
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
+class UserRead(BaseModel):
+    id: int
+    email: str
+    password: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class TaskCreate(BaseModel):
+    title: str
+    description: str
+
+class TaskRead(BaseModel):
+    id: int
+    title: str
+    description: str
+```
+24. Create the `schemas.py` file with the following content:
+```python
+from pydantic import BaseModel
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
+class UserRead(BaseModel):
+    id: int
+    email: str
+    password: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class TaskCreate(BaseModel):
+    title: str
+    description: str
+
+class TaskRead(BaseModel):
+    id: int
+    title: str
+    description: str
+```
+25. Create the `schemas.py` file with the following content:
+```python
+from pydantic import BaseModel
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
+class UserRead(BaseModel):
+    id: int
+    email: str
+    password: str
+
+class User
+

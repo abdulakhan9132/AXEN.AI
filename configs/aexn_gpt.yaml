@@ -1,0 +1,50 @@
+# ===========================================================================
+# AEXN GPT 1.0 — Configuration File
+# ===========================================================================
+# Tailored for local training on NVIDIA GeForce RTX 3050 (4GB VRAM) and CPU.
+# Inspired by Anton GPT / nanoGPT Architecture.
+
+model:
+  model_name: "aexn_gpt_1.0"
+  vocab_size: 2048
+  context_length: 64
+  embedding_dim: 128
+  num_layers: 4
+  num_heads: 4
+  ff_dim: 512
+  dropout: 0.1
+  activation: "gelu"
+  tokenizer_type: "byte_level_bpe"
+  tokenizer_path: "data/shakespeare/aexn_bpe.json"
+
+training:
+  optimizer: "AdamW"
+  amsgrad: false
+  scheduler: "cosine"
+  batch_size: 4
+  learning_rate: 0.0003
+  min_lr: 0.00003
+  weight_decay: 0.01
+  beta1: 0.9
+  beta2: 0.999
+  eps: 1.0e-8
+  grad_clip: 1.0
+  warmup_steps: 50
+  max_steps: 500
+  eval_interval: 50
+  eval_steps: 20
+  mixed_precision: true
+  device: "auto"
+  seed: 1337
+
+data:
+  train_binary: "data/shakespeare/train_ids.bin"
+  val_binary: "data/shakespeare/val_ids.bin"
+  metadata_file: "data/shakespeare/metadata.json"
+  tokenizer_file: "data/shakespeare/aexn_bpe.json"
+
+checkpoints:
+  checkpoint_dir: "checkpoints/aexn_gpt"
+  save_latest: true
+  save_best: true
+  save_interval: 100
