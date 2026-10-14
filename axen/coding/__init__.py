@@ -26,6 +26,7 @@ from .permissions import OperationType, PermissionLevel, PermissionPolicy
 from .project_inspector import ProjectInspector
 from .test_runner import FailureInfo, TestResult, TestRunner
 from .workspace import Workspace, WorkspaceSecurityError
+from .coding_service import CodingService
 
 __all__ = [
     "Workspace",
@@ -53,4 +54,5 @@ __all__ = [
     "CodingAgent",
     "CodingAgentResult",
     "CodingTaskType",
+    "CodingService",
 ]

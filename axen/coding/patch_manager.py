@@ -150,14 +150,14 @@ class PatchManager:
             if file_path.endswith(".py"):
                 ast.parse(new_text)
 
-            # Success: clean up backup and record in journal
-            self.workspace.remove_backup(file_path)
+            # Success: record in journal with original content preserved for rollback
             self.journal.record_change(
                 file_path=file_path,
                 operation="modify",
                 reason=reason,
                 diff=diff,
                 status="applied",
+                original_content=curr_text,
             )
             return True, diff, ""
 

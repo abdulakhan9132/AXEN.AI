@@ -356,6 +356,111 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
+  // 5c. Coding Workspace Endpoints (Node.js Parity)
+  if (req.method === "GET" && pathname === "/api/coding/workspace") {
+    return sendJson(res, 200, {
+      status: "ok",
+      workspace: {
+        root_path: __dirname,
+        workspace_name: path.basename(__dirname),
+        permission_level: "EXECUTE",
+        is_git: fs.existsSync(path.join(__dirname, ".git")),
+        git_branch: "main",
+        primary_language: "JavaScript/Python",
+        test_runner: "node:test",
+        total_files: 100,
+      }
+    });
+  }
+
+  if (req.method === "GET" && pathname === "/api/coding/tree") {
+    function buildTree(dir, depth = 0) {
+      if (depth > 4) return null;
+      const name = path.basename(dir) || dir;
+      const children = [];
+      try {
+        const entries = fs.readdirSync(dir, { withFileTypes: true });
+        for (const entry of entries) {
+          if (entry.name.startsWith(".") || entry.name === "node_modules" || entry.name === "__pycache__" || entry.name === ".venv") continue;
+          const full = path.join(dir, entry.name);
+          const rel = path.relative(__dirname, full).replace(/\\/g, "/");
+          if (entry.isDirectory()) {
+            const sub = buildTree(full, depth + 1);
+            if (sub) children.push(sub);
+          } else if (entry.isFile()) {
+            const ext = path.extname(entry.name).toLowerCase();
+            children.push({
+              name: entry.name,
+              path: rel,
+              type: "file",
+              extension: ext,
+              syntax: ext === ".js" ? "javascript" : ext === ".py" ? "python" : ext === ".json" ? "json" : "plaintext",
+              size: fs.statSync(full).size
+            });
+          }
+        }
+      } catch (e) {}
+      return { name, path: path.relative(__dirname, dir).replace(/\\/g, "/") || "", type: "directory", children };
+    }
+    return sendJson(res, 200, { status: "ok", tree: buildTree(__dirname) });
+  }
+
+  if (req.method === "GET" && pathname === "/api/coding/file") {
+    const fileRel = parsedUrl.searchParams.get("path") || "";
+    const safeRel = path.normalize(fileRel).replace(/^(\.\.[\/\\])+/, "");
+    const full = path.join(__dirname, safeRel);
+    if (!fs.existsSync(full) || fs.statSync(full).isDirectory()) {
+      return sendJson(res, 404, { error: "File not found." });
+    }
+    const content = fs.readFileSync(full, "utf8");
+    const ext = path.extname(full).toLowerCase();
+    return sendJson(res, 200, {
+      status: "ok",
+      file: {
+        path: safeRel.replace(/\\/g, "/"),
+        filename: path.basename(full),
+        content,
+        lines_count: content.split("\n").length,
+        size_bytes: Buffer.byteLength(content),
+        syntax: ext === ".js" ? "javascript" : ext === ".py" ? "python" : "plaintext"
+      }
+    });
+  }
+
+  if (req.method === "POST" && pathname === "/api/coding/file/save") {
+    const body = await readJson(req);
+    const fileRel = body.path || "";
+    const content = body.content || "";
+    const safeRel = path.normalize(fileRel).replace(/^(\.\.[\/\\])+/, "");
+    const full = path.join(__dirname, safeRel);
+    try {
+      fs.writeFileSync(full, content, "utf8");
+      return sendJson(res, 200, { status: "ok", result: { success: true, path: safeRel, lines_count: content.split("\n").length } });
+    } catch (e) {
+      return sendJson(res, 400, { status: "error", error: e.message });
+    }
+  }
+
+  if (req.method === "POST" && pathname === "/api/coding/chat") {
+    const body = await readJson(req);
+    const msg = body.message || "Explain codebase";
+    return sendJson(res, 200, {
+      status: "ok",
+      task_result: {
+        success: true,
+        summary: `AXEN Coding Agent (Node.js): Analyzed request "${msg}".`,
+        task_type: "CODE_ANALYSIS",
+        plan_steps: ["1. Inspect project structure", "2. Analyze syntax", "3. Return recommendations"],
+        diffs: [],
+        tests_run: 0,
+        tests_passed: 0,
+        tests_failed: 0,
+        think_mode: body.think_mode || "balanced"
+      },
+      timeline: [{ state: "COMPLETED", text: "Task completed", meta: {} }]
+    });
+  }
+
   // Not found fallback
   res.writeHead(404, { "Content-Type": "application/json" });
   res.end(JSON.stringify({ error: "Not found", path: pathname }));

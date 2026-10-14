@@ -1072,5 +1072,219 @@ def clear_memories_endpoint(payload: Optional[Dict[str, Any]] = None) -> Dict[st
     return {"status": "ok", "cleared": ok}
 
 
+# ---------------------------------------------------------------------------
+# Phase 5: Codex-Style Coding Workspace Endpoints
+# ---------------------------------------------------------------------------
+
+@app.get("/api/coding/workspace")
+def get_coding_workspace() -> Dict[str, Any]:
+    """Get metadata for the active coding workspace."""
+    from axen.coding.coding_service import CodingService
+    service = CodingService.get_instance()
+    return {"status": "ok", "workspace": service.get_workspace_info()}
+
+
+@app.post("/api/coding/workspace")
+def set_coding_workspace(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Switch active coding workspace directory with strict validation."""
+    target_path = str(payload.get("path") or "").strip()
+    if not target_path:
+        raise HTTPException(status_code=400, detail="Workspace path is required.")
+
+    perm_str = str(payload.get("permission") or "EXECUTE").upper()
+    from axen.coding.coding_service import CodingService
+    from axen.coding.permissions import PermissionLevel
+
+    try:
+        level = PermissionLevel(perm_str)
+    except Exception:
+        level = PermissionLevel.EXECUTE
+
+    service = CodingService.get_instance()
+    try:
+        info = service.set_workspace(target_path, permission_level=level)
+        return {"status": "ok", "workspace": info}
+    except PermissionError as pe:
+        raise HTTPException(status_code=403, detail=str(pe))
+    except (FileNotFoundError, NotADirectoryError) as fe:
+        raise HTTPException(status_code=400, detail=str(fe))
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.get("/api/coding/tree")
+def get_coding_file_tree(max_depth: int = Query(4, ge=1, le=8)) -> Dict[str, Any]:
+    """Return recursive file tree for workspace explorer."""
+    from axen.coding.coding_service import CodingService
+    service = CodingService.get_instance()
+    tree = service.get_file_tree(max_depth=max_depth)
+    return {"status": "ok", "tree": tree}
+
+
+@app.get("/api/coding/file")
+def read_coding_file(path: str = Query(..., description="Relative path to file in workspace")) -> Dict[str, Any]:
+    """Read a workspace file safely with boundary and size checks."""
+    from axen.coding.coding_service import CodingService
+    service = CodingService.get_instance()
+    try:
+        file_data = service.read_file(path)
+        return {"status": "ok", "file": file_data}
+    except FileNotFoundError as fnf:
+        raise HTTPException(status_code=404, detail=str(fnf))
+    except PermissionError as pe:
+        raise HTTPException(status_code=403, detail=str(pe))
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/api/coding/file/save")
+def save_coding_file(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Save file with AST syntax validation and automatic backup."""
+    rel_path = str(payload.get("path") or "").strip()
+    content = payload.get("content", "")
+    validate_syntax = bool(payload.get("validate_syntax", True))
+
+    if not rel_path:
+        raise HTTPException(status_code=400, detail="File path is required.")
+
+    from axen.coding.coding_service import CodingService
+    service = CodingService.get_instance()
+    try:
+        res = service.save_file(rel_path, content, validate_syntax=validate_syntax)
+        if not res.get("success"):
+            return {"status": "error", "result": res}
+        return {"status": "ok", "result": res}
+    except PermissionError as pe:
+        raise HTTPException(status_code=403, detail=str(pe))
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/api/coding/search")
+def search_coding_workspace(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Search code, symbols, or files across the active workspace."""
+    query = str(payload.get("query") or "").strip()
+    search_type = str(payload.get("type") or "text").strip()
+    if not query:
+        raise HTTPException(status_code=400, detail="Search query is required.")
+
+    from axen.coding.coding_service import CodingService
+    service = CodingService.get_instance()
+    matches = []
+    if search_type == "file":
+        files = service.searcher.search_files(query)
+        matches = [{"file": f, "line": 0, "text": f} for f in files]
+    elif search_type == "symbol":
+        syms = service.searcher.search_symbols(query)
+        matches = [
+            {"file": s.file_path, "line": s.line_number, "text": f"{s.symbol_type}: {s.symbol_name}"}
+            for s in syms
+        ]
+    else:
+        text_matches = service.searcher.search_text(query)
+        matches = [
+            {"file": m.file_path, "line": m.line_number, "text": m.line_content}
+            for m in text_matches
+        ]
+
+    return {"status": "ok", "query": query, "type": search_type, "matches": matches, "count": len(matches)}
+
+
+@app.get("/api/coding/git/status")
+def get_coding_git_status() -> Dict[str, Any]:
+    """Get active Git status and changed files."""
+    from axen.coding.coding_service import CodingService
+    service = CodingService.get_instance()
+    status = service.get_git_status()
+    return {"status": "ok", "git": status}
+
+
+@app.get("/api/coding/git/diff")
+def get_coding_git_diff(file_path: Optional[str] = Query(None, description="Optional relative file path")) -> Dict[str, Any]:
+    """Get git diff for workspace or specific file."""
+    from axen.coding.coding_service import CodingService
+    service = CodingService.get_instance()
+    diff = service.get_diff(file_path)
+    return {"status": "ok", "diff": diff, "file_path": file_path}
+
+
+@app.post("/api/coding/patch/preview")
+def preview_coding_patch(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Validate and preview a patch diff without writing to disk."""
+    file_path = str(payload.get("file_path") or "").strip()
+    target = str(payload.get("target") or "")
+    replacement = str(payload.get("replacement") or "")
+
+    if not file_path or not target:
+        raise HTTPException(status_code=400, detail="file_path and target snippet are required.")
+
+    from axen.coding.coding_service import CodingService
+    service = CodingService.get_instance()
+    res = service.propose_patch(file_path, target, replacement)
+    return {"status": "ok", "patch": res}
+
+
+@app.post("/api/coding/patch/apply")
+def apply_coding_patch(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Apply an approved patch with syntax validation and automatic backup."""
+    file_path = str(payload.get("file_path") or "").strip()
+    target = str(payload.get("target") or "")
+    replacement = str(payload.get("replacement") or "")
+    reason = str(payload.get("reason") or "User applied patch from Coding Workspace")
+
+    if not file_path or not target:
+        raise HTTPException(status_code=400, detail="file_path and target snippet are required.")
+
+    from axen.coding.coding_service import CodingService
+    service = CodingService.get_instance()
+    res = service.apply_patch(file_path, target, replacement, reason=reason)
+    return {"status": "ok" if res.get("success") else "error", "result": res}
+
+
+@app.post("/api/coding/undo")
+def undo_coding_file(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Rollback a modified file to backup or git head."""
+    file_path = str(payload.get("file_path") or "").strip()
+    if not file_path:
+        raise HTTPException(status_code=400, detail="file_path is required.")
+
+    from axen.coding.coding_service import CodingService
+    service = CodingService.get_instance()
+    res = service.rollback_file(file_path)
+    return {"status": "ok" if res.get("success") else "error", "result": res}
+
+
+@app.post("/api/coding/test")
+def run_coding_tests(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Run tests in the workspace and return parsed diagnostics."""
+    target = (payload or {}).get("target")
+    from axen.coding.coding_service import CodingService
+    service = CodingService.get_instance()
+    res = service.run_tests(target=target)
+    return {"status": "ok", "test_run": res}
+
+
+@app.post("/api/coding/chat")
+def run_coding_chat_task(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Execute a coding task using Think Engine 2.0 modes (FAST, BALANCED, DEEP).
+    """
+    message = str(payload.get("message") or payload.get("goal") or "").strip()
+    if not message:
+        raise HTTPException(status_code=400, detail="Message/goal is required.")
+
+    think_mode = str(payload.get("think_mode") or payload.get("mode") or "balanced").strip()
+    from axen.coding.coding_service import CodingService
+    service = CodingService.get_instance()
+
+    events: List[Dict[str, Any]] = []
+
+    def _state_cb(state: str, text: str, meta: Optional[Dict[str, Any]] = None):
+        events.append({"state": state, "text": text, "meta": meta or {}})
+
+    res = service.execute_task(message, think_mode=think_mode, state_callback=_state_cb)
+    return {"status": "ok", "task_result": res, "timeline": events}
+
+
 
 

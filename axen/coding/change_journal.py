@@ -46,8 +46,13 @@ class ChangeJournal:
         status: str = "applied",
         tests_run: Optional[List[str]] = None,
         verified: bool = False,
+        original_content: Optional[str] = None,
     ) -> ChangeRecord:
         """Add a change record to the journal."""
+        details = {}
+        if original_content is not None:
+            details["original_content"] = original_content
+
         rec = ChangeRecord(
             file_path=file_path,
             operation=operation,
@@ -56,9 +61,18 @@ class ChangeJournal:
             status=status,
             tests_run=tests_run or [],
             verified=verified,
+            details=details,
         )
         self.records.append(rec)
         return rec
+
+    def get_latest_original_content(self, file_path: str) -> Optional[str]:
+        """Retrieve original content for a file from the most recent change record."""
+        clean = file_path.replace("\\", "/").strip("/")
+        for rec in reversed(self.records):
+            if rec.file_path.replace("\\", "/").strip("/") == clean and "original_content" in rec.details:
+                return rec.details["original_content"]
+        return None
 
     def mark_verified(self, file_path: str, tests_passed: Optional[List[str]] = None) -> None:
         """Mark the most recent change to a file as verified."""
