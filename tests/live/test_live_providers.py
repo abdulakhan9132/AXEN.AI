@@ -6,8 +6,9 @@ import json
 from typing import Any
 from pathlib import Path
 
-# Setup paths
-sys.path.insert(0, str(Path(__file__).parent.resolve()))
+ROOT = Path(__file__).resolve().parent.parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 # Set env var before importing router to use the installed model
 os.environ["CODING_MODEL"] = "qwen2.5:1.5b"

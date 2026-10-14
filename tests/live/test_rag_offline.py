@@ -4,8 +4,9 @@ import subprocess
 import time
 from pathlib import Path
 
-# Add project root to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+ROOT = Path(__file__).resolve().parent.parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from knowledge.embeddings import LocalEmbeddingProvider
 from knowledge.ingest import ingest

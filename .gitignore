@@ -4,6 +4,8 @@ __pycache__/
 .env
 *.sqlite3
 *.db
+*.db-shm
+*.db-wal
 .coverage
 .pytest_cache/
 .idea/
